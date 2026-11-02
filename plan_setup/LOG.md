@@ -465,3 +465,16 @@
 - 04-02 커밋 3ae0dbc(워커 ctx_3115f6466ce2) 병합
   - 충돌: hr/routes.ts·seed.ts에서 04-01과 줄 단위로 겹쳤다. 양쪽을 모두 살렸다.
   - 게이트는 백그라운드에서 실행 중이다.
+
+## 2026-11-03 01:50 03-10·04-04 통합
+- 04-02 병합 뒤 게이트: lint PASS, unit 652건, e2e 194건
+- main.test 기동 대기를 45초로 늘렸다(04-04가 부하 간헐 실패를 보고).
+- 03-10 커밋 04c2e71(워커 ctx_c3095fb1abb7)을 충돌 없이 병합했다.
+  - 대시보드 6개 기준을 자체 확인했다.
+  - perf: 1배 p95 16ms, 10배 p95 102.8ms
+  - DemoBadge를 연결하고 e2e 기대값을 더 엄격하게 고쳤다.
+- 04-04 커밋 e2736b5(워커 ctx_c71e616d2bae) 병합
+  - 충돌: admin/demo.test.ts 1건. 04-03의 equipment 줄 제거와 04-04의 expense_categories IF NOT EXISTS를 둘 다 반영했다. 해당 테스트 6건 PASS
+  - stub 스크린샷을 /inventory/receipt로 옮겼다.
+- 게이트는 백그라운드에서 실행 중이다.
+- 남은 변경 요청: 공용 components.css의 .c1~.c6 fill이 DonutChart 호를 채우는 문제(04-04가 지역적으로 보정함) → 05-03 공용 정리
