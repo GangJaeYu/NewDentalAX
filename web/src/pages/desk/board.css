@@ -1,0 +1,25 @@
+/* 이 파일이 하는 일: 공지·인수인계 화면(/desk/board, /desk/board/:id)의 모양. 글 제목 줄(고정·새 글 칩), 상세 본문, 읽은/안 읽은 사람 목록 칸.
+   색은 tokens.css 변수만 쓴다. 넓은 화면은 본문 + 오른쪽 읽음 칸 2열, 1100px 이하는 1열로 쌓는다. */
+
+.post-title { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 180px; max-width: 560px; padding: 8px 0; }
+@media (max-width: 720px) { .post-title { max-width: 240px; } }
+.post-title b { font-weight: 600; overflow-wrap: anywhere; }
+.post-title small { width: 100%; color: var(--muted); font-size: var(--fs-xs); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
+
+.post-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--gap); align-items: start; }
+@media (max-width: 1100px) { .post-layout { grid-template-columns: minmax(0, 1fr); } }
+
+.post-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; color: var(--muted); font-size: var(--fs-small); margin-bottom: 14px; }
+.post-meta .who { color: var(--fg); font-weight: 600; }
+.post-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; margin: 0; }
+.post-body.empty { color: var(--muted); }
+
+.readers h3 { font-size: var(--fs-small); margin: 14px 0 6px; color: var(--muted); font-weight: 700; }
+.readers h3:first-child { margin-top: 0; }
+.readers .list li { min-height: 34px; }
+.readers .list .when { color: var(--muted); font-size: var(--fs-xs); white-space: nowrap; }
+.readers .none { color: var(--muted); font-size: var(--fs-small); margin: 0; }
+
+.post-form { display: grid; gap: 12px; }
+.post-form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .post-form .row2 { grid-template-columns: 1fr; } }
