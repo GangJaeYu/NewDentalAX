@@ -9,10 +9,13 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git 저장소는 01-01에서 만든다)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-  - phase-01-task-01(in_progress, task_validation 대기)
-    - 구현: 병합 1b905f1, main 게이트 재확인 PASS. 구현 워커는 해제했고 작업 사본도 삭제했다.
-    - 검증 워커: dispatch `ctx_641dd1b22d58`, 작업 사본 `.../phase-01-task-01-validation-worker`, 대상 main@dff7b0a, 검증 슬롯 0
-- elapsed: 약 0.5h(19:25 기준)
+- phase-01-task-01(failed → 수정 중, 시도 2)
+    - 수정 워커 `ctx_cea84a1662b8`, 슬롯 0, 작업 사본 `.../phase-01-task-01-worker`, 기준 main@e9573f8
+    - 시도 1의 검증 FAIL(AC3, start.bat 코드 페이지 문제)
+    - 수정 뒤에는 새 검증 워커가 판정한다
+  - phase-01-task-02(in_progress)
+    - 구현 워커 `ctx_e72706fe9123`, 슬롯 1, 작업 사본 `.../phase-01-task-02-worker`
+    - 01-01보다 먼저 시작했다. completed 판정은 01-01이 completed가 된 뒤에만 한다.
 - **미반영 결과**: 없음
 - **마지막 검증**: 계획 구조 자동 검사 통과(PLAN.md §4). 제품 게이트는 아직 실행하지 않았다.
 
@@ -31,7 +34,7 @@
   - `loop_started_at: 2026-11-02T18:55:20+09:00`
   - `deadline: 2026-11-03T18:55:20+09:00`
   - 신규 대형 태스크 시작 마감: 2026-11-03T17:55+09:00
-- elapsed: 0h (전환마다 갱신)
+- elapsed: 0.6h (19시 32분 20초 기준)
 - 누적 재시도: 0
 
 ## 미결·차단
