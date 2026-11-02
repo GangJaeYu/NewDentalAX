@@ -1,10 +1,10 @@
 // 이 파일이 하는 일: 발주서 API(backend.md §3.5, FR-054)를 등록한다. 경로 앞에는 '/api'가 붙는다.
 // 초안 만들기·목록·상세·수정·발주함·취소·입고 처리다. 모두 실장 이상(cap orders.manage)이고, 권한은 주소별 권한 표(server/auth/api-permissions.ts)가 막는다.
-// 입력은 모두 zod로 검사한다. "지출로도 기록"(alsoExpense)은 지출 테이블이 생기기 전이라 받지 않는다(보내면 400).
+// 입력은 모두 zod로 검사한다. 입고 처리의 "지출로도 기록"(alsoExpense)은 지출 권한(expenses.manage)도 있어야 한다(phase-04-task-04).
 // inventory 모듈 플러그인(routes.ts)이 이 파일을 함께 등록한다.
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { auditCtx } from '../../auth/guard.ts';
+import { assertCan, auditCtx } from '../../auth/guard.ts';
 import { parseInput } from '../../security/validate.ts';
 import { ORDER_STATUSES, orderPatchSchema, orderReceiveSchema } from '../../../shared/schemas/orders.ts';
 import { cancelOrder, createDrafts, getOrder, listOrders, placeOrder, receiveOrder, updateOrder } from './orders.service.ts';
@@ -56,6 +56,8 @@ export default async function orderRoutes(app: FastifyInstance): Promise<void> {
   // 입고 처리(발주함 → 입고 완료): 줄마다 입고 기록, 한 트랜잭션
   app.post('/orders/:id/receive', async (req) => {
     const { id } = parseInput(idParam, req.params);
-    return { data: receiveOrder(auditCtx(req), id, parseInput(orderReceiveSchema, req.body)) };
+    const body = parseInput(orderReceiveSchema, req.body);
+    if (body.alsoExpense) assertCan(req, 'expenses.manage');
+    return { data: receiveOrder(auditCtx(req), id, body) };
   });
 }

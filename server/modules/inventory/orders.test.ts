@@ -320,8 +320,8 @@ describe('입고 처리', () => {
     const allZero = await call(env, env.manager, 'POST', `/api/orders/${id}/receive`, { lines: [{ itemId: glove.id, qty: 0 }] });
     expect(allZero.status).toBe(400);
     expect(allZero.body.error?.fields?.lines).toBe('들어온 수량을 한 품목 이상 적어 주세요.');
-    // 지출 동시 기록은 아직 받지 않는다(지출 테이블 준비 전)
-    expect((await call(env, env.manager, 'POST', `/api/orders/${id}/receive`, { lines: [{ itemId: glove.id, qty: 1 }], alsoExpense: { categoryId: 1, payMethod: 'card' } })).status).toBe(400);
+    // 지출 동시 기록(phase-04-task-04)의 입력이 틀리면 400이고 아무것도 기록하지 않는다
+    expect((await call(env, env.manager, 'POST', `/api/orders/${id}/receive`, { lines: [{ itemId: glove.id, qty: 1 }], alsoExpense: { payMethod: 'coupon' } })).status).toBe(400);
 
     // 두 번째 품목이 "사용 안 함"이면 첫 품목 입고도 함께 되돌린다
     expect((await call(env, env.manager, 'DELETE', `/api/items/${tip.id}`)).status).toBe(200);

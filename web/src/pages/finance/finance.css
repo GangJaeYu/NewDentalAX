@@ -1,0 +1,54 @@
+/* 이 파일이 하는 일: 지출 기록·월간 요약 화면(/finance/*)만 쓰는 모양(달 고르기, 입력 칸 배치, 분류 편집 줄, 도넛+표 나란히, AI 요약 결과).
+   색은 토큰(var(--…))만 쓰고, 좁은 화면(720px 이하)에서는 한 줄로 쌓아 가로 스크롤이 생기지 않게 한다. */
+.fin-month-nav { display: inline-flex; gap: 6px; align-items: center; }
+.fin-month-nav b { min-width: 92px; text-align: center; }
+
+.fin-filter { min-width: 180px; }
+.fin-cat { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.fin-memo { display: inline-block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+
+.fin-form { display: grid; gap: 12px; }
+.fin-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fin-label { font-weight: 600; font-size: var(--fs-small); }
+.fin-file { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-md); }
+.fin-file a { color: var(--accent); font-weight: 600; word-break: break-all; }
+
+.fin-cat-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.fin-cat-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end; }
+.fin-cat-list .checkline { margin-bottom: 9px; }
+.fin-cat-tools { display: inline-flex; gap: 2px; }
+.fin-up svg { transform: rotate(180deg); }
+
+.fin-split { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
+.fin-note { margin: 8px 0 0; font-size: var(--fs-small); }
+
+.fin-ai { display: grid; gap: 10px; }
+.fin-ai > p { margin: 0; }
+.fin-ai-result { display: grid; gap: 8px; padding: 12px; border-radius: var(--r-md); background: var(--surface-2); }
+.fin-ai-result p { margin: 0; }
+.fin-ai-meta { display: flex; gap: 8px; align-items: center; }
+.fin-ai-text { white-space: pre-wrap; line-height: 1.6; color: var(--fg); }
+.fin-sent summary { cursor: pointer; font-size: var(--fs-small); color: var(--muted); }
+.fin-sent ul { margin: 6px 0 0; padding-left: 18px; font-size: var(--fs-small); display: grid; gap: 2px; }
+
+@media (max-width: 720px) {
+  .fin-form-row { grid-template-columns: 1fr; }
+  .fin-split { grid-template-columns: 1fr; }
+  .fin-memo { max-width: 160px; }
+  .fin-month-nav b { min-width: 76px; }
+}
+
+/* 요약 숫자 4칸(넓은 화면 4열 → 휴대폰 2열) */
+.fin-kpis .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 720px) { .fin-kpis .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* 12개월 막대 그래프는 높이를 고정해 넓은 카드에서도 글자·막대가 지나치게 커지지 않게 한다(가운데 맞춤) */
+.fin-trend .chart { height: 200px; }
+@media (max-width: 720px) { .fin-trend .chart { height: auto; } }
+.fin-rank { white-space: nowrap; }
+
+/* 도넛: 공용 색 class(.c1~.c6)가 fill도 칠해 호 안쪽이 채워지는 것을 막고(선만), 크기를 140px로 고정한다(휴대폰에서 100%로 커지지 않게).
+   공용 components.css 수정은 01-04 소유라 변경 요청으로 보고했다(phase-04-task-04) */
+.fin-split .chart { width: 140px; height: 140px; }
+.fin-split .chart path, .fin-split .chart circle { fill: none; }
+@media (max-width: 720px) { .fin-split .chart { margin: 0 auto; } }

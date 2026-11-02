@@ -2,7 +2,7 @@
 // ① 초안 만들기: 부족·곧 부족 품목을 기본 거래처별로 묶어 발주서(작성 중)를 만들고, 권장 수량 = 올림(적정 × 1.5 − 현재고), 단가 = 최근 입고 단가를 채운다.
 // ② 수정(작성 중일 때만) ③ 발주함(작성 중 → 발주함) ④ 취소 ⑤ 입고 처리(발주함 → 입고 완료): 품목마다 재고 입고 기록을 남긴다.
 // 입고 기록은 재고 service의 recordMove(입고 경로)를 그대로 써서 FEFO 로트·단가 이력 계산이 일반 입고와 같고, 모두 한 트랜잭션이다(하나라도 틀리면 전부 되돌림).
-// "지출로도 기록"(alsoExpense)은 지출 테이블(phase-04-task-04)이 생긴 뒤 연결한다. 지금은 받지 않는다. 상태를 바꾸는 함수는 모두 감사 로그를 남긴다.
+// "지출로도 기록"(alsoExpense, phase-04-task-04)을 고르면 입고 합계 금액·발주서 거래처·재료비 분류로 지출 1건을 같은 트랜잭션 안에서 남긴다(finance service). 상태를 바꾸는 함수는 모두 감사 로그를 남긴다.
 import type { Db } from '../../db/index.ts';
 import type { Clock } from '../../lib/clock.ts';
 import { AppError, validationError } from '../../lib/errors.ts';
@@ -23,6 +23,8 @@ import {
 } from '../../../shared/schemas/orders.ts';
 import { readInventorySettings } from './settings.ts';
 import { itemRow, listItems, recordMove } from './service.ts';
+import { checkOrderExpense, recordOrderExpense } from '../finance/service.ts';
+import type { ExpenseRow } from '../../../shared/schemas/finance.ts';
 
 /** purchase_orders 한 줄(+ 거래처·만든 사람 이름, 줄 합계) */
 interface OrderDb {
@@ -321,9 +323,10 @@ export function cancelOrder(ctx: AuditContext, id: number): OrderDetail {
 /**
  * 입고 처리(발주함 → 입고 완료, FR-054 AC3). 줄마다 재고 입고 기록(recordMove type 'in')을 남기고 그 기록에 발주서 번호(order_id)를 단다.
  * 단가를 비우면 발주서의 단가를 쓰고, 거래처는 발주서의 거래처다. 수량 0인 줄은 기록하지 않는다. 발주서에 없는 품목은 400.
- * 모두 한 트랜잭션이라, 중간에 하나라도 실패하면(예: 사용 안 함 품목) 아무것도 저장되지 않는다.
+ * alsoExpense가 있으면 기록한 줄의 수량 × 단가 합계(원, 반올림)를 지출 1건으로 남긴다(단가가 하나도 없으면 400).
+ * 모두 한 트랜잭션이라, 중간에 하나라도 실패하면(예: 사용 안 함 품목) 아무것도 저장되지 않는다(지출도 함께 되돌림).
  */
-export function receiveOrder(ctx: AuditContext, id: number, input: OrderReceiveInput): OrderDetail {
+export function receiveOrder(ctx: AuditContext, id: number, input: OrderReceiveInput): OrderDetail & { expense: ExpenseRow | null } {
   const { db, clock } = ctx;
   const o = getOrderDb(db, id);
   assertStatus(o, ['ordered'], '입고 처리할');
@@ -331,12 +334,17 @@ export function receiveOrder(ctx: AuditContext, id: number, input: OrderReceiveI
   input.lines.forEach((l, i) => {
     if (!poLines.has(l.itemId)) throw validationError({ [`lines.${i}.itemId`]: '이 발주서에 없는 품목이에요. 품목 입고는 입출고 기록 화면에서 해 주세요.' });
   });
+  // 지출 금액 = 기록할 줄의 수량 × 단가(단가가 없는 줄은 0원) 합계. 트랜잭션 전에 먼저 확인한다
+  const priceOf = (l: OrderReceiveInput['lines'][number]) => (l.unitPrice !== undefined ? l.unitPrice : (poLines.get(l.itemId) ?? null));
+  const expenseAmount = won(input.lines.reduce((sum, l) => sum + (l.qty > 0 ? l.qty * (priceOf(l) ?? 0) : 0), 0));
+  if (input.alsoExpense) checkOrderExpense(db, expenseAmount, input.alsoExpense);
   const now = clock.now().toISOString();
+  let expense: ExpenseRow | null = null;
   db.tx(() => {
     let count = 0;
     for (const l of input.lines) {
       if (!(l.qty > 0)) continue;
-      const unitPrice = l.unitPrice !== undefined ? l.unitPrice : (poLines.get(l.itemId) ?? null);
+      const unitPrice = priceOf(l);
       const r = recordMove(ctx, {
         itemId: l.itemId,
         type: 'in',
@@ -351,8 +359,9 @@ export function receiveOrder(ctx: AuditContext, id: number, input: OrderReceiveI
       count += 1;
     }
     db.run("UPDATE purchase_orders SET status = 'received', received_at = ?, updated_at = ? WHERE id = ?", [now, now, id]);
-    audit(ctx, 'order.receive', 'purchase_order', id, { poNo: o.po_no, moves: count });
+    if (input.alsoExpense) expense = recordOrderExpense(ctx, { orderId: id, poNo: o.po_no, vendorId: o.vendor_id, amount: expenseAmount, option: input.alsoExpense });
+    audit(ctx, 'order.receive', 'purchase_order', id, { poNo: o.po_no, moves: count, expenseId: expense?.id ?? null });
   });
-  return getOrder(db, clock, id);
+  return { ...getOrder(db, clock, id), expense };
 }
 
