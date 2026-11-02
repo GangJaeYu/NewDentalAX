@@ -10,6 +10,7 @@ import { chromium, type BrowserContext, type Page } from '@playwright/test';
 import { appDbPath, openDb } from '../server/db/index.ts';
 import { fixedClock } from '../server/lib/clock.ts';
 import { emitNotification } from '../server/modules/notifications/emit.ts';
+import { seedDemo as seedDeskDemo } from '../server/modules/desk/seed.ts';
 
 const ROOT = process.cwd();
 const PORT = Number(process.env.E2E_PORT || 18090);
@@ -45,7 +46,29 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   // phase-02-task-05: 백업·복원, 데모 데이터 초기화
   { name: 'admin-backup', url: '/admin/backup', state: 'user', ready: '보관할 백업 개수' },
   { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '업무 데이터 비어 있음' },
+  // phase-03-task-04: 공지·인수인계, 오픈·마감 체크리스트, 체크리스트 인쇄(데스크 데모 데이터를 한 번 넣고 다시 그린다)
+  { name: 'desk-board', url: '/desk/board', state: 'user', ready: '공지·인수인계', action: (page) => withDeskDemo(page, '11월 원내 감염관리 교육 일정 안내') },
+  { name: 'desk-board-detail', url: '/desk/board/1', state: 'user', ready: '공지·인수인계', action: (page) => withDeskDemo(page, '읽은 사람 1명') },
+  { name: 'desk-checklist', url: '/desk/checklist', state: 'user', ready: '오픈·마감 체크리스트', action: (page) => withDeskDemo(page, '출입문·대기실 조명 켜기') },
+  { name: 'desk-checklist-past', url: '/desk/checklist?date=2026-11-01', state: 'user', ready: '오픈·마감 체크리스트', action: (page) => withDeskDemo(page, '조회만 할 수 있어요') },
+  { name: 'print-checklist', url: '/print/checklist/open/2026-11-01', state: 'user', ready: '체크리스트', action: (page) => withDeskDemo(page, '확인자') },
 ];
+
+/** phase-03-task-04: 데스크 데모 데이터(공지·인수인계·체크리스트)를 처음 한 번만 서버 DB에 넣고, 화면을 다시 그려 waitText가 보일 때까지 기다린다 */
+let deskSeeded = false;
+async function withDeskDemo(page: Page, waitText: string): Promise<void> {
+  if (!deskSeeded) {
+    const db = openDb(appDbPath(DATA_DIR));
+    try {
+      seedDeskDemo(db, { clock: fixedClock(process.env.TEST_NOW || '2026-11-02T09:00:00+09:00'), scale: 1 });
+    } finally {
+      db.close();
+    }
+    deskSeeded = true;
+  }
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.getByText(waitText).first().waitFor({ timeout: 10000 });
+}
 
 /** 스크린샷용 예시 알림(관리자가 받는 것): 읽지 않음 4건 + 읽음 1건 */
 function seedNotifications(dataDir: string): void {

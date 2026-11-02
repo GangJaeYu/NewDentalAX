@@ -1,0 +1,42 @@
+/* 이 파일이 하는 일: 오픈·마감 체크리스트 화면(/desk/checklist)과 체크리스트 인쇄 화면(/print/checklist/:kind/:date)의 모양.
+   체크 줄(체크 상자·항목·담당 칩·체크한 사람과 시각), 날짜 이동 줄, 항목 편집 줄(순서 올리기·내리기), 인쇄 표. 색은 tokens.css 변수만 쓴다. */
+
+.ck-date { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ck-date input[type="date"] { min-height: 36px; height: 36px; width: auto; }
+.ck-progress { display: grid; gap: 6px; padding: 14px var(--pad) 4px; }
+.ck-progress .label { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-small); color: var(--muted); font-weight: 600; }
+.ck-progress .label b { color: var(--fg); }
+.ck-note { margin: 12px var(--pad) 0; }
+
+.ck-list { list-style: none; margin: 0; padding: 4px var(--pad) 12px; }
+.ck-list li { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.ck-list li:first-child { border-top: 0; }
+.ck-list .checkline { flex: 1 1 260px; min-width: 0; align-items: center; }
+.ck-list .checkline input { margin: 0; }
+.ck-list .checkline input:disabled { cursor: default; }
+.ck-list .checkline span { overflow-wrap: anywhere; }
+.ck-list li.done .checkline span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+.ck-list .by { display: flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); font-size: var(--fs-small); white-space: nowrap; }
+.ck-list .by b { color: var(--fg); font-weight: 600; }
+
+.ck-edit { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ck-edit li { display: grid; grid-template-columns: 28px minmax(0, 1fr) 140px auto; gap: 8px; align-items: center; }
+.ck-edit .no { color: var(--muted); font-size: var(--fs-small); text-align: right; }
+.ck-edit .moves { display: flex; gap: 4px; }
+@media (max-width: 640px) {
+  .ck-edit li { grid-template-columns: 24px minmax(0, 1fr); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .ck-edit li > select, .ck-edit .moves { grid-column: 2; }
+}
+
+.ck-print { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ck-print th, .ck-print td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.ck-print th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+.ck-print td.c { text-align: center; white-space: nowrap; }
+.ck-print td.n { width: 36px; text-align: right; color: var(--muted); }
+@media (max-width: 520px) { .ck-print th, .ck-print td { padding: 6px; } .ck-print th { white-space: normal; } }
+.ck-print-sum { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+@media print {
+  .ck-print th { background: #EDF2F2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ck-print th, .ck-print td { border-color: #8A9998 !important; color: #142120 !important; }
+  .paper .tablewrap { overflow: visible; }
+}
