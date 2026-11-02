@@ -1,6 +1,6 @@
 ---
 id: phase-02-task-03
-status: in_progress
+status: completed
 phase: "02"
 title: "AI 관리 화면·AI 공용 화면 부품"
 depends_on: [phase-02-task-02, phase-01-task-04]
