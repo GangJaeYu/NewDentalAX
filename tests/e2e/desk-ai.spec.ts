@@ -1,6 +1,7 @@
 // 이 파일이 하는 일: 데스크 AI 화면 E2E(phase-03-task-05 AC1~AC5, FR-042~044). 이 파일 전용 격리 서버(키 없음 = 데모 공급자)에서
 // 병원 정보 저장 → 스크립트 결과에 "토요일 9:30~14:00" 반영·보관함 저장/검색, 리뷰 속 전화번호 가림 안내, 말투별 답글 초안 2개 이상·복사·저장·진료 사실 경고,
 // 템플릿 {진료시간} 치환 미리보기·90바이트 초과 "장문" 표시, 치환자 목록에 환자 이름 없음을 실제 브라우저로 확인한다. 화면마다 접근성(axe)과 가로 스크롤도 본다.
+// 리뷰 답글 초안마다 붙은 "광고 문구 점검" 버튼(phase-04-task-06 AC4 리뷰 답글, phase-04-task-07이 연결)과 데모 답글 조사도 본다.
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
 import { noHorizontalScroll, signIn, watchErrors } from './docs-helpers.ts';
@@ -95,8 +96,47 @@ test.describe.serial('데스크 AI(스크립트·리뷰 답글·템플릿)', () 
       await expect(box).not.toHaveValue(/5678/);
       await expect(box).toHaveValue(/죄송|사과/);
     }
-    // 의료광고 점검은 아직 연결 전이라 안내만 보인다
-    await expect(page.getByTestId('adcheck-note')).toContainText('자동 점검 기능이 아직 연결되지 않아 안내만 드려요');
+    // 의료광고 점검은 초안마다 버튼으로 연결됐다(phase-04-task-07, 04-06 후속)
+    await expect(page.getByTestId('adcheck-note')).toContainText('초안마다 “광고 문구 점검”을 눌러');
+    await expect(drafts.getByRole('button', { name: '광고 문구 점검' })).toHaveCount(3);
+    expect(errors).toEqual([]);
+  });
+
+  test('phase-04-task-06 AC4 리뷰 답글: 답글 초안마다 "광고 문구 점검" 버튼이 있고, 고친 답글을 점검하면 그 초안 아래에 결과와 고지가 보인다', async ({ page }) => {
+    const errors = watchErrors(page);
+    await signIn(page);
+    await page.goto('/desk/review');
+    const panel = page.getByTestId('ai-panel-review_reply');
+    await panel.getByLabel('리뷰 내용').fill('직원분들이 친절했어요.');
+    await panel.getByRole('button', { name: '답글 초안 만들기' }).click();
+    const drafts = page.getByTestId('reply-draft');
+    await expect(drafts).toHaveCount(3, { timeout: 15000 });
+    for (const d of await drafts.all()) await expect(d.getByRole('button', { name: '광고 문구 점검' })).toBeVisible();
+
+    // 데모 답글 문구는 받침에 맞는 조사를 쓴다(03-05 검증 참고 후속)
+    const warm = await drafts.nth(1).getByRole('textbox').inputValue();
+    expect(warm).toContain('직원 응대를 좋게 봐 주셔서');
+    expect(warm).toContain('편안한 하늘숲치과가 되도록');
+    expect(warm).not.toMatch(/을\(를\)|치과이 /);
+
+    // 두 번째 초안에 광고 위험 표현을 넣고 점검한다
+    const second = drafts.nth(1);
+    await second.getByRole('textbox').fill(`${warm} 국내 최고 임플란트를 지금 50% 할인해 드려요.`);
+    await second.getByRole('button', { name: '광고 문구 점검' }).click();
+    const result = second.getByTestId('adcheck-result');
+    await expect(result).toBeVisible({ timeout: 15000 });
+    await expect(result.getByTestId('adcheck-hit').filter({ hasText: '“국내 최고”' })).toBeVisible();
+    await expect(result.getByTestId('adcheck-hit').filter({ hasText: '“50% 할인”' })).toBeVisible();
+    await expect(second.getByTestId('adcheck-notice')).toContainText('법률 자문이 아니며');
+    // 다른 초안에는 결과가 붙지 않는다
+    await expect(drafts.nth(0).getByTestId('adcheck-result')).toHaveCount(0);
+    // 글을 고치면 다시 점검하라고 알려 준다
+    await second.getByRole('textbox').fill(warm);
+    await expect(second.getByText('글이 바뀌었어요. 다시 점검해 주세요.')).toBeVisible();
+    await second.getByRole('button', { name: '광고 문구 점검 다시 하기' }).click();
+    await expect(result.getByText('규칙에 걸린 표현 없음')).toBeVisible({ timeout: 15000 });
+    const r = await new AxeBuilder({ page }).analyze();
+    expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
     expect(errors).toEqual([]);
   });
 

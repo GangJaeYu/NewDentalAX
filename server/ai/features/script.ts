@@ -1,8 +1,10 @@
 // 이 파일이 하는 일: AI 기능 "전화 응대 스크립트"(backend.md §4 script, FR-042)의 입력 검사·프롬프트·데모 응답.
 // 입력 {situation, tone?, extra?}에 서버가 병원 정보(진료시간·점심시간·휴진·주차·위치·보험 안내)를 채워 보낸다(FR-042 AC1). 응답은 그냥 글이다.
 // 데모 응답도 병원 정보를 실제 값으로 넣는다(예: 토요일 9:30~14:00). 병원 정보에 진료시간이 아직 없으면 병원 정보 화면의 기본값을 쓴다.
+// 대표번호 뒤 조사는 번호 끝자리 소리에 맞춘다(shared/josa.ts: 0100 → "으로", 4567 → "로").
 import { z } from 'zod';
 import { clinicFacts, situationKind, type ClinicFacts } from '../../../shared/desk-texts.ts';
+import { withJosa } from '../../../shared/josa.ts';
 import { baseSystem, DEMO_MARK, optionalText, snippet, textField, type AiFeatureModule, type PromptContext } from './types.ts';
 
 const inputSchema = z.object({
@@ -64,7 +66,7 @@ export function demoScript(input: ScriptInput, ctx: PromptContext): string {
       .map((l) => `직원: ${l}`),
   ];
   if (input.extra) lines.push(`직원: 덧붙여 안내드리면, ${snippet(input.extra, 80)}`);
-  lines.push(`직원: ${f.phone ? `다른 문의는 대표번호 ${f.phone}로 연락 주세요. ` : ''}${t.bye}`);
+  lines.push(`직원: ${f.phone ? `다른 문의는 대표번호 ${withJosa(f.phone, '으로/로')} 연락 주세요. ` : ''}${t.bye}`);
   return lines.join('\n');
 }
 

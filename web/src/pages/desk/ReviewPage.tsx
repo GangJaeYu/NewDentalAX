@@ -1,8 +1,9 @@
 // 이 파일이 하는 일: "리뷰 답글 초안" 화면(/desk/review, FR-043). 리뷰를 붙여 넣고 말투를 2~3개 고르면 AI(review_reply)가 말투별 답글 초안을 만든다(AC1).
 // 리뷰 속 전화번호 등은 개인정보 필터가 가린 뒤 보내고, 가린 사실을 결과 아래에 안내한다(AiPanel). 초안은 고쳐 쓰고, 복사하거나 보관함에 저장한다.
 // 답글에 진료 사실을 확인해 주는 표현(치료 받으신·내원·치료 이름·진료 기록)이 있으면 초안마다 경고한다(AC2, shared/desk-texts.ts 규칙).
-// 의료광고 점검(FR-120)은 아직 연결 전이라 점검 안내만 보여 준다(AC2).
+// 초안마다 "광고 문구 점검" 버튼(AdCheckButton, FR-120 phase-04-task-06)을 붙여, 누르면 고친 답글을 규칙 + AI 2차로 점검해 결과를 바로 아래에 보여 준다.
 import { useState } from 'react';
+import { AdCheckButton } from '../../components/AdCheckResult.tsx';
 import { AiPanel } from '../../components/AiPanel.tsx';
 import { Button } from '../../components/Button.tsx';
 import { Card, PageHeader } from '../../components/Card.tsx';
@@ -93,6 +94,7 @@ function ReplyDraft({ tone, initial, index, shared }: { tone: string; initial: s
           {saved ? '저장했어요' : '보관함에 저장'}
         </Button>
       </div>
+      <AdCheckButton text={text} />
     </li>
   );
 }
@@ -150,8 +152,7 @@ export default function ReviewPage() {
             <div className="adcheck-note" role="note" data-testid="adcheck-note">
               <Icon name="shield" size="md" />
               <span>
-                <b>의료광고 점검 안내</b> · 자동 점검 기능이 아직 연결되지 않아 안내만 드려요. 올리기 전에 치료 효과를 장담하거나, 다른 병원과 비교하거나, 할인을 강조하는 표현이 없는지
-                확인해 주세요.
+                <b>의료광고 점검</b> · 올리기 전에 초안마다 “광고 문구 점검”을 눌러 치료 효과 장담·다른 병원과 비교·할인 강조 표현이 없는지 확인해 주세요.
               </span>
             </div>
           </div>
