@@ -1,24 +1,27 @@
 // 이 파일이 하는 일: Fastify 서버 인스턴스를 만든다(buildApp). 준비 상태 확인 API(GET /api/health)와
 // 빌드된 화면 파일(web/dist) 제공, 화면 주소를 모두 index.html로 돌려주는 SPA 폴백을 담당한다.
-// 테스트는 deps(시계·데이터 폴더·화면 폴더·DB 점검 함수)를 바꿔 끼워 실제 서버 없이 inject로 확인한다.
+// 테스트는 deps(시계·데이터 폴더·화면 폴더·DB·DB 점검 함수)를 바꿔 끼워 실제 서버 없이 inject로 확인한다.
+// DB를 넣지 않으면 dataDir/app.db를 직접 열어 마이그레이션까지 적용하고, 서버를 닫을 때 함께 닫는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
+import { systemClock, type Clock } from './lib/clock.ts';
+import { toErrorResponse } from './lib/errors.ts';
+import type { Db } from './db/index.ts';
+import { makeDbCheck, openAppDb } from './db/migrate.ts';
 
-/** "지금 시각"을 알려 주는 시계. 테스트는 고정 시계를 넣는다(TD-020) */
-export interface Clock {
-  now(): Date;
-}
+// 시계는 server/lib/clock.ts에 있다. 예전 import 경로(./app.ts)도 계속 쓸 수 있게 다시 내보낸다.
+export { fixedClock, systemClock, type Clock } from './lib/clock.ts';
 
-/** 실제 시계 */
-export const systemClock: Clock = { now: () => new Date() };
-
-/** 정해진 시각에 멈춘 시계(테스트·E2E 전용) */
-export function fixedClock(iso: string): Clock {
-  const t = new Date(iso).getTime();
-  return { now: () => new Date(t) };
+declare module 'fastify' {
+  interface FastifyInstance {
+    /** 이 서버가 쓰는 DB(server/db/index.ts 래퍼) */
+    db: Db;
+    /** 이 서버가 쓰는 시계 */
+    clock: Clock;
+  }
 }
 
 /** DB 상태 점검 결과 */
@@ -34,7 +37,9 @@ export interface AppDeps {
   webDist?: string;
   /** 화면에 보여 줄 앱 버전(기본: package.json의 version) */
   version?: string;
-  /** DB 연결 점검 함수. phase-01-task-02가 실제 DB 연결 점검으로 바꿔 끼운다 */
+  /** 이미 열어 마이그레이션한 DB(main.ts가 넣는다). 없으면 dataDir/app.db를 직접 연다 */
+  db?: Db;
+  /** DB 점검 함수(기본: 실제 DB가 응답하고 스키마가 최신인지 확인). 테스트가 실패 상황을 흉내 낼 때 바꿔 끼운다 */
   checkDb?: () => DbStatus;
   /** Fastify 요청 로그를 켤지(기본 꺼짐) */
   logger?: boolean;
@@ -50,22 +55,6 @@ export function readVersion(): string {
     return pkg.version ?? '0.0.0';
   } catch {
     return '0.0.0';
-  }
-}
-
-/**
- * 기본 DB 점검: Node 내장 SQLite가 이 PC에서 동작하는지 확인한다.
- * 실제 data/app.db 연결 점검은 DB 래퍼를 만드는 phase-01-task-02가 checkDb로 넣는다.
- */
-async function defaultCheckDb(): Promise<() => DbStatus> {
-  try {
-    const { DatabaseSync } = await import('node:sqlite');
-    const db = new DatabaseSync(':memory:');
-    const ok = (db.prepare('select 1 as v').get() as { v: number } | undefined)?.v === 1;
-    db.close();
-    return () => (ok ? 'ok' : 'error');
-  } catch {
-    return () => 'error';
   }
 }
 
@@ -87,9 +76,23 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const clock = deps.clock ?? systemClock;
   const webDist = deps.webDist ?? DEFAULT_WEB_DIST;
   const version = deps.version ?? readVersion();
-  const checkDb = deps.checkDb ?? (await defaultCheckDb());
+  // DB: 넣어 준 것을 쓰거나, 직접 열어(마이그레이션 포함) 서버를 닫을 때 함께 닫는다
+  const ownDb = !deps.db;
+  const db = deps.db ?? openAppDb(deps.dataDir, { clock }).db;
+  const dbOk = makeDbCheck(db);
+  const checkDb = deps.checkDb ?? ((): DbStatus => (dbOk() ? 'ok' : 'error'));
 
   const app = Fastify({ logger: deps.logger ?? false });
+  app.decorate('db', db);
+  app.decorate('clock', clock);
+  if (ownDb) app.addHook('onClose', async () => db.close());
+
+  // 오류 응답을 한 형식으로: { error: { code, message(한국어), fields? } } (lib/errors.ts)
+  app.setErrorHandler((err, req, reply) => {
+    const { status, body } = toErrorResponse(err);
+    if (status >= 500) req.log.error(err);
+    return reply.code(status).send(body);
+  });
 
   // 준비 상태 확인: 포트가 열린 것만이 아니라 DB까지 응답해야 ok:true(HARNESS §2)
   app.get('/api/health', async (_req, reply) => {
