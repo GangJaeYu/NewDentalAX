@@ -159,7 +159,7 @@ function KeyRow({ provider, state, current }: { provider: RealProvider; state: {
         ) : null}
       </div>
       <div className="keyform">
-        <Field label={`${name} API 키`} error={error} help={state.saved ? '새 키를 넣고 저장하면 바꿔요. 저장한 키는 다시 볼 수 없어요.' : '공급자 화면에서 복사한 키를 붙여 넣으세요.'}>
+        <Field label={`${name} API 키`} error={error}>
           <PasswordInput value={value} autoComplete="new-password" spellCheck={false} placeholder="새 키 붙여 넣기" onChange={(e) => setValue(e.target.value)} />
         </Field>
         <Button icon="key" loading={busy === 'save'} onClick={saveKey}>
@@ -176,6 +176,7 @@ function KeyRow({ provider, state, current }: { provider: RealProvider; state: {
           </>
         ) : null}
       </div>
+      <span className="keynote">{state.saved ? '새 키를 넣고 저장하면 바꿔요. 저장한 키는 다시 볼 수 없어요.' : '공급자 화면에서 복사한 키를 붙여 넣으세요.'}</span>
       {test ? (
         <div className={test.ok ? 'ai-note' : 'pii'} role="status">
           <span>{test.message}</span>

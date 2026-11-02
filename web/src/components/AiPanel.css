@@ -48,6 +48,7 @@
 .keyrow .keyhead b { font-weight: 700; }
 .keyrow .keyform { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
 .keyrow .keyform .field { flex: 1 1 220px; }
+.keyrow .keynote { font-size: var(--fs-xs); color: var(--muted); }
 .masked { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; letter-spacing: .02em; }
 .table input.cell, .table select.cell { height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); color: var(--fg); font: inherit; font-size: 13px; min-width: 0; }
 .table input.cell:focus, .table select.cell:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); outline: none; }
