@@ -1,6 +1,6 @@
 ---
 id: phase-01-task-05
-status: pending
+status: in_progress
 phase: "01"
 title: "사용자 관리·병원 정보·활동 기록 화면"
 depends_on: [phase-01-task-04]
