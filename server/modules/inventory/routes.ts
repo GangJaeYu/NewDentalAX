@@ -22,6 +22,7 @@ import {
   updateVendor,
 } from './service.ts';
 import './notify.ts';
+import orderRoutes from './orders.routes.ts';
 
 const idParam = z.object({ id: z.coerce.number({ error: '번호가 올바르지 않아요.' }).int().positive('번호가 올바르지 않아요.') });
 const pageFields = {
@@ -117,4 +118,7 @@ export default async function routes(app: FastifyInstance): Promise<void> {
     const { id } = parseInput(idParam, req.params);
     return { data: updateVendor(auditCtx(req), id, parseInput(vendorPatchSchema, req.body)) };
   });
+
+  // 발주서(phase-03-task-02, orders.routes.ts)
+  await orderRoutes(app);
 }

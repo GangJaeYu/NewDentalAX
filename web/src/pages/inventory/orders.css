@@ -1,0 +1,66 @@
+/* 이 파일이 하는 일: 발주서 화면(상세 편집·입고 처리 대화상자)과 발주서 인쇄 화면(A4 한 장)의 스타일.
+   색은 tokens.css 변수만 쓰고(밝은·어두운 테마 공통), 인쇄할 때는 흰 바탕·검은 글씨·회색 선으로 바꾼다. 좁은 화면에서는 입력란이 위아래로 쌓인다. */
+
+/* ── 상세 편집 ── */
+.po-form { display: grid; gap: 12px; padding: 0 var(--pad) var(--pad); min-width: 0; }
+.po-fields { display: grid; gap: 12px; grid-template-columns: minmax(180px, 280px) minmax(0, 1fr); align-items: start; }
+.po-item { display: grid; line-height: 1.35; padding: 6px 0; }
+.po-qty { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 6px 0; }
+.po-qty input { width: 96px; }
+.po-qty .err { flex-basis: 100%; font-size: var(--fs-xs); color: var(--danger); font-weight: 600; display: flex; gap: 4px; align-items: center; white-space: normal; }
+.po-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.po-foot .grow { flex: 1; }
+.po-sum { font-size: 13.5px; }
+.po-note { margin: 0 var(--pad) 12px; font-size: 13.5px; }
+.po-note b { margin-right: 6px; }
+.po-vendor { margin: 0; padding: 0 var(--pad) var(--pad); display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.po-vendor dt { font-size: var(--fs-xs); color: var(--muted); }
+.po-vendor dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* ── 입고 처리 ── */
+.po-receive { display: grid; gap: 12px; }
+.po-receive p { margin: 0; font-size: 13.5px; }
+.po-receive-line { border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px 12px; margin: 0; min-width: 0; }
+.po-receive-line legend { padding: 0 4px; font-size: 14px; }
+.po-receive-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); align-items: start; }
+
+@media (max-width: 720px) {
+  .po-fields { grid-template-columns: minmax(0, 1fr); }
+  .po-foot .grow { display: none; }
+  .po-sum { flex-basis: 100%; }
+}
+
+/* ── 인쇄 화면(A4) ── */
+.po-paper .doctitle { letter-spacing: .4em; font-size: 22px; }
+.po-mark { margin: -6px 0 12px; text-align: center; color: var(--danger); font-weight: 700; font-size: 13px; }
+.po-parties { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 14px; }
+.po-parties section { border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px; min-width: 0; }
+.po-parties h3 { margin: 0 0 6px; font-size: 13px; }
+.po-parties dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 10px; font-size: 13px; }
+.po-parties dt { color: var(--muted); }
+.po-parties dd { margin: 0; overflow-wrap: anywhere; }
+.po-lead { margin: 0 0 8px; font-size: 13.5px; }
+.po-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.po-table th, .po-table td { border: 1px solid var(--line); padding: 7px 9px; text-align: left; vertical-align: top; word-break: keep-all; }
+.po-table thead th, .po-table tfoot th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+.po-table td.r { text-align: right; white-space: nowrap; }
+.po-table td.c { text-align: center; white-space: nowrap; }
+.po-table td.n { width: 36px; text-align: right; color: var(--muted); }
+.po-table tfoot th { text-align: center; }
+.po-small { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
+.po-small b { color: var(--fg); margin-right: 6px; }
+@media (max-width: 520px) {
+  .po-parties { grid-template-columns: minmax(0, 1fr); }
+  .po-table th, .po-table td { padding: 6px; }
+}
+
+@media print {
+  /* 본문 글꼴의 대체 숫자 모양(ss06·tabular)은 PDF로 저장하면 글자 정보가 빠져 숫자를 복사·검색할 수 없다. 인쇄물에서는 기본 숫자 모양을 쓴다 */
+  .po-paper, .po-paper * { font-feature-settings: normal !important; font-variant-numeric: normal !important; }
+  .po-parties section { border-color: #8A9998 !important; }
+  .po-parties dt, .po-small { color: #586968 !important; }
+  .po-table thead th, .po-table tfoot th { background: #EDF2F2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .po-table th, .po-table td { border-color: #8A9998 !important; color: #142120 !important; }
+  .po-parties { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .po-mark { color: #B3362F !important; }
+}
