@@ -1,14 +1,18 @@
-// 이 파일이 하는 일: 서버 실행 설정(포트·데이터 폴더·백업 폴더·원내망 제한 해제 여부·테스트 고정 시각)을
+// 이 파일이 하는 일: 서버 실행 설정(포트·기다리는 주소·데이터 폴더·백업 폴더·원내망 제한 해제 여부·테스트 고정 시각)을
 // 환경 변수와 data/config.json에서 읽어 하나의 설정 객체로 만든다.
-// 우선순위: 환경 변수 > data/config.json > 기본값(포트 8090, ./data, ./backups).
+// 우선순위: 환경 변수 > data/config.json > 기본값(포트 8090, 주소 ::(IPv4·IPv6 함께), ./data, ./backups).
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 
 /** 서버 전체가 함께 쓰는 실행 설정 */
 export interface AppConfig {
   /** 서버가 기다리는 포트(기본 8090) */
   port: number;
-  /** 서버가 기다리는 주소. 원내 다른 기기도 접속하도록 기본은 0.0.0.0 */
+  /**
+   * 서버가 기다리는 주소. 기본은 '::'(IPv4·IPv6를 함께 받는 이중 스택)라서 localhost(::1)·127.0.0.1·원내 IP 모두로 접속된다.
+   * 이 PC에서 IPv6를 쓸 수 없으면 main.ts가 '0.0.0.0'으로 바꿔 연다.
+   */
   host: string;
   /** 업무 데이터 폴더(app.db, config.json, logs/, server.pid 등) */
   dataDir: string;
@@ -31,10 +35,13 @@ export class ConfigError extends Error {
 }
 
 export const DEFAULT_PORT = 8090;
+/** 기본으로 기다리는 주소(이중 스택). IPv4 전용 '0.0.0.0'만 쓰면 다른 프로그램이 IPv6 쪽에서 같은 포트를 써도 알아채지 못한다 */
+export const DEFAULT_HOST = '::';
 
 /** data/config.json에 적을 수 있는 값 */
 interface FileConfig {
   port?: unknown;
+  host?: unknown;
   allowExternal?: unknown;
   backupKeep?: unknown;
 }
@@ -46,6 +53,15 @@ export function parsePort(value: unknown, where: string): number {
     throw new ConfigError(`${where}의 포트 값 "${String(value)}"이(가) 올바르지 않아요. 1부터 65535 사이의 숫자로 적어 주세요(예: 8090).`);
   }
   return n;
+}
+
+/** 기다릴 주소 값을 확인한다. IP 주소(예: ::, 0.0.0.0, 127.0.0.1)만 받고, 아니면 한국어 오류를 낸다 */
+export function parseHost(value: unknown, where: string): string {
+  const host = typeof value === 'string' ? value.trim() : '';
+  if (net.isIP(host) === 0) {
+    throw new ConfigError(`${where}의 주소 값 "${String(value)}"이(가) 올바르지 않아요. "::"(기본), "0.0.0.0", "127.0.0.1" 같은 IP 주소로 적거나, 이 값을 지워 주세요.`);
+  }
+  return host;
 }
 
 /** data/config.json을 읽는다. 파일이 없으면 빈 설정을, 형식이 틀리면 한국어 오류를 돌려준다 */
@@ -77,6 +93,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
   if (file.port !== undefined) port = parsePort(file.port, '설정 파일(config.json)');
   if (env.PORT) port = parsePort(env.PORT, '환경 변수 PORT');
 
+  let host = DEFAULT_HOST;
+  if (file.host !== undefined) host = parseHost(file.host, '설정 파일(config.json)');
+  if (env.HOST) host = parseHost(env.HOST, '환경 변수 HOST');
+
   const backupKeep = typeof file.backupKeep === 'number' && Number.isInteger(file.backupKeep) && file.backupKeep > 0 ? file.backupKeep : 14;
 
   // 고정 시각은 테스트에서만 쓴다. 실제 운영(production)에서는 무시해서 시간이 멈추는 사고를 막는다.
@@ -88,7 +108,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
 
   return {
     port,
-    host: env.HOST || '0.0.0.0',
+    host,
     dataDir,
     backupDir,
     allowExternal: file.allowExternal === true,

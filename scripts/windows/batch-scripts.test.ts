@@ -1,12 +1,13 @@
 // 이 파일이 하는 일: start.bat·stop.bat을 한국어 Windows에서 더블클릭할 때와 같은 조건(새 콘솔, 코드 페이지 949)으로 실제 실행해
 // 출력 첫 줄부터 깨진 글자나 "is not recognized" 같은 명령 오류가 없는지, 한국어 안내·원내 IP·health 응답·stop.bat 종료,
-// 포트가 사용 중일 때의 한국어 안내를 확인한다(phase-01-task-01 AC3·AC4). Windows 전용.
+// 포트가 사용 중일 때(다른 프로그램이 [::]·0.0.0.0·127.0.0.1 중 어디를 쓰든)의 한국어 안내와 종료 코드 1을 확인한다(phase-01-task-01 AC3·AC4). Windows 전용.
 import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { afterEach, describe, expect, test } from 'vitest';
 import { makeTmpDir } from '../../tests/helpers/tmp-dir.ts';
+import { lanAddresses } from '../../server/main.ts';
 
 const ROOT = process.cwd();
 const START_BAT = path.join(ROOT, 'start.bat');
@@ -175,6 +176,11 @@ describe.runIf(process.platform === 'win32')('start.bat·stop.bat 새 콘솔(코
     const healthy = await waitHealthy(port, start.exited);
     expect(healthy, `health 응답 없음. 로그:\n${readLog(start.log)}`).toBe(true);
     expect(readLog(start.cpFile)).toContain('949');
+    // 안내하는 localhost(::1로 먼저 감)·127.0.0.1·원내 IP 모두 이 서버가 받아야 한다
+    for (const base of [`http://localhost:${port}`, `http://[::1]:${port}`, `http://127.0.0.1:${port}`, ...lanAddresses().map((ip) => `http://${ip}:${port}`)]) {
+      const body = (await (await fetch(`${base}/api/health`)).json()) as { ok?: boolean };
+      expect(body.ok, base).toBe(true);
+    }
 
     const stop = runInFreshConsole(STOP_BAT, dir, 'stop', env);
     expect(await stop.exited).toBe(0);
@@ -201,24 +207,40 @@ describe.runIf(process.platform === 'win32')('start.bat·stop.bat 새 콘솔(코
     });
   }, 120000);
 
-  test('phase-01-task-01 AC4 새 콘솔(949)에서 포트가 이미 사용 중이면 start.bat이 깨진 글자 없이 한국어 원인·해결 방법을 보여 주고 다시 시작하지 않는다', async () => {
-    ensureInstallStamp();
-    const dir = makeTmpDir('startbat-busy-');
-    const port = await freePort();
-    const blocker = net.createServer();
-    await new Promise<void>((resolve) => blocker.listen(port, '0.0.0.0', () => resolve()));
-    cleanups.push(() => blocker.close());
+  // 다른 프로그램이 포트를 쓰는 방식. 첫 번째는 Node listen(PORT)의 기본 동작으로 IPv6 전체 주소 [::]를 쓴다
+  const blockers: Array<[string, string | undefined]> = [
+    ['[::] 전체 주소(listen(PORT) 기본)', undefined],
+    ['0.0.0.0', '0.0.0.0'],
+    ['127.0.0.1', '127.0.0.1'],
+  ];
+  test.each(blockers)(
+    'phase-01-task-01 AC4 새 콘솔(949)에서 다른 프로그램이 %s에서 포트를 쓰면 start.bat이 깨진 글자 없이 한국어 원인·해결 방법을 보여 주고 다시 시작하지 않고 종료 코드 1로 끝난다',
+    async (_label, blockHost) => {
+      ensureInstallStamp();
+      const dir = makeTmpDir('startbat-busy-');
+      const port = await freePort();
+      const blocker = net.createServer();
+      await new Promise<void>((resolve, reject) => {
+        blocker.once('error', reject);
+        if (blockHost === undefined) blocker.listen(port, () => resolve());
+        else blocker.listen(port, blockHost, () => resolve());
+      });
+      cleanups.push(() => blocker.close());
+      if (blockHost === undefined) expect((blocker.address() as net.AddressInfo).address).toBe('::');
 
-    const run = runInFreshConsole(START_BAT, dir, 'busy', { PORT: String(port), DATA_DIR: path.join(dir, 'data') });
-    const code = await Promise.race([run.exited, wait(60000).then(() => 'timeout')]);
-    const text = readLog(run.log);
-    expect(code, text).toBe(1);
-    expect(readLog(run.cpFile)).toContain('949');
-    expectCleanOutput(text, '하늘숲치과 원내 업무 서버를 켜는 중이에요...');
-    expect(text).toContain('[원인]');
-    expect(text).toContain(`포트 ${port}`);
-    expect(text).toContain('[해결 방법]');
-    expect(text).toContain('[안내] 포트 문제는 다시 시작해도 해결되지 않아서 멈췄어요.');
-    expect(text).not.toContain('다시 시작해요(');
-  }, 90000);
+      const run = runInFreshConsole(START_BAT, dir, 'busy', { PORT: String(port), DATA_DIR: path.join(dir, 'data') });
+      const code = await Promise.race([run.exited, wait(60000).then(() => 'timeout')]);
+      const text = readLog(run.log);
+      expect(code, text).toBe(1);
+      expect(readLog(run.cpFile)).toContain('949');
+      expectCleanOutput(text, '하늘숲치과 원내 업무 서버를 켜는 중이에요...');
+      expect(text).toContain('[원인]');
+      expect(text).toContain(`포트 ${port}이(가) 이미 사용 중이에요`);
+      expect(text).toContain('[해결 방법]');
+      expect(text).toContain('[안내] 포트 문제는 다시 시작해도 해결되지 않아서 멈췄어요.');
+      expect(text).not.toContain('다시 시작해요(');
+      expect(text).not.toContain('서버가 켜졌어요');
+    },
+    90000,
+  );
 });
