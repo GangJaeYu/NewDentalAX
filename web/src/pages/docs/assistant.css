@@ -1,0 +1,46 @@
+/* 이 파일이 하는 일: "원내 AI 도우미" 화면(AssistantPage)의 배치 스타일. 대화(내 질문은 오른쪽, 답은 왼쪽 카드), 근거 카드(문서 이름·소제목·발췌·원문 보기),
+   원문 보기 상자(근거로 쓴 조각 강조), 자료 목록의 상태·이유 글을 그린다. 색·간격은 tokens.css 변수만 쓴다(DESIGN §2). 움직임은 쓰지 않는다. */
+.as-tabs { margin-bottom: var(--gap); }
+
+.as-chat .body { display: grid; gap: 12px; min-width: 0; }
+.as-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; min-width: 0; }
+.as-msg { min-width: 0; overflow-wrap: anywhere; }
+.as-msg p { margin: 0; line-height: 1.7; white-space: pre-wrap; }
+.as-user { justify-self: end; max-width: min(640px, 88%); padding: 10px 14px; border-radius: var(--r-lg); background: var(--accent-weak); color: var(--fg); }
+.as-bot { display: grid; gap: 10px; max-width: 920px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); }
+.as-bot-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--accent-strong); }
+.as-bot-head b { color: var(--fg); font-size: var(--fs-small); }
+.as-time { margin-left: auto; color: var(--muted); font-size: var(--fs-small); }
+.as-wait { color: var(--muted); font-size: var(--fs-small); }
+.as-answer { font-size: 15px; }
+.as-cite { font-weight: 700; color: var(--accent-strong); text-decoration: none; margin-inline: 1px; }
+.as-cite:hover { text-decoration: underline; }
+
+.as-srcs { display: grid; gap: 8px; }
+.as-srcs h2 { margin: 0; font-size: var(--fs-small); color: var(--muted); font-weight: 700; }
+.as-srcs ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
+.as-src { display: grid; gap: 6px; align-content: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2); min-width: 0; }
+.as-src-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.as-src-title { font-size: var(--fs-small); overflow-wrap: anywhere; }
+.as-src-path { margin: 0; color: var(--muted); font-size: var(--fs-small); overflow-wrap: anywhere; }
+.as-src-excerpt { margin: 0; padding-left: 10px; border-left: 3px solid var(--accent); font-size: var(--fs-small); line-height: 1.6; overflow-wrap: anywhere; }
+.as-src-link { display: inline-flex; align-items: center; gap: 4px; justify-self: start; font-size: var(--fs-small); font-weight: 700; color: var(--accent-strong); }
+.as-nofound { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.as-examples { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.as-form { display: grid; gap: 10px; padding: 12px var(--pad) var(--pad); border-top: 1px solid var(--line); min-width: 0; }
+.as-help { font-weight: 400; }
+
+.as-samples { margin: 0; padding: 8px 12px 8px 28px; border: 1px dashed var(--line); border-radius: var(--r-md); background: var(--surface-2); font-size: var(--fs-small); display: grid; gap: 4px; overflow-wrap: anywhere; }
+
+.as-viewer { max-height: 56vh; overflow: auto; display: grid; gap: 10px; padding: 4px; border-radius: var(--r-md); }
+.as-chunk { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); min-width: 0; }
+.as-chunk h3 { margin: 0 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--fs-small); color: var(--muted); overflow-wrap: anywhere; }
+.as-chunk p { margin: 0; white-space: pre-wrap; line-height: 1.7; overflow-wrap: anywhere; }
+.as-chunk.cited { border-color: var(--accent); background: var(--accent-weak); }
+.as-chunk.cited h3 { color: var(--accent-strong); }
+
+.as-status { display: inline-grid; gap: 4px; justify-items: start; }
+.as-reason { color: var(--muted); font-size: var(--fs-small); max-width: 320px; overflow-wrap: anywhere; white-space: normal; }
+.as-cell-wrap { overflow-wrap: anywhere; }
+.as-row-actions { display: inline-flex; flex-wrap: wrap; gap: 4px; }

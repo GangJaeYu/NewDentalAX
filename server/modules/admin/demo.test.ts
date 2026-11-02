@@ -44,6 +44,7 @@ function count(app: FastifyInstance, sql: string): number {
 /**
  * 여러 모듈의 업무 데이터가 쌓인 상태를 흉내 낸다. 아직 다른 태스크가 만들지 않은 업무 테이블은 시험용으로 만든다
  * (서로 외래키로 이어진 표, 검색 색인, legal_tasks 템플릿·사용자 추가 항목). 핵심 테이블(알림·파일·AI 사용 기록)은 001·010 마이그레이션 것이다.
+ * 검색 색인 kb_fts는 041_kb.sql(phase-03-task-07)이 이미 만들므로 IF NOT EXISTS로 둔다.
  */
 function fillBusinessData(env: Env, admin: TestLogin): void {
   const { app } = env;
@@ -53,7 +54,7 @@ function fillBusinessData(env: Env, admin: TestLogin): void {
     CREATE TABLE zzz_moves (id INTEGER PRIMARY KEY, vendor_id INTEGER NOT NULL REFERENCES aaa_vendors(id), user_id INTEGER REFERENCES users(id), qty REAL);
     CREATE TABLE equipment (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
     CREATE TABLE expense_categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL);
-    CREATE VIRTUAL TABLE kb_fts USING fts5(heading, grams, cross, tokenize='unicode61');
+    CREATE VIRTUAL TABLE IF NOT EXISTS kb_fts USING fts5(heading, grams, cross, tokenize='unicode61');
   `);
   const staff = loginAs(app, 'staff');
   const manager = loginAs(app, 'manager');
