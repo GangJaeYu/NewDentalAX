@@ -1,6 +1,6 @@
 # 구현 워커 지시문 — phase-01-task-04
 
-너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@c0d05a7에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
+너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@cadb5d6에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
 
 ## 먼저 읽을 것
 1. `CLAUDE.md`(문서 포인터·금지 사항)
@@ -49,20 +49,24 @@ node harness_setup/scripts/gate.mjs e2e phase-01-task-04
 전체 Loop 마감 2026-11-03T18:55:20+09:00. 이 태스크는 가능하면 3시간 안에 끝낸다. 길어지면 진행분을 커밋하고 남은 일을 보고한다.
 
 ## 조정자 메모
-- 선행 01-01~01-03은 main에 병합돼 있다. 먼저 기존 코드를 읽는다.
-  - `shared/roles.ts`: CAPS, PAGE_CAPS, canSeePage. 메뉴 숨김에 그대로 쓴다.
-  - `shared/schemas/auth.ts`
-  - `server/auth/*`
-  - 인증 API: 성공 응답은 `{data}`. GET /api/session, POST /api/setup, /api/auth/login·logout·password, GET /api/auth/me
-  - CSRF: 상태를 바꾸는 요청에 X-CSRF-Token 헤더
-  - must_change_pw: session·password·logout만 허용된다
-  - `web/src/lib/privacy.ts`: 02-01이 만든 입력 경고 래퍼다. 다시 만들지 말고 그대로 쓴다.
-- CSP가 엄격하다(`style-src 'self'; script-src 'self'`). 인라인 style 속성이나 인라인 스크립트가 막히는지 반드시 확인한다. React의 style prop은 CSSOM이라 대개 괜찮지만 `<style>` 태그와 인라인 이벤트는 쓰지 않는다. 테마 초기화 스크립트도 외부 파일로 둔다.
-- 상단바 알림 종: `web/src/layout/NotificationBell.tsx`를 자리만 만든다. 개수 prop을 받아 배지를 보여 주는 정도이고, 데이터 연결은 02-04가 한다. `/notifications` 경로에는 빈 페이지 스텁을 둔다.
-- AI 공용 부품(AiPanel, PrivacyGuard)은 02-03 담당이다. 이 태스크에서는 frontend.md §2의 나머지 공용 컴포넌트를 만든다.
-- 시안(docs/design/preview.html)의 사이드바 7묶음, 대시보드 셸, 아이콘 세트를 기준으로 한다. 대시보드 카드 내용은 03-10 담당이다. 여기서는 셸, 빈 상태, 요약 숫자 자리만 만든다.
-- 스크린샷: `npm run screenshots`를 이 태스크 화면(로그인, 설정, 대시보드 셸, 아무 스텁 페이지 1개)으로 넓히고, 4너비×2테마로 찍어 기준선과 대조한다.
-- 지금 다른 워커가 동시에 진행 중이다. 그 파일은 건드리지 않는다.
-  - 01-01 수정 워커: server/main.ts, server/config.ts
-  - 02-02 AI 게이트웨이: server/ai/**, shared/ai-features.ts, server/lib/crypto.ts, server/db/migrations/010_ai.sql, server/modules/notifications/emit.ts, server/modules/ai/**
+**통합 수정 작업이다.** 01-04(디자인 시스템·앱 셸)를 main에 병합했고(cadb5d6), main에는 02-02(AI 게이트웨이)와 01-01 시도 4도 들어 있다. 01-04 워커 브랜치에서는 e2e 15건이 모두 통과했다. 그런데 병합된 main에서는 1건이 실패한다.
+
+실패
+- 테스트: `tests/e2e/app-shell.spec.ts` "phase-01-task-04 AC4: 로그인 화면과 셸(라이트·다크) axe 위반이 0건이다"
+- 증상: 로그인한 뒤 `/` 셸은 정상이다. 그런데 `/inventory`(스텁 페이지)로 이동하면 main 영역이 `status "화면 불러오는 중"`에 머물러 "준비 중인 화면이에요"가 끝내 나오지 않는다(30초 시간 초과).
+- 재현: `E2E_PORT=18090 npx playwright test tests/e2e/app-shell.spec.ts -g "axe"`. 이 실패 때문에 같은 describe의 뒤 테스트 3건(AC4 Tab, AC5 글꼴, AC6 연결 띠)이 실행되지 않는다(serial).
+
+조사할 것
+- 지연 로딩 청크 요청이 실패하는지(404, CSP, 원내망, 정적 파일 처리)
+- 02-02가 app.ts에 넣은 변경(decorate, 라우트)이 정적 파일이나 SPA 폴백 경로를 가리는지
+- `/api/...` 요청 하나가 끝나지 않는지(예: 새 API 규칙 때문에 403·401 처리 중 무한 대기)
+
+trace는 `artifacts/e2e/test-results/` 아래 trace.zip에 있다.
+
+원인을 고치고 다음을 확인한다.
+- 위 spec 전체(15건)와 게이트 3종이 PASS한다.
+- 수정이 01-04 화면 동작(스크린샷 기준)을 바꾸지 않는다.
+- 원인이 테스트 쪽(기대값·대기)이면 근거를 남긴다. 기준을 낮춰서 통과시키지 않는다.
+- 커밋 메시지: `fix(phase-01-task-04): 통합 후 ...`
+- 진행 중인 02-04(알림) 워커의 파일(server/modules/notifications/**, server/jobs/**, web/src/lib/useNotifications.ts, web/src/pages/notifications/**)은 건드리지 않는다.
 

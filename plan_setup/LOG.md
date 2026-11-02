@@ -167,3 +167,10 @@
   - 병합 충돌: app.ts AppDeps 1건(02-02 ai 필드 + instanceId 필드를 모두 살림)
   - main 게이트: lint PASS, unit 342건, e2e 8건
 - DECISIONS·TRD 반영. 다음: 01-01 4차 검증(이전 검증자들과 다른 세션)
+
+## 2026-11-02 20:41 phase-01-task-04 통합 → main e2e FAIL(통합 실패)
+- 01-04 워커 ctx_64fb05731874, 커밋 fe08046. 워커 쪽 게이트는 lint·unit 295·e2e 15 PASS였다. e2e 격리 fixture를 도입했다.
+- main 병합(cadb5d6, 충돌 없음) 뒤 게이트: lint PASS, unit 371 PASS, **e2e FAIL**(11 passed, 1 failed, 3 not run)
+  - AC4 axe 테스트에서 로그인 뒤 /inventory 스텁이 "화면 불러오는 중"에 머문다. 단독으로 다시 돌려도 재현된다.
+  - 워커 브랜치(02-02 이전 기준)에서는 통과했으므로 통합 결함으로 분류한다.
+- 조치: 통합 수정 워커(슬롯 0)를 배정했다. 01-04 검증은 수정 뒤에 한다.
