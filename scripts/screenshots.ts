@@ -10,6 +10,7 @@ import { chromium, type BrowserContext, type Page } from '@playwright/test';
 import { appDbPath, openDb } from '../server/db/index.ts';
 import { fixedClock } from '../server/lib/clock.ts';
 import { emitNotification } from '../server/modules/notifications/emit.ts';
+import { seedDemo as seedInventoryDemo } from '../server/modules/inventory/seed.ts';
 
 const ROOT = process.cwd();
 const PORT = Number(process.env.E2E_PORT || 18090);
@@ -24,7 +25,7 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'setup', url: '/setup', state: 'setup', ready: '첫 설정' },
   { name: 'login', url: '/login', state: 'anon', ready: '로그인' },
   { name: 'dashboard', url: '/', state: 'user', ready: '오늘 할 일' },
-  { name: 'stub', url: '/inventory', state: 'user', ready: '준비 중인 화면이에요' },
+  { name: 'stub', url: '/inventory/orders', state: 'user', ready: '준비 중인 화면이에요' },
   { name: 'notifications', url: '/notifications', state: 'user', ready: '거즈 재고가 부족해요' },
   {
     name: 'notification-popover',
@@ -45,6 +46,22 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   // phase-02-task-05: 백업·복원, 데모 데이터 초기화
   { name: 'admin-backup', url: '/admin/backup', state: 'user', ready: '보관할 백업 개수' },
   { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '업무 데이터 비어 있음' },
+  // phase-03-task-01: 재고 현황·품목 상세·입출고 기록·거래처·단가 변동·출고 빠른 입력(찍기 전에 재고 데모 데이터를 넣는다, 품목 2 = 니트릴 글러브 M)
+  { name: 'inventory', url: '/inventory', state: 'user', ready: '품목 목록' },
+  { name: 'inventory-item', url: '/inventory/items/2', state: 'user', ready: '단가 기록' },
+  { name: 'inventory-moves', url: '/inventory/moves', state: 'user', ready: '기록한 사람' },
+  { name: 'inventory-vendors', url: '/inventory/vendors', state: 'user', ready: '한빛덴탈' },
+  { name: 'inventory-prices', url: '/inventory/prices', state: 'user', ready: '직전 단가' },
+  {
+    name: 'inventory-quick-out',
+    url: '/inventory',
+    state: 'user',
+    ready: '품목 목록',
+    action: async (page) => {
+      await page.getByRole('button', { name: '출고 기록' }).click();
+      await page.getByRole('dialog', { name: '출고 기록' }).getByRole('list', { name: '찾은 품목' }).getByRole('button').first().waitFor();
+    },
+  },
 ];
 
 /** 스크린샷용 예시 알림(관리자가 받는 것): 읽지 않음 4건 + 읽음 1건 */
@@ -58,6 +75,16 @@ function seedNotifications(dataDir: string): void {
     emitNotification(db, { type: 'equipment_due', title: '오토클레이브 정기 점검이 7일 남았어요', link: '/facility/equipment', dedupeKey: 'shot:equip' }, clock);
     emitNotification(db, { type: 'ai_budget', title: '이번 달 AI 사용 금액이 예산의 80%를 넘었어요', body: '사용 40,120원 / 예산 50,000원', link: '/admin/ai-usage', dedupeKey: 'shot:budget' }, clock);
     emitNotification(db, { type: 'stock_low', title: '거즈 재고가 부족해요', body: '현재 3팩 · 적정 10팩', link: '/inventory', dedupeKey: 'shot:stock' }, clock);
+  } finally {
+    db.close();
+  }
+}
+
+/** 재고 화면 스크린샷용 데모 데이터(phase-03-task-01): 거래처 5곳·품목 약 80개·90일 기록 */
+function seedInventory(dataDir: string): void {
+  const db = openDb(appDbPath(dataDir));
+  try {
+    seedInventoryDemo(db, { clock: fixedClock(process.env.TEST_NOW || '2026-11-02T09:00:00+09:00'), scale: 1 });
   } finally {
     db.close();
   }
@@ -96,12 +123,18 @@ try {
   await waitReady();
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
   let setupDone = false;
+  let inventorySeeded = false;
   for (const p of pages) {
     if (p.state !== 'setup' && !setupDone) {
       const r = await fetch(`${BASE}/api/setup`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(ADMIN) });
       if (r.status !== 201) throw new Error(`스크린샷용 첫 설정 실패: ${r.status}`);
       setupDone = true;
       seedNotifications(DATA_DIR);
+    }
+    // 재고 화면은 데모 재고가 있어야 내용이 보인다(앞 화면의 "업무 데이터 비어 있음"을 해치지 않게 처음 재고 화면 직전에 넣는다)
+    if (p.name.startsWith('inventory') && !inventorySeeded) {
+      seedInventory(DATA_DIR);
+      inventorySeeded = true;
     }
     for (const [width, height] of WIDTHS) {
       for (const theme of THEMES) {
