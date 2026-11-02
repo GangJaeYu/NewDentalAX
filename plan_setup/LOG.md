@@ -389,3 +389,18 @@
     - .filedrop position:relative
   - main 게이트: lint PASS, unit 578건, e2e 159건
   - 03-03 검증(검증 슬롯 1)에서 조정자 반영분도 함께 판정한다.
+
+## 2026-11-03 00:20 03-07 completed, 03-05 통합, e2e 환경 문제 대응
+- 03-07 검증 워커 ctx_32282a612e93: 6/6과 화면, 조정자의 --on-danger 수정까지 PASS → completed(선행 01-06·03-06)
+- 04-01 워커 질문(대시보드 오늘 근무 카드)에 DashboardPage.tsx 최소 수정을 허용했다(03-10 시작 전이라 충돌 없음).
+- 03-05 커밋 c6d402d(워커 ctx_e63db788a188)를 충돌 없이 병합했다. lint PASS, unit 593건
+- e2e 실패 2회(환경)
+  - 1회차: docs-library AC4에서 콘솔 `net::ERR_NO_BUFFER_SPACE`가 났다. 단독 실행은 18건 PASS였다.
+  - 2회차: app-shell AC4에서 `ERR_CONNECTION_REFUSED`가 났다.
+  - 원인 분류: 환경(자원·포트)
+    - 워커 7개가 동시에 e2e·Edge를 돌렸다(Edge 프로세스 27개, TIME_WAIT 약 1000).
+    - 조정자 통합 포트 18096이 검증 슬롯 2의 기준값과 같았다.
+  - 조치(새 전략, 검사 약화 없음)
+    - gate.mjs에 PC 전체 e2e 동시 2개 제한(자리 표시 파일)을 넣었다.
+    - 조정자 통합 포트를 18300으로 바꿨다(LOOP §4).
+  - 재확인: E2E_PORT=18300으로 e2e 170건 PASS

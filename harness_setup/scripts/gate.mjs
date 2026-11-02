@@ -5,6 +5,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 
 const [gate, taskId = 'adhoc'] = process.argv.slice(2);
 const SCRIPT = { lint: 'lint', unit: 'test:unit', e2e: 'test:e2e' }[gate];
@@ -42,7 +43,11 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 if (!pkg.scripts?.[SCRIPT]) finish('INACTIVE', `npm script "${SCRIPT}" 없음`);
 if (/(--fix|--write|\s-u\b|--update)/.test(pkg.scripts[SCRIPT])) finish('FAIL', `"${SCRIPT}" 스크립트에 자동 수정 옵션이 들어 있음`);
 
+// 무거운 검사(e2e)는 이 PC 전체에서 동시에 2개까지만 돌린다(여러 작업 사본이 함께 돌 때 소켓 자원 부족 ERR_NO_BUFFER_SPACE를 막으려고, 2026-11-03 조정자).
+// 자리 표시 파일은 OS 임시 폴더에 두고, 주인 프로세스가 없어진 표시는 치운다. E2E_SLOT_LIMIT으로 바꿀 수 있다.
+const releaseSlot = gate === 'e2e' ? acquireHeavySlot() : () => {};
 const r = spawnSync('npm', ['run', SCRIPT], { encoding: 'utf8', shell: true, env: { ...process.env, CI: '1', FORCE_COLOR: '0' }, maxBuffer: 64 * 1024 * 1024 });
+releaseSlot();
 const out = (r.stdout || '') + '\n' + (r.stderr || '');
 process.stdout.write(out.slice(-6000));
 
@@ -72,4 +77,29 @@ if (gate === 'lint') {
   const missing = need.filter((s) => !steps.some((m) => m[1] === s && +m[2] > 0));
   if (missing.length) finish('FAIL', `실행 확인되지 않은 lint 단계: ${missing.join(', ')}`, out);
   finish('PASS', `lint 단계 ${steps.map((m) => `${m[1]}(${m[2]})`).join(', ')}`, out);
+}
+
+/** e2e 자리 하나를 얻을 때까지 기다렸다가(최대 40분) 돌려줄 함수를 준다 */
+function acquireHeavySlot() {
+  const dir = path.join(os.tmpdir(), 'dentalax-heavy-slots');
+  fs.mkdirSync(dir, { recursive: true });
+  const limit = Number(process.env.E2E_SLOT_LIMIT || 2);
+  const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+  const deadline = Date.now() + 40 * 60 * 1000;
+  let waited = false;
+  for (;;) {
+    for (let i = 0; i < limit; i++) {
+      const f = path.join(dir, `slot-${i}.lock`);
+      try {
+        fs.writeFileSync(f, String(process.pid), { flag: 'wx' });
+        if (waited) console.log(`[e2e] 자리 ${i}를 얻었어요`);
+        return () => { try { if (fs.readFileSync(f, 'utf8') === String(process.pid)) fs.rmSync(f); } catch { /* 이미 없음 */ } };
+      } catch {
+        try { const owner = Number(fs.readFileSync(f, 'utf8')); if (!owner || !alive(owner)) fs.rmSync(f, { force: true }); } catch { /* 경쟁 */ }
+      }
+    }
+    if (Date.now() > deadline) { console.log('[e2e] 40분 동안 자리가 나지 않아 그냥 실행해요'); return () => {}; }
+    if (!waited) { console.log(`[e2e] 다른 작업 사본의 e2e가 ${limit}개 돌고 있어 자리를 기다려요...`); waited = true; }
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5000);
+  }
 }
