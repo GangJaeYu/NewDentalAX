@@ -8,12 +8,12 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git main)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-- completed: 01-01, 01-02, 01-03, 01-04, 01-06, 02-01, 02-02
-  - phase-02-task-04(병합 2bd?): 검증 워커 `ctx_463ec6ac5289`, 검증 슬롯 3
-  - phase-01-task-05(in_progress): `ctx_2851fc797d8f`, 슬롯 0
-  - phase-02-task-05(in_progress): `ctx_4b13f5013150`, 슬롯 1
-  - phase-02-task-03(in_progress): `ctx_639308e3eaea`, 슬롯 2
-  - 다음 배정 조건: phase-03 대부분은 01-05와 02-04의 completed가 필요하다. 03-06은 02-03이 필요하다.
+- completed: 01-01~06(phase-01 완료), 02-01, 02-02, 02-03, 02-04
+  - phase-02-task-05(병합 c40830b, unit 간섭 2건 수정 follow-up): `ctx_2fd228c5536a`, 슬롯 1
+  - phase-03-task-01(in_progress): `ctx_95780d0bc401`, 슬롯 0
+  - phase-03-task-04(in_progress): `ctx_bed3043f550f`, 슬롯 2
+  - phase-03-task-06(in_progress): `ctx_317565207ae1`, 슬롯 3
+  - 다음 배정: 03-08 법정·03-09 연차(구현 4개 상한 때문에 빈 슬롯이 생기면), 03-02·03-03(03-01 뒤), 03-05(03-04 뒤), 03-07(03-06 뒤), 03-10(마지막)
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
@@ -32,7 +32,7 @@
   - `loop_started_at: 2026-11-02T18:55:20+09:00`
   - `deadline: 2026-11-03T18:55:20+09:00`
   - 신규 대형 태스크 시작 마감: 2026-11-03T17:55+09:00
-- elapsed: 2.3h (21시 14분 25초 기준)
+- elapsed: 2.8h (21시 43분 52초 기준)
 - 누적 재시도: 01-01 3회(AC3 1회, AC4 2회). 시도 4는 전략 전환
 
 ## 미결·차단
