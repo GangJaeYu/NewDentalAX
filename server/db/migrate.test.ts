@@ -71,7 +71,8 @@ async function startAndStopOnce(dataDir: string): Promise<{ code: number | null;
   const exited = new Promise<number | null>((resolve) => child.on('exit', (c) => resolve(c)));
 
   let health: { ok: boolean; db: string } | undefined;
-  const until = Date.now() + 15000;
+  // 준비 대기는 45초(병렬 검증으로 CPU 부하가 높을 때 15초로는 모자랐다 — 04-06 검증 관찰, 2026-11-03). 기능 판정 기준은 그대로다.
+  const until = Date.now() + 45000;
   while (!health && Date.now() < until && child.exitCode === null) {
     try {
       const r = await fetch(`http://127.0.0.1:${port}/api/health`);
@@ -124,7 +125,7 @@ describe('서버 시작과 마이그레이션', () => {
     const log = fs.readFileSync(path.join(dataDir, 'logs', 'server.log'), 'utf8');
     expect(log).toContain('새로 적용: 001_core.sql');
     expect(log).toContain(`schema_version=${latest} (새로 적용한 것 없음)`);
-  }, 60000);
+  }, 150000); // 서버를 두 번 켜므로 준비 대기(최대 45초×2)와 포트 경쟁 재시도를 고려한다
 });
 
 describe('migrate()', () => {
