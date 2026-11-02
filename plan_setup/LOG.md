@@ -72,3 +72,13 @@
   - 01-02 검증 워커(검증 슬롯 1)
   - 01-03(슬롯 2), 01-06(슬롯 3), 02-01(슬롯 0) 구현 워커
 - 01-02가 아직 검증 전이므로 세 작업 모두 completed 판정은 선행이 completed가 된 뒤에만 한다. 파일 소유는 서로 겹치지 않는다(지시문에 명시).
+
+## 2026-11-02 19:53 phase-01-task-02 task_validation → PASS(4/4)
+- 검증 워커 ctx_18e1112307d1(대상 6f6c3f5, 제품 코드는 cd40371과 같음). 게이트: lint PASS, unit 68건, e2e 3건. AC1~4 모두 PASS.
+  - AC1: 실제 서버를 두 번 시작해 확인
+  - AC2: 실제 app.db 사본에서 UPDATE·DELETE가 막히는 것을 확인
+  - AC3: 변조 사본으로 금지 열을 넣었을 때 FAIL을 재현
+  - AC4: 날짜 계산 10건을 독립적으로 확인
+- 증거: harness_setup/evidence/phase-01-task-02/validation-2026-11-02T1953-pass.md
+- 상태: 선행 01-01이 아직 재검증 중이라 completed는 보류한다(검증 PASS 기록만 남김).
+- 참고: npm ci가 moderate 취약점을 보고했다. high/critical 0 기준은 05-02에서 점검한다.
