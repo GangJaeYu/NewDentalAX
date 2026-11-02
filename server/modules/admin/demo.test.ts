@@ -12,6 +12,7 @@ import { makeTmpDir } from '../../../tests/helpers/tmp-dir.ts';
 import { loginAs, type TestLogin } from '../../../tests/helpers/auth.ts';
 import { listBackups } from './backup-service.ts';
 import { clearableTables, KEEP_TABLES } from './demo-service.ts';
+import { LEGAL_TEMPLATES } from '../../db/seed/legal-templates.ts';
 import { DEMO_STAFF } from './seed.ts';
 
 const START = '2026-11-02T09:00:00+09:00';
@@ -51,7 +52,6 @@ function fillBusinessData(env: Env, admin: TestLogin): void {
     CREATE TABLE aaa_vendors (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
     CREATE TABLE zzz_moves (id INTEGER PRIMARY KEY, vendor_id INTEGER NOT NULL REFERENCES aaa_vendors(id), user_id INTEGER REFERENCES users(id), qty REAL);
     CREATE TABLE equipment (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
-    CREATE TABLE legal_tasks (id INTEGER PRIMARY KEY, template_key TEXT, title TEXT NOT NULL, last_done_on TEXT, equipment_id INTEGER REFERENCES equipment(id));
     CREATE TABLE expense_categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL);
     CREATE VIRTUAL TABLE kb_fts USING fts5(heading, grams, cross, tokenize='unicode61');
   `);
@@ -60,7 +60,10 @@ function fillBusinessData(env: Env, admin: TestLogin): void {
   app.db.run("INSERT INTO aaa_vendors (id, name) VALUES (1, '가상거래처')");
   app.db.run('INSERT INTO zzz_moves (vendor_id, user_id, qty) VALUES (1, ?, 3), (1, ?, 5)', [staff.userId, manager.userId]);
   app.db.run("INSERT INTO equipment (id, name) VALUES (1, '고압증기멸균기')");
-  app.db.run("INSERT INTO legal_tasks (template_key, title, last_done_on, equipment_id) VALUES ('radiation-check', '방사선 안전 점검', '2026-10-01', 1), (NULL, '직접 추가한 일정', '2026-10-02', NULL)");
+  // legal_tasks는 050 마이그레이션의 실제 표다(phase-03-task-08). 서버가 켜질 때 넣은 템플릿 하나에 수행 기록·장비 연결을 넣고, 직접 추가한 항목과 이력을 더한다
+  app.db.run("UPDATE legal_tasks SET last_done_on = '2026-10-01', equipment_id = 1 WHERE template_key = 'radiation-inspection'");
+  app.db.run("INSERT INTO legal_tasks (template_key, title, category, last_done_on, created_at, updated_at) VALUES (NULL, '직접 추가한 일정', 'other', '2026-10-02', ?, ?)", [now, now]);
+  app.db.run("INSERT INTO legal_task_logs (legal_task_id, done_on, user_id, created_at) SELECT id, '2026-10-01', ?, ? FROM legal_tasks WHERE template_key = 'radiation-inspection'", [manager.userId, now]);
   app.db.run("INSERT INTO expense_categories (name) VALUES ('재료비'), ('기타')");
   app.db.run("INSERT INTO kb_fts (rowid, heading, grams, cross) VALUES (1, '멸균', '멸균 균기', '')");
   app.db.run("INSERT INTO notifications (user_id, type, title, created_at) VALUES (?, 'notice', '공지', ?), (?, 'notice', '공지', ?)", [staff.userId, now, admin.userId, now]);
@@ -108,9 +111,10 @@ describe('데모 데이터 초기화', () => {
     ]);
     // 지출 분류는 남고, legal_tasks는 템플릿만 남아 수행 기록·장비 연결이 비워진다
     expect(count(app, 'SELECT COUNT(*) AS n FROM expense_categories')).toBe(2);
-    expect(app.db.all('SELECT template_key, title, last_done_on, equipment_id FROM legal_tasks')).toEqual([
-      { template_key: 'radiation-check', title: '방사선 안전 점검', last_done_on: null, equipment_id: null },
-    ]);
+    expect(count(app, 'SELECT COUNT(*) AS n FROM legal_tasks WHERE template_key IS NULL')).toBe(0);
+    expect(count(app, 'SELECT COUNT(*) AS n FROM legal_tasks WHERE last_done_on IS NOT NULL OR equipment_id IS NOT NULL')).toBe(0);
+    expect(count(app, 'SELECT COUNT(*) AS n FROM legal_tasks')).toBe(LEGAL_TEMPLATES.length);
+    expect(count(app, 'SELECT COUNT(*) AS n FROM legal_task_logs')).toBe(0);
     expect(app.db.all('PRAGMA foreign_key_check')).toEqual([]);
 
     // 직전 자동 백업(pre-reset)에 초기화 전 데이터가 그대로 있다
