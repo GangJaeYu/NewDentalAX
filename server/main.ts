@@ -16,6 +16,7 @@ import { fixedClock, systemClock } from './lib/clock.ts';
 import { appDbPath, type Db } from './db/index.ts';
 import { openAppDb } from './db/migrate.ts';
 import { startScheduler } from './jobs/scheduler.ts';
+import { startBackupJob } from './jobs/backup-job.ts';
 
 export const EXIT_OK = 0;
 export const EXIT_CRASH = 1;
@@ -366,12 +367,16 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
   if (plan.host !== config.host) writeLog(paths.logFile, `주소 ${config.host}을(를) 쓸 수 없어 ${plan.host}로 열어요(IPv6 꺼짐)`);
 
   const instanceId = makeInstanceId();
-  const app = await buildApp({ dataDir: config.dataDir, clock, db, allowExternal: config.allowExternal, instanceId });
+  const app = await buildApp({ dataDir: config.dataDir, backupDir: config.backupDir, clock, db, allowExternal: config.allowExternal, instanceId });
+  // 자동 백업: 포트를 열기 전에 "오늘 백업이 있는지" 먼저 확인해 없으면 바로 만들고(놓친 날 따라잡기), 그 뒤 매시 정각에 다시 확인한다
+  // (server/jobs/backup-job.ts, FR-006 AC1). 열기 전에 하므로 준비 상태 확인(/api/health)이 ok면 오늘 백업은 이미 있다.
+  const backupJob = startBackupJob(app, { log: (m) => writeLog(paths.logFile, m) });
 
   try {
     await app.listen({ port: config.port, host: plan.host });
   } catch (e) {
     const code = (e as NodeJS.ErrnoException).code;
+    backupJob.stop();
     await app.close().catch(() => {});
     db.close();
     if (code === 'EADDRINUSE' || code === 'EACCES') {
@@ -387,6 +392,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
   const verdict = await selfCheck(config.port, selfCheckTargets(plan.host, lan, await localhostAddresses()), instanceId);
   for (const w of verdict.warnings) writeLog(paths.logFile, `자기 확인 경고(충돌 아님) ${w}`);
   if (verdict.conflict) {
+    backupJob.stop();
     await app.close().catch(() => {});
     db.close();
     console.error(portProblemMessage(config.port, 'EADDRINUSE'));
@@ -399,7 +405,8 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
   writeLog(paths.logFile, `서버 시작 pid=${process.pid} host=${plan.host} port=${config.port}`);
   if (env.OPEN_BROWSER === '1' && env.NO_BROWSER !== '1') openBrowser(`http://localhost:${config.port}`);
   // 예약 작업(세션 정리·기한형 알림): 지금 한 번, 그 뒤 매시 정각(server/jobs/scheduler.ts)
-  const scheduler = startScheduler({ db, clock, log: (m) => writeLog(paths.logFile, m) });
+  // db는 복원 때 바꿔 끼워지는 app.db 래퍼를 넘긴다(02-05: 원래 연결을 넘기면 복원 뒤 닫힌 연결을 쓰게 됨)
+  const scheduler = startScheduler({ db: app.db, clock, log: (m) => writeLog(paths.logFile, m) });
 
   // 끄기: stop.bat이 stop.flag를 만들거나, Ctrl+C·종료 신호를 받으면 정리하고 0으로 끝낸다
   return await new Promise<number>((resolve) => {
@@ -409,6 +416,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
       closing = true;
       clearInterval(timer);
       await scheduler.stop();
+      backupJob.stop();
       console.log(`\n서버를 끄는 중이에요(${why})...`);
       await app.close().catch(() => {});
       db.close();

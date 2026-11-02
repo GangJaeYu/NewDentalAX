@@ -4,7 +4,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { AppError, lockedError, validationError } from '../lib/errors.ts';
 import { audit } from '../lib/audit.ts';
-import { seedDemoAll } from '../db/seed/registry.ts';
+import { loadDemo } from '../modules/admin/demo-service.ts';
 import { changePasswordSchema, loginSchema, setupSchema, SESSION_COOKIE, type LoginResult, type SessionInfo } from '../../shared/schemas/auth.ts';
 import { isRole } from '../../shared/roles.ts';
 import { parseInput } from '../security/validate.ts';
@@ -101,11 +101,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     const user: AuthUser = { id: userId, username: input.username, name: input.name, role: 'admin', jobType: 'other', mustChangePw: false };
     const ctx = { ...auditCtx(req), user: { id: user.id, username: user.username } };
     audit(ctx, 'setup.complete', 'user', user.id, { withDemo: input.withDemo });
-    if (input.withDemo) {
-      await seedDemoAll(app.db, { clock: app.clock, scale: 1 });
-      mergeSetting(app, 'demo', { loaded: true, loadedAt: app.clock.now().toISOString() });
-      audit(ctx, 'demo.load', 'settings', 'demo', null);
-    }
+    // 데모 데이터 넣기는 관리 화면의 "데모 데이터 넣기"와 같은 함수를 쓴다(모든 모듈 seed + settings.demo.loaded + 감사 로그 demo.load)
+    if (input.withDemo) await loadDemo(app.db, app.clock, ctx);
     const data = startSession(app, req, reply, user);
     return reply.code(201).send({ data });
   });

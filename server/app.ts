@@ -10,7 +10,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fastifyCookie from '@fastify/cookie';
 import { systemClock, type Clock } from './lib/clock.ts';
-import { toErrorResponse } from './lib/errors.ts';
+import { AppError, toErrorResponse } from './lib/errors.ts';
 import type { Db } from './db/index.ts';
 import { makeDbCheck, openAppDb } from './db/migrate.ts';
 import { registerNetworkGuard } from './security/network.ts';
@@ -19,6 +19,8 @@ import { registerAuthGuard } from './auth/guard.ts';
 import { authRoutes } from './auth/routes.ts';
 import { registerModules } from './modules/index.ts';
 import type { AiOptions } from './ai/types.ts';
+import { makeSwappableDb } from './modules/admin/backup-swap.ts';
+import type { MaintenanceState } from './modules/admin/backup-service.ts';
 
 // 시계는 server/lib/clock.ts에 있다. 예전 import 경로(./app.ts)도 계속 쓸 수 있게 다시 내보낸다.
 export { fixedClock, systemClock, type Clock } from './lib/clock.ts';
@@ -33,6 +35,10 @@ declare module 'fastify' {
     dataDir: string;
     /** AI 실행 옵션(테스트가 넣은 가짜 공급자 주소 등). 없으면 null이고 ai 모듈이 환경 변수를 본다 */
     aiOptions: AiOptions | null;
+    /** 백업 폴더(BACKUP_DIR, 기본: 데이터 폴더 안 backups) */
+    backupDir: string;
+    /** 점검 모드(백업 복원 중). on이면 health 말고 모든 API가 503 MAINTENANCE */
+    maintenance: MaintenanceState;
   }
 }
 
@@ -43,6 +49,8 @@ export type DbStatus = 'ok' | 'error';
 export interface AppDeps {
   /** 업무 데이터 폴더 */
   dataDir: string;
+  /** 백업 폴더(main.ts가 BACKUP_DIR 설정값을 넣는다). 없으면 dataDir/backups */
+  backupDir?: string;
   /** 시계(기본: 실제 시각) */
   clock?: Clock;
   /** 빌드된 화면 폴더(기본: web/dist) */
@@ -105,7 +113,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const version = deps.version ?? readVersion();
   // DB: 넣어 준 것을 쓰거나, 직접 열어(마이그레이션 포함) 서버를 닫을 때 함께 닫는다
   const ownDb = !deps.db;
-  const db = deps.db ?? openAppDb(deps.dataDir, { clock }).db;
+  // 백업 복원 때 연결을 바꿔 끼울 수 있게 감싼다(modules/admin/backup-swap.ts). 바꿔 끼운 연결은 서버를 닫을 때 함께 닫는다
+  const db = makeSwappableDb(deps.db ?? openAppDb(deps.dataDir, { clock }).db);
   const dbOk = makeDbCheck(db);
   const checkDb = deps.checkDb ?? ((): DbStatus => (dbOk() ? 'ok' : 'error'));
 
@@ -114,7 +123,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.decorate('clock', clock);
   app.decorate('dataDir', deps.dataDir);
   app.decorate('aiOptions', deps.ai ?? null);
-  if (ownDb) app.addHook('onClose', async () => db.close());
+  app.decorate('backupDir', deps.backupDir ?? path.join(deps.dataDir, 'backups'));
+  app.decorate('maintenance', { on: false });
+  app.addHook('onClose', async () => {
+    if (ownDb || db.swapped) db.close();
+  });
 
   // 자기 확인 표식: 원내망 검사가 막는 응답에도 붙도록 다른 검사보다 먼저 건다(health 주소에만)
   const instanceId = deps.instanceId;
@@ -127,6 +140,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   // 보안 헤더(모든 응답) → 원내망 검사(가장 먼저) → 쿠키 → 세션·CSRF·권한 검사
   registerSecurityHeaders(app);
   registerNetworkGuard(app, { allowExternal: deps.allowExternal ?? false });
+  // 백업 복원 중에는 준비 상태 확인 말고 모든 API를 503 MAINTENANCE로 돌려보낸다(overview §3.7 ①). DB를 닫는 동안 세션 확인보다 먼저 막는다
+  app.addHook('onRequest', async (req) => {
+    const urlPath = req.url.split('?')[0] ?? '';
+    if (app.maintenance.on && (urlPath === '/api' || urlPath.startsWith('/api/')) && urlPath !== HEALTH_PATH) throw new AppError('MAINTENANCE');
+  });
   await app.register(fastifyCookie);
   registerAuthGuard(app);
 

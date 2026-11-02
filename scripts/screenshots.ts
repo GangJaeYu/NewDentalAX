@@ -42,6 +42,9 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'users', url: '/admin/users', state: 'user', ready: '직원 목록' },
   { name: 'clinic', url: '/admin/clinic', state: 'user', ready: '진료시간' },
   { name: 'audit', url: '/admin/audit', state: 'user', ready: '시작 날짜' },
+  // phase-02-task-05: 백업·복원, 데모 데이터 초기화
+  { name: 'admin-backup', url: '/admin/backup', state: 'user', ready: '보관할 백업 개수' },
+  { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '업무 데이터 비어 있음' },
 ];
 
 /** 스크린샷용 예시 알림(관리자가 받는 것): 읽지 않음 4건 + 읽음 1건 */
