@@ -1,6 +1,6 @@
 ---
 id: phase-01-task-02
-status: in_progress
+status: completed
 phase: "01"
 title: "DB 래퍼·마이그레이션·공통 라이브러리"
 depends_on: [phase-01-task-01]

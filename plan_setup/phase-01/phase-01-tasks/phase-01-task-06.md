@@ -1,6 +1,6 @@
 ---
 id: phase-01-task-06
-status: in_progress
+status: completed
 phase: "01"
 title: "[위험 해소] 한글 문서 검색 품질 실험 (OQ-008)"
 depends_on: [phase-01-task-02]

@@ -1,6 +1,6 @@
 ---
 id: phase-02-task-02
-status: in_progress
+status: completed
 phase: "02"
 title: "AI 게이트웨이·공급자 어댑터·비용·예산"
 depends_on: [phase-02-task-01]

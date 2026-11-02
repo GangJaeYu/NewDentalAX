@@ -1,6 +1,6 @@
 ---
 id: phase-01-task-03
-status: in_progress
+status: completed
 phase: "01"
 title: "인증·세션·CSRF·권한·원내망·보안 헤더"
 depends_on: [phase-01-task-02]

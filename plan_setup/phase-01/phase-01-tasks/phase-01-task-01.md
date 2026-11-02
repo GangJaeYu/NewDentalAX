@@ -1,6 +1,6 @@
 ---
 id: phase-01-task-01
-status: failed
+status: completed
 phase: "01"
 title: "프로젝트 골격·도구·실행 스크립트"
 depends_on: []
