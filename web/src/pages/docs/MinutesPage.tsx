@@ -150,7 +150,7 @@ export default function MinutesPage() {
                       {st && st !== 'sending' && 'kind' in st ? (
                         <span className="minutes-todo-actions" role="status">
                           <Chip tone="ok">{st.kind === 'handover' ? '인수인계로 보냄' : '공지로 올림'}</Chip>
-                          <Button size="sm" variant="ghost" to={st.id ? `/desk/board/${st.id}` : '/desk/board'}>
+                          <Button size="sm" variant="ghost" to={st.id ? `/desk/board/${st.id}` : st.kind === 'handover' ? '/desk/board?tab=handover' : '/desk/board'}>
                             보드에서 보기
                           </Button>
                         </span>

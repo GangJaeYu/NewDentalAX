@@ -16,7 +16,7 @@ import '../docs/docs-pages.css';
 import { PrintFrame } from './PrintStub.tsx';
 
 /**
- * 쪽마다 들어갈 머리말(@page 규칙)을 문서에 붙인다. 보안 정책(CSP: style-src 'self')이 <style> 태그를 막으므로
+ * 쪽마다 들어갈 머리말(@page 규칙)을 문서에 붙인다. 보안 정책(CSP: style-src 'self')이 인라인 style 요소를 막으므로
  * CSSOM(adoptedStyleSheets)으로 붙이고, 화면을 떠나면 뗀다. title이 없으면(불러오는 중) 붙이지 않는다.
  */
 function usePrintHeader(clinic: string, title: string | null): void {

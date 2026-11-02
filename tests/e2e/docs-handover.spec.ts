@@ -26,6 +26,6 @@ test('phase-03-task-06 AC3: 회의 메모의 할 일 하나를 인수인계로 �
   // 보드 화면에 보인다
   await todo.getByRole('link', { name: '보드에서 보기' }).click();
   await expect(page.getByText('예약 안내 문자 문구 고치기').first()).toBeVisible();
-  await page.goto('/desk/board');
+  await page.goto('/desk/board?tab=handover');
   await expect(page.getByText('예약 안내 문자 문구 고치기').first()).toBeVisible();
 });
