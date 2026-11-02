@@ -10,6 +10,7 @@ import type { IconName } from '../components/Icon.tsx';
 import { formatDateLong, greeting } from '../lib/format.ts';
 import { useSession } from '../lib/session.tsx';
 import { ROLE_LABELS } from '../../../shared/roles.ts';
+import { RosterTodayCard } from './hr/RosterTodayCard.tsx'; // phase-04-task-01: 오늘 근무 카드
 
 /** 카드 자리 하나의 정의 */
 interface Slot {
@@ -76,7 +77,7 @@ export default function DashboardPage() {
       <CardGrid label="오늘 현황">
         {slots.map((s, i) => (
           <Card key={s.title} id={`dash-card-${i}`} title={s.title} span={s.span} action={s.link}>
-            <EmptyState icon={s.icon} title={s.empty} description={s.hint} />
+            {s.title === '오늘 근무' ? <RosterTodayCard /> : <EmptyState icon={s.icon} title={s.empty} description={s.hint} />}
           </Card>
         ))}
       </CardGrid>
