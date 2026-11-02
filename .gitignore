@@ -1,0 +1,10 @@
+# 이 파일이 하는 일: git에 올리지 않을 파일 목록(실제 데이터·백업·설치 폴더·테스트 산출물)
+node_modules/
+data/
+backups/
+artifacts/
+test-results/
+playwright-report/
+harness_setup/evidence/runs/
+*.log
+.env

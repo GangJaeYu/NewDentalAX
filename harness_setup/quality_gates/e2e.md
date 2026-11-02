@@ -1,0 +1,37 @@
+# Gate 3 — e2e (실제 브라우저 흐름)
+
+- **대상·근거**: 화면이 있는 모든 수용 기준, 실패 흐름(권한 거부, 입력 오류, 개인정보 경고, 예산 초과, 연결 끊김), 저장 → 새로고침 → 다시 조회, 인쇄 PDF, 접근성(NFR-007), 반응형(NFR-006)
+- **명령**: `node harness_setup/scripts/gate.mjs e2e <태스크ID>` (내부에서 `npm run test:e2e` = `playwright test`)
+- **관찰 수단**
+  - 브라우저: 설치된 Microsoft Edge를 `@playwright/test`의 `channel: 'msedge'`, headless로 쓴다.
+    - 2026-11-02 실험으로 확인했다: playwright-core 1.49.1 + Edge로 8장을 촬영했고, 가로 스크롤 판정과 `document.fonts.check`가 동작했다.
+    - 브라우저 내려받기가 필요 없다.
+  - 접근성: `@axe-core/playwright`. 대상 화면에서 위반 0건이어야 한다.
+  - 인쇄: `page.pdf({format:'A4'})`. PDF 텍스트와 쪽 수를 확인한다.
+  - 반응형: 1440×900, 1024×768, 768×1024, 390×844 × light/dark에서 `document.documentElement.scrollWidth <= innerWidth`를 확인한다.
+  - 연결 끊김: 테스트가 띄운 서버를 정지하거나, `page.route('/api/**', abort)`를 쓴다.
+- **테스트 서버**
+  - `scripts/e2e-server.ts`가 다음 조건으로 서버를 띄운다.
+    - 임시 DATA_DIR(테스트마다 새로 만듦)
+    - `PORT=E2E_PORT`(기본 18090, 병렬 워커는 18090+N)
+    - `TEST_NOW=2026-11-02T09:00:00+09:00`
+    - 데모 데이터 적재 옵션
+    - AI 공급자는 demo 또는 fake-llm
+  - 준비 판정은 포트가 열렸는지가 아니라 `GET /api/health`가 `{ok:true, db:'ok'}`를 돌려주는지로 한다.
+  - 서버는 Playwright `webServer`가 띄우고 끈다. 수동으로 띄웠다면 PID 파일의 프로세스가 맞는지 확인한 뒤 종료한다.
+- **통과 조건**
+  - 종료 코드 0
+  - `N passed`에서 N > 0
+  - skipped 0
+  - flaky 0. 재시도해서 통과한 경우도 FAIL로 보고, 원인을 수정한다.
+- **산출물**
+  - 실패 시 trace와 스크린샷은 `artifacts/e2e/`(git 제외)에 남는다.
+  - 채택한 증거는 `harness_setup/evidence/<태스크ID>/`로 복사한다.
+- **화면 태스크 추가 확인**
+  - `npm run screenshots`로 `artifacts/screens/`에 해당 화면을 4너비 × 2테마로 생성한다.
+  - 생성한 이미지를 직접 열어 DESIGN §5와 기준선(`harness_setup/evidence/design-baseline/`)을 대조한다.
+  - 결과는 태스크 LOG에 "확인한 파일 목록 / 문제 / 수정" 형식으로 남긴다.
+- **금지**: `--update-snapshots`, `test.skip`, 기대값 완화, `retries`로 실패 숨기기(설정 `retries: 0`)
+- **상태**
+  - **미활성(2026-11-02)**
+  - **활성화 담당**: phase-01-task-01(첫 화면 로드 1건). 반응형·axe 기반은 phase-01-task-04.

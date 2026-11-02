@@ -1,0 +1,28 @@
+# LOG — 변경·판정 기록 (덧붙이기만 함)
+
+## 2026-11-02 계획 작성
+- **입력 문서**: IDEA, PRD v1.1, TRD v1.0, ARCHITECTURE v1.0(overview·database·backend·frontend), DESIGN(승인)
+- **생성 내용**: phase 6개, 태스크 37개(P0 21개, P1 8개, 검증·문서 5개, P2 3개)
+- **자동 검사**(임시 스크립트, yaml 2.6.1로 파싱)
+  - 결과: 태스크 37개, PRD 요구 ID 66개 중 누락 0, 구조 오류 0
+  - 검사 항목: 필수 키 존재, id와 파일명 일치, 의존 대상 존재, 순환 없음, 뒤 단계 의존 없음
+- **계획 단계에서 정한 것**
+  - 공유 파일 규칙(PLAN.md §3): 병렬 작업 충돌을 막으려고 권한 표, AI 기능 목록, 모듈 등록, 화면 경로, seed 등록, 마이그레이션 번호 범위를 기반 태스크가 먼저 고정한다.
+  - P2의 바코드와 녹음은 http 제약(TD-017) 때문에 실시간 카메라·마이크 대신 스캐너 입력과 파일 업로드로 계획했다. PRD FR-130·132의 결과(출고, 회의록)는 그대로다.
+- **제품 게이트 실행**: 없음(계획 단계)
+
+## 2026-11-02 하네스 준비
+- harness_setup/에 만든 것
+  - HARNESS.md
+  - quality_gates/{lint,unit,e2e,task_validation}.md
+  - scripts/{preflight,gate,task-brief}.mjs
+  - evidence/design-baseline(승인 시안 8장)
+- 실제 실행 결과는 harness_setup/evidence/README.md에 있다.
+  - preflight: 12개 항목 OK
+  - Playwright + Edge: 8장 촬영, 가로 스크롤 없음
+  - gate 판정 로직: 8개 경우 모두 기대대로
+  - INACTIVE 판정: 확인
+  - task-brief: 확인
+- phase-01-task-01 수용 기준 추가: gate.mjs 세 게이트 PASS, lint 단계 출력 계약, preflight Playwright 항목 활성. 범위에 Playwright 설정 계약을 추가했다.
+- CLAUDE.md(에이전트용 문서 포인터)를 만들었다.
+- 제품 게이트 실행: 없음(제품 코드 없음, 미활성 = 통과 아님)

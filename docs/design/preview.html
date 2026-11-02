@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 이 파일이 하는 일: 치과 원내 업무 서비스의 화면 시안(대시보드·재고·AI 문서 작성기)을 미리 보여 주는 정적 페이지. 실제 서비스 코드가 아니며, 색·글꼴·간격·상태 표현을 사용자와 확정하기 위한 자료다. -->
+<title>원내 업무 화면 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("fonts/PretendardVariable.woff2") format("woff2-variations");
+  font-weight: 45 920;
+  font-display: swap;
+}
+/* 레이아웃 개념: 왼쪽 메뉴 + 위 도구줄 + 카드 격자. 업무 화면이라 장식보다 정보 위계와 상태 표시에 집중한다. */
+:root {
+  --bg: #F4F7F7;
+  --surface: #FFFFFF;
+  --surface-2: #EDF2F2;
+  --line: #DCE4E3;
+  --fg: #142120;
+  --muted: #586968;
+  --accent: #0C7C76;
+  --accent-strong: #09625D;
+  --accent-weak: #E1F2F0;
+  --on-accent: #FFFFFF;
+  --warn: #9A5B06;
+  --warn-weak: #FCF0DA;
+  --danger: #B3362F;
+  --danger-weak: #FBE6E4;
+  --ok: #23774B;
+  --ok-weak: #E0F2E8;
+  --shadow: 0 1px 2px rgba(20, 40, 38, .06), 0 2px 8px rgba(20, 40, 38, .04);
+  --font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --pad: 18px;
+  --row: 40px;
+  --side: 232px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1414; --surface: #151D1C; --surface-2: #1B2625; --line: #273432;
+    --fg: #E3EBEA; --muted: #92A3A1; --accent: #45BDB3; --accent-strong: #6CD0C7;
+    --accent-weak: #153230; --on-accent: #062321; --warn: #E3AA4E; --warn-weak: #33281A;
+    --danger: #EE7D74; --danger-weak: #3A1F1D; --ok: #62C38F; --ok-weak: #163020;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1414; --surface: #151D1C; --surface-2: #1B2625; --line: #273432;
+  --fg: #E3EBEA; --muted: #92A3A1; --accent: #45BDB3; --accent-strong: #6CD0C7;
+  --accent-weak: #153230; --on-accent: #062321; --warn: #E3AA4E; --warn-weak: #33281A;
+  --danger: #EE7D74; --danger-weak: #3A1F1D; --ok: #62C38F; --ok-weak: #163020;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
+}
+/* 시안 B: 조금 더 깊고 푸른 청록 */
+:root[data-accent="b"] { --accent: #0A6873; --accent-strong: #07525B; --accent-weak: #E0EFF2; }
+@media (prefers-color-scheme: dark) {
+  :root[data-accent="b"]:not([data-theme="light"]) { --accent: #57B6C6; --accent-strong: #7FCBD8; --accent-weak: #14303A; }
+}
+:root[data-theme="dark"][data-accent="b"] { --accent: #57B6C6; --accent-strong: #7FCBD8; --accent-weak: #14303A; }
+:root[data-density="compact"] { --pad: 14px; --row: 34px; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+a.btn { text-decoration: none; color: inherit; }
+a.btn.primary { color: var(--on-accent); }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font);
+  font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss06";
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+svg.i { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── 앱 골격 ── */
+.app { display: grid; grid-template-columns: var(--side) 1fr; grid-template-rows: 56px 1fr; height: 100%; }
+.top {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; width: calc(var(--side) - 16px); font-weight: 700; letter-spacing: -.01em; }
+.brand .mark { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; }
+.brand small { display: block; font-weight: 500; color: var(--muted); font-size: 11.5px; line-height: 1.2; }
+.search { flex: 1; max-width: 420px; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: var(--r-md); background: var(--surface-2); color: var(--muted); border: 1px solid transparent; min-width: 0; }
+.search input { border: 0; background: transparent; outline: none; width: 100%; color: var(--fg); }
+.search kbd { font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; background: var(--surface); }
+.top .spacer { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pill.demo { background: var(--warn-weak); color: var(--warn); }
+.iconbtn { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--r-md); border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.iconbtn:hover { background: var(--surface-2); color: var(--fg); }
+.iconbtn .dot { position: absolute; top: 5px; right: 5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 700; display: grid; place-items: center; }
+.me { display: flex; align-items: center; gap: 8px; padding-left: 6px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-weak); color: var(--accent-strong); display: grid; place-items: center; font-weight: 700; font-size: 12.5px; }
+.me span { font-size: 13px; line-height: 1.2; }
+.me span small { display: block; color: var(--muted); font-size: 11.5px; }
+
+.side { background: var(--surface); border-right: 1px solid var(--line); padding: 10px 8px 24px; overflow-y: auto; display: grid; align-content: start; gap: 2px; }
+.side a, .side .gh { display: flex; align-items: center; gap: 10px; width: 100%; height: 32px; padding: 0 10px; border: 0; background: transparent; border-radius: var(--r-sm); color: var(--fg); text-decoration: none; font-size: 13.5px; cursor: pointer; text-align: left; }
+.side .gh { font-weight: 600; margin-top: 6px; }
+.side .gh .chev { margin-left: auto; width: 14px; height: 14px; color: var(--muted); transition: transform .15s; }
+.side .gh[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+.side .items { display: grid; gap: 1px; padding-left: 18px; position: relative; }
+.side .items::before { content: ""; position: absolute; left: 18px; top: 2px; bottom: 2px; width: 1px; background: var(--line); }
+.side .items a { height: 30px; font-size: 13px; color: var(--muted); padding-left: 16px; }
+.side .gh[aria-expanded="false"] + .items { display: none; }
+.side a:hover, .side .gh:hover { background: var(--surface-2); color: var(--fg); }
+.side a[aria-current="page"] { background: var(--accent-weak); color: var(--accent-strong); font-weight: 600; }
+.side a .cnt { margin-left: auto; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.side a .cnt.alert { color: var(--danger); font-weight: 700; }
+.side .new { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--accent-strong); background: var(--accent-weak); border-radius: 4px; padding: 0 5px; line-height: 16px; }
+
+.main { overflow-y: auto; padding-block: 20px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 1101px) { .main { padding-left: 24px; padding-right: 24px; } }
+.wrap { max-width: 1720px; margin: 0 auto; display: grid; gap: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.kpi { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--fg); min-width: 0; }
+.kpi:hover { border-color: var(--accent); }
+.kpi small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.kpi b { font-size: 22px; letter-spacing: -.02em; line-height: 1.25; }
+.kpi b em { font-style: normal; font-size: 13px; color: var(--muted); font-weight: 600; margin-left: 2px; }
+.kpi .s { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi.danger b { color: var(--danger); }
+.kpi.warn b { color: var(--warn); }
+.shift { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; }
+.shift li { border-top: 0 !important; min-height: 34px !important; }
+.mini-av { width: 26px; height: 26px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--muted); flex: none; }
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.week > div { border-radius: 8px; background: var(--surface-2); padding: 8px; min-height: 92px; display: grid; align-content: start; gap: 4px; font-size: 11.5px; min-width: 0; }
+.week > div.today { background: var(--accent-weak); }
+.week > div b { font-size: 12px; }
+.week .ev { border-radius: 4px; padding: 1px 5px; background: var(--surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.week .ev.w { color: var(--warn); }
+.week .ev.d { color: var(--danger); }
+.spark { width: 100%; height: 56px; display: block; }
+.feat { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.feat li { list-style: none; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface-2); display: grid; gap: 3px; }
+.feat li b { font-size: 13.5px; }
+.feat li span { color: var(--muted); font-size: 12.5px; }
+.feat { margin: 0; padding: 0; }
+.ghost-ui { display: grid; gap: 8px; }
+.ghost-ui i { display: block; height: 34px; border-radius: 8px; background: var(--surface-2); }
+.pagehead { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.pagehead h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; text-wrap: balance; }
+.pagehead p { margin: 2px 0 0; color: var(--muted); }
+.pagehead .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 600; font-size: 13.5px; white-space: nowrap; transition: background .15s, border-color .15s; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn.sm { height: 30px; padding: 0 10px; font-size: 12.5px; }
+
+/* ── 카드 ── */
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-flow: dense; }
+@media (min-width: 1480px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); min-width: 0; display: flex; flex-direction: column; }
+.card > header { display: flex; align-items: center; gap: 8px; padding: 14px var(--pad) 10px; }
+.card > header h2 { margin: 0; font-size: 14.5px; font-weight: 700; }
+.card > header .sub { color: var(--muted); font-size: 12.5px; }
+.card > header .more { margin-left: auto; font-size: 12.5px; color: var(--accent); text-decoration: none; font-weight: 600; }
+.card .body { padding: 0 var(--pad) var(--pad); display: grid; gap: 2px; }
+.span2 { grid-column: span 2; }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; align-items: center; gap: 10px; min-height: var(--row); border-top: 1px solid var(--line); }
+.list li:first-child { border-top: 0; }
+.list .t { flex: 1; min-width: 0; }
+.list .t b { font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list .t small { color: var(--muted); font-size: 12px; }
+.chip { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.chip.danger { background: var(--danger-weak); color: var(--danger); }
+.chip.warn { background: var(--warn-weak); color: var(--warn); }
+.chip.ok { background: var(--ok-weak); color: var(--ok); }
+.chip.info { background: var(--accent-weak); color: var(--accent-strong); }
+.chip.ghost { background: var(--surface-2); color: var(--muted); }
+
+.progress { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
+.check { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-height: var(--row); }
+.check input { appearance: none; width: 18px; height: 18px; border: 1.6px solid var(--line); border-radius: 5px; display: grid; place-items: center; margin: 0; background: var(--surface); cursor: pointer; flex: none; }
+.check input:checked { background: var(--accent); border-color: var(--accent); }
+.check input:checked::after { content: ""; width: 9px; height: 5px; border-left: 2px solid var(--on-accent); border-bottom: 2px solid var(--on-accent); transform: rotate(-45deg) translate(1px, -1px); }
+.check input:checked + span { color: var(--muted); text-decoration: line-through; }
+.dday { width: 50px; text-align: center; font-weight: 700; font-size: 13px; }
+.dday.today { color: var(--danger); }
+.dday.soon { color: var(--warn); }
+
+.stat { display: flex; gap: 14px; padding-top: 4px; }
+.stat > div { flex: 1; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); }
+.stat b { display: block; font-size: 20px; letter-spacing: -.02em; }
+.stat small { color: var(--muted); font-size: 12px; }
+
+.notice { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); }
+.notice:first-child { border-top: 0; padding-top: 0; }
+.notice .h { display: flex; gap: 8px; align-items: center; }
+.notice .h b { font-weight: 700; }
+.notice p { margin: 0; color: var(--muted); }
+.notice .meta { display: flex; gap: 12px; color: var(--muted); font-size: 12px; }
+
+/* AI 입력 영역 */
+.guard { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--danger-weak); color: var(--danger); font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+.ask { display: grid; gap: 8px; }
+.ask textarea, .field textarea, .field input, .field select { width: 100%; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); padding: 10px 12px; resize: vertical; min-height: 44px; outline: none; }
+.ask textarea:focus, .field textarea:focus, .field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); }
+.pii { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--warn-weak); color: var(--warn); font-size: 12.5px; font-weight: 600; }
+.meter { display: grid; gap: 6px; }
+.meter .row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+
+/* 표 */
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 12px var(--pad); border-bottom: 1px solid var(--line); }
+.seg { display: inline-flex; background: var(--surface-2); border-radius: var(--r-md); padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; height: 28px; padding: 0 11px; border-radius: 7px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-weight: 600; font-size: 12px; color: var(--muted); padding: 10px var(--pad); border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--surface); }
+td { padding: 0 var(--pad); height: var(--row); border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface-2); }
+td.r, th.r { text-align: right; }
+.bar { display: inline-block; width: 56px; height: 5px; border-radius: 3px; background: var(--surface-2); vertical-align: middle; margin-left: 8px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.bar i.low { background: var(--danger); }
+
+/* 문서 작성기 */
+.writer { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tiers label { border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 10px; cursor: pointer; display: grid; gap: 1px; color: var(--fg); }
+.tiers label small { color: var(--muted); font-size: 11.5px; font-weight: 500; }
+.tiers input { position: absolute; opacity: 0; pointer-events: none; }
+.tiers label:has(input:checked) { border-color: var(--accent); background: var(--accent-weak); }
+.tiers label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.paper { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 36px 44px; min-height: 520px; }
+.paper .docno { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--fg); padding-bottom: 8px; margin-bottom: 20px; }
+.paper h3 { margin: 0 0 16px; font-size: 20px; text-align: center; letter-spacing: -.01em; }
+.paper p { margin: 0 0 12px; line-height: 1.8; max-width: 65ch; }
+.paper ul { margin: 0 0 12px; padding-left: 20px; line-height: 1.8; }
+.paper .sign { margin-top: 28px; text-align: right; font-weight: 700; }
+.adcheck { display: grid; gap: 6px; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface-2); margin-top: 16px; font-size: 12.5px; }
+.adcheck b { font-size: 13px; }
+.caret::after { content: "▍"; color: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* 시안 옵션 패널 (실제 서비스에는 없음) */
+.tweak { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20; background: var(--fg); color: var(--bg); border-radius: 14px; padding: 12px 14px; display: grid; gap: 8px; width: 260px; box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+.tweak b { font-size: 12.5px; }
+.tweak .opt { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
+.tweak .seg { background: color-mix(in srgb, var(--bg) 18%, transparent); }
+.tweak .seg button { color: var(--bg); opacity: .75; height: 26px; padding: 0 9px; }
+.tweak .seg button[aria-pressed="true"] { background: var(--bg); color: var(--fg); opacity: 1; }
+.tweak .x { position: absolute; top: 6px; right: 6px; border: 0; background: transparent; color: var(--bg); cursor: pointer; opacity: .7; }
+
+.bottomnav { display: none; }
+[data-view] { display: none; }
+[data-view].on { display: grid; }
+
+/* 태블릿: 메뉴를 아이콘 막대로 줄인다 */
+@media (max-width: 1100px) {
+  :root { --side: 64px; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .side .items, .side .gh span, .side .gh .chev, .side a span, .side a .cnt { display: none !important; }
+  .side a, .side .gh { justify-content: center; padding: 0; height: 40px; margin-top: 0; }
+  .brand { width: auto; }
+  .brand small, .brand .name { display: none; }
+  .writer { grid-template-columns: 1fr; }
+}
+/* 휴대폰: 아래쪽 탭 막대 */
+@media (max-width: 720px) {
+  .app { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .grid { grid-template-columns: 1fr; }
+  .span2 { grid-column: auto; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .week { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .shift { grid-template-columns: 1fr; }
+  .search, .me span, .pill.demo .long { display: none; }
+  .pagehead .actions { margin-left: 0; }
+  .paper { padding: 22px 18px; }
+  .tweak { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); width: auto; left: max(16px, env(safe-area-inset-left, 0px)); }
+  .bottomnav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--surface); border-top: 1px solid var(--line); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+  .bottomnav a { flex: 1; display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--muted); text-decoration: none; padding: 4px 0; }
+  .bottomnav a[aria-current="page"] { color: var(--accent-strong); font-weight: 700; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-board" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H6.3"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></symbol>
+  <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14.5 6.5a4 4 0 0 0-5.3 5.3L4 17l3 3 5.2-5.2a4 4 0 0 0 5.3-5.3l-2.5 2.5-2.5-.5-.5-2.5z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-won" viewBox="0 0 24 24"><path d="M4 7l3 10 3-8 2 0 3 8 3-10M3 11h18M3 14h18"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2L10 21h4l.6-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-tooth" viewBox="0 0 24 24"><path d="M7 3c-2.5 0-4 2-4 4.5 0 3 1.5 4.5 2 7 .5 3 1 6.5 2.8 6.5 1.6 0 1.7-4.5 4.2-4.5s2.6 4.5 4.2 4.5c1.8 0 2.3-3.5 2.8-6.5.5-2.5 2-4 2-7C21 5 19.5 3 17 3c-2 0-3 1-5 1S9 3 7 3z"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark"><svg class="i"><use href="#i-tooth"/></svg></div>
+      <div class="name">하늘숲치과<small>원내 업무</small></div>
+    </div>
+    <label class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" placeholder="재료, 문서, 공지 검색" aria-label="검색"><kbd>/</kbd></label>
+    <div class="spacer"></div>
+    <span class="pill demo" title="AI 키가 없어 예시 응답으로 동작 중"><svg class="i" style="width:14px;height:14px"><use href="#i-spark"/></svg>데모 모드<span class="long">· AI 키 미설정</span></span>
+    <button class="iconbtn" aria-label="알림 3건"><svg class="i"><use href="#i-bell"/></svg><span class="dot num">3</span></button>
+    <button class="iconbtn" id="themeBtn" aria-label="밝기 전환"><svg class="i"><use href="#i-moon"/></svg></button>
+    <div class="me"><div class="avatar">지현</div><span>김지현<small>실장</small></span></div>
+  </header>
+
+  <nav class="side" aria-label="주 메뉴">
+    <a href="#home" data-nav="home"><svg class="i"><use href="#i-home"/></svg><span>대시보드</span></a>
+    <button class="gh" aria-expanded="true" data-first="board"><svg class="i"><use href="#i-board"/></svg><span>데스크·소통</span><svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="items">
+      <a href="#board" data-nav="board"><span>공지·인수인계</span><b class="cnt num">2</b></a>
+      <a href="#checklist" data-nav="checklist"><span>오픈·마감 체크리스트</span><b class="cnt num">6/9</b></a>
+      <a href="#script" data-nav="script"><span>전화 응대 스크립트</span></a>
+      <a href="#review" data-nav="review"><span>리뷰 답글 초안</span></a>
+      <a href="#template" data-nav="template"><span>안내 문자·안내문 템플릿</span></a>
+    </div>
+    <button class="gh" aria-expanded="true" data-first="inventory"><svg class="i"><use href="#i-box"/></svg><span>재고·구매</span><svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="items">
+      <a href="#inventory" data-nav="inventory"><span>재고 현황</span><b class="cnt alert num">5</b></a>
+      <a href="#stock-log" data-nav="stock-log"><span>입출고 기록</span></a>
+      <a href="#receipt" data-nav="receipt"><span>명세서 사진으로 입고</span><b class="new">AI</b></a>
+      <a href="#orders" data-nav="orders"><span>발주서</span><b class="cnt num">1</b></a>
+      <a href="#vendors" data-nav="vendors"><span>거래처</span></a>
+      <a href="#prices" data-nav="prices"><span>단가 변동</span></a>
+    </div>
+    <button class="gh" aria-expanded="true" data-first="writer"><svg class="i"><use href="#i-spark"/></svg><span>문서·AI</span><svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="items">
+      <a href="#writer" data-nav="writer"><span>AI 문서 작성</span></a>
+      <a href="#assistant" data-nav="assistant"><span>원내 AI 도우미</span></a>
+      <a href="#minutes" data-nav="minutes"><span>회의록 요약</span></a>
+      <a href="#adcheck" data-nav="adcheck"><span>의료광고 문구 점검</span></a>
+      <a href="#promo" data-nav="promo"><span>블로그·SNS 홍보 글</span></a>
+      <a href="#forms" data-nav="forms"><span>서식 보관함</span></a>
+    </div>
+    <button class="gh" aria-expanded="true" data-first="roster"><svg class="i"><use href="#i-cal"/></svg><span>인사·근무</span><svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="items">
+      <a href="#roster" data-nav="roster"><span>근무표</span></a>
+      <a href="#leave" data-nav="leave"><span>연차·휴가</span><b class="cnt num">1</b></a>
+      <a href="#training" data-nav="training"><span>교육 이수 기록</span></a>
+      <a href="#onboarding" data-nav="onboarding"><span>신규 직원 온보딩</span></a>
+      <a href="#hiring" data-nav="hiring"><span>채용 공고·면접 질문</span></a>
+    </div>
+    <button class="gh" aria-expanded="true" data-first="equipment"><svg class="i"><use href="#i-shield"/></svg><span>시설·법정</span><svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="items">
+      <a href="#equipment" data-nav="equipment"><span>장비 점검·유지보수</span></a>
+      <a href="#sterilizer" data-nav="sterilizer"><span>멸균기 점검 기록</span></a>
+      <a href="#legal" data-nav="legal"><span>법정 의무 일정</span><b class="cnt alert num">3</b></a>
+    </div>
+    <button class="gh" aria-expanded="true" data-first="expenses"><svg class="i"><use href="#i-won"/></svg><span>운영 지표</span><svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="items">
+      <a href="#expenses" data-nav="expenses"><span>지출 기록</span></a>
+      <a href="#monthly" data-nav="monthly"><span>월간 요약</span></a>
+    </div>
+    <button class="gh" aria-expanded="false" data-first="users"><svg class="i"><use href="#i-gear"/></svg><span>관리</span><svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="items">
+      <a href="#users" data-nav="users"><span>사용자·권한</span></a>
+      <a href="#clinic" data-nav="clinic"><span>병원 기본 정보</span></a>
+      <a href="#ai-config" data-nav="ai-config"><span>AI 설정·예산</span></a>
+      <a href="#ai-usage" data-nav="ai-usage"><span>AI 사용량·비용</span></a>
+      <a href="#backup" data-nav="backup"><span>백업·복원</span></a>
+      <a href="#audit" data-nav="audit"><span>활동 기록</span></a>
+      <a href="#reset" data-nav="reset"><span>데모 데이터 초기화</span></a>
+    </div>
+  </nav>
+
+  <main class="main" id="main">
+    <!-- ───────── 대시보드 ───────── -->
+    <section class="wrap" data-view="home">
+      <div class="pagehead">
+        <div>
+          <h1>좋은 아침이에요, 김지현 실장님</h1>
+          <p class="num">2026년 11월 2일 월요일 · 오늘 근무 7명 · 휴가 1명(박서연)</p>
+        </div>
+        <div class="actions">
+          <button class="btn"><svg class="i"><use href="#i-box"/></svg>출고 기록</button>
+          <button class="btn"><svg class="i"><use href="#i-plus"/></svg>공지 쓰기</button>
+          <a class="btn primary" href="#writer"><svg class="i"><use href="#i-spark"/></svg>AI 문서 작성</a>
+        </div>
+      </div>
+
+      <div class="kpis num">
+        <a class="kpi" href="#roster"><small>오늘 근무</small><b>7<em>명</em></b><span class="s">휴가 1 · 오후 반차 1</span></a>
+        <a class="kpi" href="#checklist"><small>오픈 체크리스트</small><b>6<em>/ 9</em></b><span class="s">남은 3건 · 09:20 마감</span></a>
+        <a class="kpi danger" href="#inventory"><small>재고 경고</small><b>5<em>건</em></b><span class="s">부족 2 · 유효기간 2 · 곧 부족 1</span></a>
+        <a class="kpi warn" href="#legal"><small>30일 내 점검·의무</small><b>4<em>건</em></b><span class="s">오늘 1 · 확인 필요 2</span></a>
+        <a class="kpi" href="#leave"><small>승인 대기</small><b>2<em>건</em></b><span class="s">연차 1 · 발주 1</span></a>
+        <a class="kpi" href="#ai-usage"><small>11월 AI 사용</small><b>31<em>%</em></b><span class="s">12,400 / 40,000원</span></a>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <header><h2>오늘 할 일</h2><span class="sub num" id="ckCount">6 / 9</span><a class="more" href="#home">전체</a></header>
+          <div class="body">
+            <div class="progress" aria-hidden="true"><i id="ckBar" style="width:67%"></i></div>
+            <ul class="list" id="checklist" style="margin-top:6px">
+              <li><label class="check"><input type="checkbox" checked><span>석션·유닛체어 라인 플러싱</span></label></li>
+              <li><label class="check"><input type="checkbox" checked><span>멸균기 B&amp;D 테스트 결과 기록</span></label></li>
+              <li><label class="check"><input type="checkbox"><span>대기실 정리·안내 모니터 켜기</span></label></li>
+              <li><label class="check"><input type="checkbox"><span>오늘 택배 입고분 검수</span></label></li>
+              <li><span class="chip info">인수인계</span><span class="t"><b>3번 체어 라이트 깜빡임, 업체 연락 완료</b><small>어제 18:40 · 이수진</small></span></li>
+              <li><span class="chip warn">승인 대기</span><span class="t"><b>박서연 연차 11/14(금)</b><small>원장·실장 승인 필요</small></span><button class="btn sm">승인</button></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card">
+          <header><h2>재고 경고</h2><span class="sub">5건</span><a class="more" href="#inventory">재고 보기</a></header>
+          <div class="body">
+            <ul class="list">
+              <li><span class="t"><b>니트릴 글러브 M</b><small class="num">남은 2박스 · 적정 6박스</small></span><span class="chip danger">부족</span></li>
+              <li><span class="t"><b>석션 팁 (일회용)</b><small class="num">남은 1봉 · 적정 4봉</small></span><span class="chip danger">부족</span></li>
+              <li><span class="t"><b>레진 A2 시린지</b><small class="num">유효기간 2026-11-14</small></span><span class="chip warn">D-12</span></li>
+              <li><span class="t"><b>국소마취제 카트리지</b><small class="num">유효기간 2026-11-30</small></span><span class="chip warn">D-28</span></li>
+              <li><span class="t"><b>멸균 파우치 90×260</b><small class="num">남은 3팩 · 적정 5팩</small></span><span class="chip warn">곧 부족</span></li>
+            </ul>
+            <button class="btn sm" style="justify-self:start;margin-top:8px"><svg class="i"><use href="#i-cart"/></svg>발주서 3건 만들기</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <header><h2>다가오는 점검·의무 일정</h2><a class="more" href="#home">전체</a></header>
+          <div class="body">
+            <ul class="list">
+              <li><span class="dday today num">오늘</span><span class="t"><b>멸균기 주간 BI 테스트</b><small>장비 점검 · 매주 월</small></span><span class="chip ok">담당 이수진</span></li>
+              <li><span class="dday soon num">D-9</span><span class="t"><b>소화기·비상구 자체 점검</b><small>소방 · 매월</small></span></li>
+              <li><span class="dday num">D-21</span><span class="t"><b>파노라마 장비 정기검사</b><small>방사선 · 주기 3년</small></span><span class="chip ghost" title="법령 주기를 원장님이 확인해 주세요">확인 필요</span></li>
+              <li><span class="dday num">D-45</span><span class="t"><b>의료폐기물 배출자 교육</b><small>폐기물 · 3년마다</small></span></li>
+              <li><span class="dday num">D-60</span><span class="t"><b>개인정보 보호 교육 (전 직원)</b><small>개인정보 · 연 1회</small></span><span class="chip ghost">확인 필요</span></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card">
+          <header><h2>오늘 근무</h2><span class="sub num">11/2 (월)</span><a class="more" href="#roster">근무표</a></header>
+          <div class="body">
+            <ul class="list shift">
+              <li><span class="mini-av">최</span><span class="t"><b>최윤호</b><small>원장</small></span><span class="chip info">종일</span></li>
+              <li><span class="mini-av">김</span><span class="t"><b>김지현</b><small>실장</small></span><span class="chip info">종일</span></li>
+              <li><span class="mini-av">이</span><span class="t"><b>이수진</b><small>치과위생사</small></span><span class="chip info">종일</span></li>
+              <li><span class="mini-av">정</span><span class="t"><b>정하늘</b><small>치과위생사</small></span><span class="chip info">종일</span></li>
+              <li><span class="mini-av">한</span><span class="t"><b>한도윤</b><small>치과위생사</small></span><span class="chip ghost">오전</span></li>
+              <li><span class="mini-av">오</span><span class="t"><b>오민지</b><small>간호조무사</small></span><span class="chip info">종일</span></li>
+              <li><span class="mini-av">윤</span><span class="t"><b>윤가람</b><small>데스크</small></span><span class="chip info">종일</span></li>
+              <li><span class="mini-av">박</span><span class="t"><b>박서연</b><small>치과위생사</small></span><span class="chip warn">연차</span></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card span2">
+          <header><h2>공지</h2><span class="sub">읽음 표시로 전달 여부를 확인해요</span><a class="more" href="#home">공지 보드</a></header>
+          <div class="body">
+            <div class="notice">
+              <div class="h"><span class="chip info">고정</span><b>11월 진료시간 변경 안내 (목요일 야간진료 종료)</b></div>
+              <p>11월 6일부터 목요일 야간진료를 하지 않습니다. 예약 안내 전화 응대 스크립트도 바뀌었으니 확인해 주세요.</p>
+              <div class="meta num"><span>원장 최윤호 · 10/30</span><span>읽음 8 / 9</span></div>
+            </div>
+            <div class="notice">
+              <div class="h"><b>감염관리 체크리스트 개정본 배포</b></div>
+              <p>핸드피스 멸균 후 보관 항목이 추가됐습니다. 서식 보관함에 새 양식을 올려 두었습니다.</p>
+              <div class="meta num"><span>김지현 · 10/28</span><span>읽음 6 / 9</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <header><h2>AI 빠른 요청</h2><span class="chip ghost">데모 응답</span></header>
+          <div class="body" style="gap:10px">
+            <div class="guard"><svg class="i" style="width:16px;height:16px"><use href="#i-lock"/></svg><span>환자 이름·연락처·주민번호·차트번호·진료 내용은 입력하지 마세요. 보내기 전에 서버가 한 번 더 검사합니다.</span></div>
+            <div class="ask">
+              <textarea id="quickAsk" rows="3" aria-label="AI 요청">주차 2시간 무료 안내 전화 응대 멘트 만들어줘</textarea>
+              <div class="pii" id="piiBox" hidden><svg class="i" style="width:16px;height:16px"><use href="#i-alert"/></svg><span id="piiMsg"></span></div>
+              <div style="display:flex;gap:8px;align-items:center"><span class="sub" style="color:var(--muted);font-size:12px">빠른 모델 · 예상 3원</span><button class="btn primary sm" style="margin-left:auto">보내기</button></div>
+            </div>
+            <div class="meter">
+              <div class="row num"><span>11월 AI 사용</span><span>12,400원 / 40,000원</span></div>
+              <div class="progress"><i style="width:31%"></i></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <header><h2>발주 진행</h2><a class="more" href="#orders">발주서</a></header>
+          <div class="body">
+            <ul class="list">
+              <li><span class="t"><b>한빛덴탈 · 3품목</b><small class="num">PO-2611-003 · 작성 중 · 예상 64,300원</small></span><span class="chip ghost">작성</span></li>
+              <li><span class="t"><b>미소상사 · 2품목</b><small class="num">PO-2610-019 · 10/30 발주</small></span><span class="chip info">발주함</span></li>
+              <li><span class="t"><b>메디온약품 · 1품목</b><small class="num">PO-2610-017 · 10/28 입고</small></span><span class="chip ok">입고 완료</span></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card span2">
+          <header><h2>이번 주 일정</h2><span class="sub">휴가 · 점검 · 교육</span><a class="more" href="#roster">달력</a></header>
+          <div class="body">
+            <div class="week num">
+              <div class="today"><b>월 2</b><span class="ev d">BI 테스트</span><span class="ev">박서연 연차</span></div>
+              <div><b>화 3</b><span class="ev">한빛덴탈 입고</span></div>
+              <div><b>수 4</b><span class="ev">원내 회의 13:10</span><span class="ev">한도윤 오후반차</span></div>
+              <div><b>목 5</b><span class="ev w">마지막 야간진료</span></div>
+              <div><b>금 6</b><span class="ev">감염관리 교육</span></div>
+              <div><b>토 7</b><span class="ev">오전 진료</span></div>
+              <div><b>일 8</b><span class="ev" style="color:var(--muted)">휴진</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <header><h2>최근 입출고</h2><a class="more" href="#stock-log">기록 전체</a></header>
+          <div class="body">
+            <ul class="list num">
+              <li><span class="chip ghost">출고</span><span class="t"><b>니트릴 글러브 M · 1박스</b><small>08:52 · 오민지</small></span></li>
+              <li><span class="chip ghost">출고</span><span class="t"><b>석션 팁 · 1봉</b><small>08:47 · 정하늘</small></span></li>
+              <li><span class="chip ok">입고</span><span class="t"><b>국소마취제 카트리지 · 2갑</b><small>10/28 · 김지현 · 31,500원</small></span></li>
+              <li><span class="chip warn">조정</span><span class="t"><b>거즈 2×2 · −2팩</b><small>10/27 · 실사 차이</small></span></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card">
+          <header><h2>이번 달 지출</h2><span class="sub">원장·실장만</span><a class="more" href="#monthly">월간 요약</a></header>
+          <div class="body" style="gap:8px">
+            <div class="stat num"><div><b>3,184,000원</b><small>11월 1~2일 포함 누적</small></div></div>
+            <svg class="spark" viewBox="-4 0 308 60" aria-label="최근 6개월 재료비 추이">
+              <line x1="0" y1="55" x2="300" y2="55" stroke="var(--line)" stroke-width="1"/>
+              <polygon points="0,38 60,30 120,34 180,22 240,26 300,14 300,56 0,56" fill="var(--accent-weak)"/>
+              <polyline points="0,38 60,30 120,34 180,22 240,26 300,14" fill="none" stroke="var(--accent)" stroke-width="2"/>
+              <circle cx="300" cy="14" r="3.5" fill="var(--accent)"/>
+            </svg>
+            <div class="meter"><div class="row num"><span>재료비 6개월 추이</span><span>전월 대비 ▲4.1%</span></div></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ───────── 재고 ───────── -->
+    <section class="wrap" data-view="inventory">
+      <div class="pagehead">
+        <div><h1>재고</h1><p class="num">품목 86개 · 부족 3 · 유효기간 임박 2</p></div>
+        <div class="actions">
+          <button class="btn">CSV 가져오기</button>
+          <button class="btn">명세서 사진으로 입고</button>
+          <button class="btn primary"><svg class="i"><use href="#i-cart"/></svg>발주서 만들기 (3)</button>
+        </div>
+      </div>
+      <article class="card">
+        <div class="toolbar">
+          <div class="seg" role="group" aria-label="상태 필터">
+            <button aria-pressed="true">전체 86</button><button aria-pressed="false">부족 3</button><button aria-pressed="false">유효기간 2</button>
+          </div>
+          <div class="seg" role="group" aria-label="분류">
+            <button aria-pressed="true">모든 분류</button><button aria-pressed="false">소모품</button><button aria-pressed="false">수복재료</button><button aria-pressed="false">약품</button>
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>품목</th><th>분류</th><th class="r">현재고</th><th class="r">적정</th><th>유효기간</th><th>거래처</th><th class="r">최근 단가</th><th>상태</th></tr></thead>
+            <tbody class="num">
+              <tr><td><b>니트릴 글러브 M</b></td><td>소모품</td><td class="r">2박스<span class="bar"><i class="low" style="width:33%"></i></span></td><td class="r">6</td><td>—</td><td>한빛덴탈</td><td class="r">8,900원 <span class="chip danger" style="height:18px">▲6%</span></td><td><span class="chip danger">부족</span></td></tr>
+              <tr><td><b>석션 팁 (일회용)</b></td><td>소모품</td><td class="r">1봉<span class="bar"><i class="low" style="width:25%"></i></span></td><td class="r">4</td><td>—</td><td>한빛덴탈</td><td class="r">4,200원</td><td><span class="chip danger">부족</span></td></tr>
+              <tr><td><b>레진 A2 시린지</b></td><td>수복재료</td><td class="r">5개<span class="bar"><i style="width:80%"></i></span></td><td class="r">4</td><td>2026-11-14</td><td>미소상사</td><td class="r">23,000원</td><td><span class="chip warn">D-12</span></td></tr>
+              <tr><td><b>국소마취제 카트리지</b></td><td>약품</td><td class="r">3갑<span class="bar"><i style="width:75%"></i></span></td><td class="r">3</td><td>2026-11-30</td><td>메디온약품</td><td class="r">31,500원</td><td><span class="chip warn">D-28</span></td></tr>
+              <tr><td><b>멸균 파우치 90×260</b></td><td>소모품</td><td class="r">3팩<span class="bar"><i style="width:60%"></i></span></td><td class="r">5</td><td>—</td><td>한빛덴탈</td><td class="r">12,000원</td><td><span class="chip warn">곧 부족</span></td></tr>
+              <tr><td><b>알지네이트 인상재</b></td><td>수복재료</td><td class="r">4봉<span class="bar"><i style="width:100%"></i></span></td><td class="r">3</td><td>2027-05-20</td><td>미소상사</td><td class="r">9,800원</td><td><span class="chip ok">정상</span></td></tr>
+              <tr><td><b>거즈 2×2</b></td><td>소모품</td><td class="r">12팩<span class="bar"><i style="width:100%"></i></span></td><td class="r">8</td><td>—</td><td>한빛덴탈</td><td class="r">3,300원</td><td><span class="chip ok">정상</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <!-- ───────── AI 문서 작성 ───────── -->
+    <section class="wrap" data-view="writer">
+      <div class="pagehead">
+        <div><h1>AI 문서 작성</h1><p>요점만 적으면 인쇄할 수 있는 초안을 만들어 드려요.</p></div>
+      </div>
+      <div class="writer">
+        <article class="card">
+          <div class="body" style="padding-top:var(--pad);gap:14px">
+            <div class="field">
+              <label>문서 종류</label>
+              <div class="seg" role="group" aria-label="문서 종류" style="flex-wrap:wrap">
+                <button aria-pressed="true">환자 안내문</button><button aria-pressed="false">공문</button><button aria-pressed="false">내부 규정</button><button aria-pressed="false">업무 매뉴얼</button><button aria-pressed="false">리뷰 답글</button>
+              </div>
+            </div>
+            <div class="guard"><svg class="i" style="width:16px;height:16px"><use href="#i-lock"/></svg><span>환자 개인정보 입력 금지 — 특정 환자 이야기가 아니라 병원 전체에 해당하는 내용만 적어 주세요.</span></div>
+            <div class="field">
+              <label for="points">요점</label>
+              <textarea id="points" rows="6">- 11월 6일부터 목요일 야간진료 종료
+- 평일 9:30~18:30, 토요일 9:30~14:00
+- 점심시간 13:00~14:00
+- 문의는 대표번호 02-123-4567</textarea>
+            </div>
+            <div class="pii" id="piiBox2" hidden><svg class="i" style="width:16px;height:16px"><use href="#i-alert"/></svg><span id="piiMsg2"></span></div>
+            <div class="field">
+              <label>모델 등급</label>
+              <div class="tiers">
+                <label><input type="radio" name="tier">빠름<small>짧은 글 · 약 2원</small></label>
+                <label><input type="radio" name="tier" checked>표준<small>안내문 · 약 9원</small></label>
+                <label><input type="radio" name="tier">고급<small>규정·매뉴얼 · 약 40원</small></label>
+              </div>
+            </div>
+            <button class="btn primary" id="genBtn" style="justify-content:center"><svg class="i"><use href="#i-spark"/></svg>초안 만들기</button>
+            <p style="margin:0;color:var(--muted);font-size:12px">AI 초안은 참고용입니다. 법률·의료광고 판단은 전문가 확인이 필요합니다.</p>
+          </div>
+        </article>
+        <div>
+          <div class="paper">
+            <div class="docno num"><span>하늘숲치과</span><span>안내문 · 2026-11-02</span></div>
+            <h3>진료시간 변경 안내</h3>
+            <div id="draft">
+              <p>항상 하늘숲치과를 찾아 주시는 여러분께 감사드립니다.</p>
+              <p>보다 안정적인 진료 환경을 위해 <b>2026년 11월 6일(목)부터 목요일 야간진료를 종료</b>합니다. 이용에 참고해 주시기 바랍니다.</p>
+              <ul class="num"><li>평일: 오전 9시 30분 ~ 오후 6시 30분</li><li>토요일: 오전 9시 30분 ~ 오후 2시</li><li>점심시간: 오후 1시 ~ 2시</li></ul>
+              <p>궁금하신 점은 대표번호로 문의해 주세요.</p>
+            </div>
+            <div class="sign">하늘숲치과 원장</div>
+            <div class="adcheck">
+              <b>의료광고 문구 점검</b>
+              <span><span class="chip ok">통과</span> 과장·비교·치료 효과 보장 표현이 없습니다.</span>
+              <span style="color:var(--muted)">대표번호는 병원 번호로 판단해 그대로 두었습니다.</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn">인쇄 · PDF</button><button class="btn">서식 보관함에 저장</button><button class="btn">다시 쓰기</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ───────── 그 밖의 화면: 할 수 있는 일 요약 ───────── -->
+    <section class="wrap" data-view="screen">
+      <div class="pagehead">
+        <div><p id="scGroup" style="margin:0;font-size:12.5px;font-weight:600;color:var(--accent-strong)"></p><h1 id="scTitle"></h1><p id="scDesc"></p></div>
+        <div class="actions"><span class="chip ghost" id="scPrd"></span></div>
+      </div>
+      <article class="card">
+        <header><h2>이 화면에서 할 수 있는 일</h2><span class="sub">시안에서는 대시보드·재고·AI 문서 작성 3개 화면만 실제 모양으로 그렸습니다</span></header>
+        <div class="body"><ul class="feat" id="scFeat"></ul></div>
+      </article>
+      <article class="card" aria-hidden="true">
+        <div class="body" style="padding-top:var(--pad)"><div class="ghost-ui"><i style="width:40%"></i><i></i><i></i><i style="width:80%"></i><i style="width:65%"></i></div></div>
+      </article>
+    </section>
+  </main>
+
+  <nav class="bottomnav" aria-label="하단 메뉴">
+    <a href="#home" data-nav="home"><svg class="i"><use href="#i-home"/></svg>홈</a>
+    <a href="#inventory" data-nav="inventory"><svg class="i"><use href="#i-box"/></svg>재고</a>
+    <a href="#writer" data-nav="writer"><svg class="i"><use href="#i-spark"/></svg>AI</a>
+    <a href="#home"><svg class="i"><use href="#i-cal"/></svg>근무</a>
+    <a href="#home"><svg class="i"><use href="#i-board"/></svg>더보기</a>
+  </nav>
+</div>
+
+<aside class="tweak" id="tweak" aria-label="시안 옵션">
+  <button class="x" id="tweakX" aria-label="시안 옵션 닫기">✕</button>
+  <b>시안 옵션 (비교용)</b>
+  <div class="opt"><span>포인트 색</span><div class="seg" data-opt="accent"><button aria-pressed="true" data-v="a">청록 A</button><button aria-pressed="false" data-v="b">깊은 청록 B</button></div></div>
+  <div class="opt"><span>정보 밀도</span><div class="seg" data-opt="density"><button aria-pressed="true" data-v="normal">기본</button><button aria-pressed="false" data-v="compact">촘촘</button></div></div>
+  <div class="opt"><span>밝기</span><div class="seg" data-opt="theme"><button aria-pressed="true" data-v="">시스템</button><button aria-pressed="false" data-v="light">라이트</button><button aria-pressed="false" data-v="dark">다크</button></div></div>
+</aside>
+
+<script>
+// 이 스크립트는 시안을 둘러보기 위한 동작만 한다: 화면 전환, 시안 옵션, 체크리스트, 개인정보 감지 예시, 초안 생성 예시.
+(function () {
+  var root = document.documentElement;
+  var views = ["home", "inventory", "writer"];
+  // 시안에서 그리지 않은 화면: PRD 기능 요구(FR)를 요약해서 보여 준다
+  var S = {
+    board: ["데스크·소통", "공지·인수인계", "단톡방 대신 공지와 인수인계를 한곳에 모으고, 누가 읽었는지 확인합니다.", "FR-040", [["공지 쓰기·고정", "실장 이상이 분류를 붙여 공지를 올리고 맨 위에 고정"], ["읽음 확인", "읽은 사람·안 읽은 사람 목록"], ["인수인계", "모든 직원이 작성, 처리 완료 표시"], ["알림", "새 공지가 오면 종 알림"]]],
+    checklist: ["데스크·소통", "오픈·마감 체크리스트", "매일 반복하는 오픈·마감 업무를 체크하고 누가 언제 했는지 남깁니다.", "FR-041", [["항목 편집", "추가·순서 변경·담당 역할 지정"], ["오늘 체크", "체크한 사람과 시각 자동 기록"], ["지난 기록", "날짜별 조회·인쇄"], ["대시보드 진행률", "남은 항목이 첫 화면에 표시"]]],
+    script: ["데스크·소통", "전화 응대 스크립트", "진료시간·주차·보험 일반 안내 같은 반복 문의의 응대 멘트를 AI가 만듭니다.", "FR-042", [["병원 정보 자동 반영", "진료시간·주차·위치를 한 번 입력"], ["상황·말투 선택", "예약 변경, 주차, 보험 일반 문의 등"], ["스크립트 보관함", "저장·검색·분류"], ["개인정보 검사", "보내기 전 서버가 자동 검사"]]],
+    review: ["데스크·소통", "리뷰 답글 초안", "온라인 리뷰를 붙여 넣으면 말투별 답글 초안 2~3개를 받습니다.", "FR-043", [["말투별 초안", "정중·친근·간결"], ["의료광고 점검", "과장·치료 경험 확인 표현 경고"], ["개인정보 가리기", "리뷰 속 연락처 자동 가림"], ["복사·저장", "바로 붙여 넣기"]]],
+    template: ["데스크·소통", "안내 문자·안내문 템플릿", "자주 쓰는 안내 문자와 안내문 문구를 템플릿으로 관리합니다.", "FR-044", [["병원 정보 치환자", "{진료시간}, {주차안내} 등"], ["AI 초안", "목적만 적으면 문구 생성"], ["글자 수 표시", "단문·장문 기준"], ["복사 전용", "실제 발송 기능은 없음"]]],
+    "stock-log": ["재고·구매", "입출고 기록", "출고는 두 번 클릭, 입고는 단가·유효기간·로트까지 기록합니다.", "FR-051", [["빠른 출고", "품목 검색 → 수량 → 저장"], ["입고", "수량·단가·거래처·유효기간·로트"], ["재고 조정", "실사 차이를 사유와 함께 기록"], ["CSV 내보내기", "엑셀에서 바로 열림"]]],
+    receipt: ["재고·구매", "명세서 사진으로 입고", "거래명세서·영수증 사진을 AI가 읽어 입고·지출 초안을 만듭니다.", "FR-122", [["전송 전 경고·확인", "환자 정보·카드번호 가리기 안내와 확인 체크"], ["AI 읽기", "거래처·일자·품목·수량·단가"], ["품목 자동 연결", "기존 품목 후보 제시"], ["사람이 확인 후 저장", "입고와 지출에 함께 기록"]]],
+    orders: ["재고·구매", "발주서", "부족 품목을 거래처별로 묶어 발주서를 자동으로 만들고 인쇄·PDF로 냅니다.", "FR-054", [["자동 초안", "권장 수량 미리 계산"], ["A4 인쇄·PDF", "병원·거래처 정보와 합계"], ["상태 관리", "작성 → 발주함 → 입고 완료"], ["입고 처리 연결", "발주 품목이 입고 초안으로"]]],
+    vendors: ["재고·구매", "거래처", "거래처 담당자·주문 방법을 관리합니다.", "FR-053", [["거래처 정보", "상호·담당자·업무 연락처·주문 방법"], ["거래 품목", "거래처별 품목과 최근 단가"], ["발주 이력", "거래처별 발주서 목록"], ["CSV", "가져오기·내보내기"]]],
+    prices: ["재고·구매", "단가 변동", "입고할 때마다 단가를 기록해 오른 품목을 바로 보여 줍니다.", "FR-055", [["단가 추이", "품목·거래처별 표와 그래프"], ["인상 표시", "직전 대비 5% 넘게 오르면 ▲"], ["거래처 비교", "같은 품목 거래처별 단가"], ["CSV 내보내기", "엑셀로 분석"]]],
+    assistant: ["문서·AI", "원내 AI 도우미", "원내 매뉴얼·규정을 올리면 그 내용을 근거로 질문에 답합니다.", "FR-070 · FR-071", [["문서 올리기", "txt·md·pdf·docx, 공개 범위 지정"], ["근거 표시", "답 아래 문서 이름·발췌·바로가기"], ["없으면 없다고", "문서에 없는 내용은 지어내지 않음"], ["대화 기록", "사용자별 최근 기록, 직접 삭제"]]],
+    minutes: ["문서·AI", "회의록 요약", "회의 메모를 붙여 넣으면 결정·할 일·요약으로 정리합니다.", "FR-061", [["결정 사항", "한눈에 정리"], ["할 일", "담당 역할·기한"], ["공지·인수인계로 보내기", "클릭 한 번"], ["서식 보관함 저장", "버전 관리"]]],
+    adcheck: ["문서·AI", "의료광고 문구 점검", "홍보 글·안내문·리뷰 답글의 의료광고 규정 위반 소지를 표시합니다.", "FR-120", [["1차 규칙 점검", "최고·유일·100%, 전후 비교, 경험담, 할인 강조"], ["2차 AI 점검", "문맥상 위험 표현과 이유"], ["대체 표현 제안", "바꿔 쓸 문장"], ["법률 자문 아님 고지", "사전심의 대상 여부는 기관 확인"]]],
+    promo: ["문서·AI", "블로그·SNS 홍보 글", "주제와 채널을 고르면 홍보 글 초안을 만들고 광고 점검까지 합니다.", "FR-121", [["주제·채널", "블로그·인스타그램"], ["분량·말투", "선택"], ["자동 광고 점검", "결과와 함께 표시"], ["저장·복사", "서식 보관함"]]],
+    forms: ["문서·AI", "서식 보관함", "원내 서식과 작성한 문서를 폴더·태그로 보관합니다.", "FR-062 · FR-063", [["업로드", "pdf·docx·xlsx·이미지, hwp는 보관만"], ["폴더·태그·검색", "빠르게 찾기"], ["버전", "AI 문서 수정 이력"], ["인쇄", "A4 머리말·쪽 번호"]]],
+    roster: ["인사·근무", "근무표", "주간·월간 달력에 직원별 근무 유형을 1~2번 클릭으로 넣습니다.", "FR-081", [["근무 유형", "종일·오전·오후·야간·휴무(관리자 정의)"], ["지난주 복사", "반복 패턴 빠르게"], ["휴가 자동 반영", "승인된 연차 표시"], ["인원 합계·인쇄", "날짜별 근무 인원"]]],
+    leave: ["인사·근무", "연차·휴가", "직원이 신청하고 실장·원장이 승인하면 근무표와 알림에 반영됩니다.", "FR-080", [["신청", "연차·반차·병가·기타"], ["승인·반려", "반려 사유 필수, 알림 발송"], ["잔여 일수", "부여 일수 대비 사용"], ["동시 휴가 경고", "같은 날 인원 초과 시"]]],
+    training: ["인사·근무", "교육 이수 기록", "감염관리·개인정보·방사선 안전 등 교육 이수를 직원별로 기록합니다.", "FR-082", [["교육 항목·주기", "관리자 설정"], ["이수 기록", "이수일·증빙 파일"], ["다음 예정일", "자동 계산"], ["임박 알림", "대시보드와 종 알림"]]],
+    onboarding: ["인사·근무", "신규 직원 온보딩", "직무별 온보딩 체크리스트를 배정하고 진행률을 함께 봅니다.", "FR-083", [["직무별 템플릿", "치과위생사·간호조무사·데스크"], ["AI 초안", "직무에 맞는 체크리스트 생성"], ["진행률", "직원·담당자 함께 확인"], ["완료 기록", "날짜별"]]],
+    hiring: ["인사·근무", "채용 공고·면접 질문", "직무와 조건을 넣으면 채용 공고와 면접 질문 초안을 만듭니다.", "FR-084", [["공고 초안", "직무·근무 조건·우대 사항"], ["면접 질문", "직무·태도·상황 질문"], ["차별 표현 경고", "나이·성별·결혼 여부 등"], ["저장·복사", "서식 보관함"]]],
+    equipment: ["시설·법정", "장비 점검·유지보수", "장비별 점검·수리 이력과 다음 점검일을 관리합니다.", "FR-101", [["장비 등록", "종류·설치일·업체·점검 주기"], ["이력 기록", "일자·내용·비용·업체·첨부"], ["다음 점검일", "자동 계산·알림"], ["인쇄·CSV", "점검 대장"]]],
+    sterilizer: ["시설·법정", "멸균기 점검 기록", "B&D·BI·CI 결과와 사이클 정보를 환자 정보 없이 기록합니다.", "FR-102", [["일일·주간 기록", "B&D, BI·CI, 사이클, 온도·압력·시간"], ["불합격 즉시 알림", "조치 기록 전까지 대시보드 표시"], ["담당자·판정", "자동 기록"], ["인쇄·CSV", "기간별 대장"]]],
+    legal: ["시설·법정", "법정 의무 일정", "방사선·감염관리·소방·개인정보·의료폐기물 등 정기 의무를 D-day로 알려 줍니다.", "FR-100", [["기본 일정 템플릿", "주기·근거·출처 포함"], ["확인 필요 표시", "공식 확인 전 항목은 표시, 관리자가 수정"], ["다음 예정일", "마지막 수행일로 자동 계산"], ["법령 변경 고지", "관할 기관 확인 안내"]]],
+    expenses: ["운영 지표", "지출 기록", "지출을 분류해 기록하고 영수증을 첨부합니다. 환자 매출은 다루지 않습니다.", "FR-110", [["지출 입력", "일자·분류·거래처·금액·결제 수단"], ["분류 편집", "재료비·장비·임대료·공과금 등"], ["입고와 연결", "입고 시 지출로 함께 기록"], ["영수증 사진", "AI로 자동 입력 가능"]]],
+    monthly: ["운영 지표", "월간 요약", "월별 지출과 분류별 비중, 전월·전년 대비를 한눈에 봅니다.", "FR-111", [["월 합계·비중", "그래프와 표"], ["전월·전년 비교", "증감 표시"], ["거래처 상위", "많이 쓴 곳"], ["AI 요약", "집계 숫자만 보내 변동 원인·절약 제안"]]],
+    users: ["관리", "사용자·권한", "직원 계정과 역할(원장·관리자 / 실장 / 직원)을 관리합니다.", "FR-003 · FR-004", [["직원 추가", "이름·아이디·역할·직무·입사일만"], ["비밀번호 초기화", "다음 로그인 때 변경 강제"], ["비활성화", "퇴사자 접근 차단"], ["권한 표", "역할별 가능한 일"]]],
+    clinic: ["관리", "병원 기본 정보", "진료시간·주차·위치 등 AI 스크립트와 문서에 쓰이는 정보를 한 번 입력합니다.", "FR-042", [["진료·점심·휴진", "요일별"], ["주차·교통", "안내 문구"], ["보험 일반 안내", "공통 문구"], ["대표번호 허용 목록", "개인정보 가리기 예외"]]],
+    "ai-config": ["관리", "AI 설정·예산", "공급자·모델·키·월 예산과 기능별 사용 권한을 정합니다.", "FR-030~036", [["공급자", "Claude · OpenAI · Gemini · 데모"], ["API 키", "서버에 암호화 저장, 끝 4자리만 표시"], ["기능별 등급", "빠름·표준·고급, 역할별 켜고 끄기"], ["월 예산", "80% 경고 · 100% 차단"]]],
+    "ai-usage": ["관리", "AI 사용량·비용", "호출마다 토큰·비용을 기록하고 기능별·사용자별로 보여 줍니다.", "FR-034", [["이번 달 비용", "예산 대비 비율"], ["기능별·사용자별", "어디에 많이 쓰는지"], ["일별 추이", "그래프"], ["모델·단가 표", "관리자가 수정"]]],
+    backup: ["관리", "백업·복원", "매일 자동 백업(30개 보관)과 즉시 백업, 복원을 합니다.", "FR-006", [["자동 백업", "하루 1회, 놓치면 다음 실행 때"], ["지금 백업·내려받기", "버튼 한 번"], ["복원", "확인 문구 입력, 직전 상태 자동 보관"], ["업로드 파일 포함", "문서·사진까지"]]],
+    audit: ["관리", "활동 기록", "누가 언제 무엇을 했는지 남기고 걸러 봅니다.", "FR-005", [["로그인·잠금", "성공·실패 기록"], ["변경 기록", "생성·수정·삭제·승인·설정"], ["AI 호출", "기능·토큰·비용·차단 여부(원문 제외)"], ["CSV 내보내기", "수정·삭제 불가"]]],
+    reset: ["관리", "데모 데이터 초기화", "실제 사용 전에 가상 치과 예시 데이터를 지웁니다.", "FR-007", [["확인 문구 입력", "실수 방지"], ["직전 자동 백업", "되돌릴 수 있음"], ["남는 것", "관리자 계정·병원 설정·AI 설정·활동 기록"], ["다시 넣기", "교육용으로 예시 재생성"]]]
+  };
+  function route() {
+    var v = (location.hash || "#home").slice(1);
+    if (views.indexOf(v) < 0 && !S[v]) v = "home";
+    var viewName = S[v] ? "screen" : v;
+    if (S[v]) {
+      var d = S[v];
+      document.getElementById("scGroup").textContent = d[0];
+      document.getElementById("scTitle").textContent = d[1];
+      document.getElementById("scDesc").textContent = d[2];
+      document.getElementById("scPrd").textContent = "PRD " + d[3];
+      var ul = document.getElementById("scFeat"); ul.textContent = "";
+      d[4].forEach(function (f) { var li = document.createElement("li"); var b = document.createElement("b"); b.textContent = f[0]; var s = document.createElement("span"); s.textContent = f[1]; li.append(b, s); ul.appendChild(li); });
+    }
+    document.querySelectorAll("[data-view]").forEach(function (s) { s.classList.toggle("on", s.dataset.view === viewName); });
+    document.querySelectorAll("[data-nav]").forEach(function (a) {
+      if (a.dataset.nav === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    document.getElementById("main").scrollTop = 0;
+  }
+  window.addEventListener("hashchange", route); route();
+
+  // 메뉴 묶음 접기·펴기 (태블릿 아이콘 막대에서는 그 묶음의 첫 화면으로 이동)
+  document.querySelectorAll(".side .gh").forEach(function (g) {
+    g.addEventListener("click", function () {
+      if (matchMedia("(max-width: 1100px)").matches) { location.hash = g.dataset.first; return; }
+      g.setAttribute("aria-expanded", String(g.getAttribute("aria-expanded") !== "true"));
+    });
+  });
+
+  // 시안 옵션: 색·밀도·밝기
+  function setOpt(name, v) {
+    var attr = name === "accent" ? "data-accent" : name === "density" ? "data-density" : "data-theme";
+    if (!v || v === "a" || v === "normal") root.removeAttribute(attr); else root.setAttribute(attr, v);
+    document.querySelectorAll('[data-opt="' + name + '"] button').forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === (v || ""))); });
+  }
+  document.querySelectorAll("[data-opt] button").forEach(function (b) {
+    b.addEventListener("click", function () { setOpt(b.parentNode.dataset.opt, b.dataset.v); });
+  });
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") === "dark" || (!root.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+    setOpt("theme", dark ? "light" : "dark");
+  });
+  document.getElementById("tweakX").addEventListener("click", function () { document.getElementById("tweak").hidden = true; });
+
+  // 단순 토글 버튼 묶음(필터·문서 종류)
+  document.querySelectorAll(".seg:not([data-opt])").forEach(function (g) {
+    g.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      g.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+    });
+  });
+
+  // 체크리스트 진행률
+  var list = document.getElementById("checklist");
+  function updateCk() {
+    var boxes = list.querySelectorAll("input[type=checkbox]");
+    var done = list.querySelectorAll("input:checked").length + 4; // 화면 밖 완료 4건 포함(예시)
+    var total = boxes.length + 5;
+    document.getElementById("ckCount").textContent = done + " / " + total;
+    document.getElementById("ckBar").style.width = Math.round(done / total * 100) + "%";
+  }
+  list.addEventListener("change", updateCk);
+
+  // 개인정보 패턴 감지 예시 (실제 서비스는 서버에서 같은 검사를 한 번 더 한다)
+  var rules = [
+    [/\d{6}\s?-\s?[1-4]\d{6}/, "주민등록번호"],
+    [/01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}/, "휴대전화번호"],
+    [/[\w.+-]+@[\w-]+\.[\w.]+/, "이메일"],
+    [/\d{4}[-\s]\d{4}[-\s]\d{4}[-\s]\d{4}/, "카드번호"]
+  ];
+  function watch(inputId, boxId, msgId) {
+    var el = document.getElementById(inputId);
+    function check() {
+      var hits = rules.filter(function (r) { return r[0].test(el.value); }).map(function (r) { return r[1]; });
+      var box = document.getElementById(boxId);
+      box.hidden = hits.length === 0;
+      document.getElementById(msgId).textContent = hits.join(", ") + "로 보이는 내용이 있어요. 보내면 자동으로 가려집니다(예: 010-****-****). 환자 정보라면 지워 주세요.";
+    }
+    el.addEventListener("input", check); check();
+  }
+  watch("quickAsk", "piiBox", "piiMsg");
+  watch("points", "piiBox2", "piiMsg2");
+
+  // 초안 생성 예시: 데모 모드에서는 예시 문장이 한 글자씩 나타난다
+  var draft = document.getElementById("draft");
+  var original = draft.innerHTML;
+  document.getElementById("genBtn").addEventListener("click", function () {
+    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { draft.innerHTML = original; return; }
+    var text = draft.textContent.replace(/\s+\n/g, "\n").trim();
+    var i = 0; draft.innerHTML = '<p class="caret"></p>';
+    var p = draft.firstChild;
+    var t = setInterval(function () {
+      i += 3; p.textContent = text.slice(0, i);
+      if (i >= text.length) { clearInterval(t); draft.innerHTML = original; }
+    }, 16);
+  });
+})();
+</script>
+</body>
+</html>
