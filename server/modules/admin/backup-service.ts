@@ -17,6 +17,7 @@ import { AppError } from '../../lib/errors.ts';
 import { audit, type AuditContext } from '../../lib/audit.ts';
 import { BACKUP_KEEP_DEFAULT, BACKUP_KEEP_MAX, BACKUP_KEEP_MIN, BACKUP_REASONS, type BackupItem, type BackupReason, type BackupSettings } from '../../../shared/schemas/backup.ts';
 import type { SwappableDb } from './backup-swap.ts';
+import { retryFs, retryFsSync } from './backup-fs.ts';
 
 /** 백업에 필요한 값: DB, 업무 데이터 폴더, 백업 폴더, 시계 */
 export interface BackupEnv {
@@ -167,8 +168,13 @@ export function pruneBackups(backupDir: string, keep: number, except: readonly s
       kept += 1;
       continue;
     }
-    fs.rmSync(e.dir, { recursive: true, force: true });
-    removed.push(e.manifest.name);
+    // 잠깐 잠긴 오래된 백업은 이번에는 건너뛰고 다음 정리 때 다시 지운다(새 백업 만들기를 실패시키지 않는다)
+    try {
+      retryFsSync(() => fs.rmSync(e.dir, { recursive: true, force: true }));
+      removed.push(e.manifest.name);
+    } catch {
+      continue;
+    }
   }
   return removed;
 }
@@ -181,7 +187,10 @@ function sqlString(s: string): string {
 /**
  * 백업 하나를 만든다. 만든 항목을 돌려준다.
  * - app.db는 VACUUM INTO로 쓰는 중에도 일관된 사본을 만든다(트랜잭션 안에서는 부를 수 없다).
- * - prune이 true(기본)면 만든 뒤 보관 개수를 넘는 오래된 백업을 지운다(이번 것은 남긴다).
+ * - 폴더 이름을 정해(mkdir로 자리 잡기) 그 안에 바로 쓰고, manifest.json을 마지막에 쓴다. manifest가 없는 폴더는 목록·복원에서 빠지므로
+ *   만드는 도중의 백업이 보이지 않는다. 임시 폴더를 만들어 이름을 바꾸는 방식은 Windows에서 백신 등이 방금 쓴 파일을 열어 두면
+ *   EPERM으로 실패해서 쓰지 않는다(2026-11-02 통합 unit 간헐 실패 원인).
+ * - prune이 true(기본)면 만든 뒤 보관 개수를 넘는 오래된 백업을 지운다(이번 것은 남긴다). 정리 실패는 이번 백업을 실패시키지 않는다.
  */
 export function createBackup(env: BackupEnv, reason: BackupReason, opts: { prune?: boolean } = {}): BackupItem {
   const now = env.clock.now();
@@ -190,40 +199,59 @@ export function createBackup(env: BackupEnv, reason: BackupReason, opts: { prune
   const stamp = backupStamp(now);
   const base = `${stamp}-${reason}`;
   // 같은 초에 만든 백업이 이미 있으면 순번을 붙인다(순번은 계속 커지므로 지운 백업의 이름을 다시 쓰지 않는다)
-  let name = existing.some((e) => e.manifest.name.startsWith(`${stamp}-`)) ? `${base}-${seq}` : base;
-  for (let i = 2; fs.existsSync(path.join(env.backupDir, name)); i++) name = `${base}-${seq}-${i}`;
+  const first = existing.some((e) => e.manifest.name.startsWith(`${stamp}-`)) ? `${base}-${seq}` : base;
 
   fs.mkdirSync(env.backupDir, { recursive: true });
-  const tmp = path.join(env.backupDir, `.tmp-${name}`);
-  fs.rmSync(tmp, { recursive: true, force: true });
-  fs.mkdirSync(tmp, { recursive: true });
+  const name = reserveFolder(env.backupDir, first, `${base}-${seq}`);
+  const dir = path.join(env.backupDir, name);
+  let manifest: BackupManifest;
   try {
-    env.db.exec(`VACUUM INTO ${sqlString(path.join(tmp, 'app.db'))}`);
+    env.db.exec(`VACUUM INTO ${sqlString(path.join(dir, 'app.db'))}`);
     const up = uploadsDir(env.dataDir);
     const hasUploads = fs.existsSync(up);
-    if (hasUploads) fs.cpSync(up, path.join(tmp, 'uploads'), { recursive: true });
+    if (hasUploads) retryFsSync(() => fs.cpSync(up, path.join(dir, 'uploads'), { recursive: true, force: true }));
     const key = secretKeyPath(env.dataDir);
     const hasKey = fs.existsSync(key);
-    if (hasKey) fs.copyFileSync(key, path.join(tmp, 'secret.key'));
-    const stats = folderStats(tmp);
-    const manifest: BackupManifest = {
+    if (hasKey) retryFsSync(() => fs.copyFileSync(key, path.join(dir, 'secret.key')));
+    manifest = {
       format: 1,
       name,
       createdAt: now.toISOString(),
       reason,
       seq,
       schemaVersion: currentVersion(env.db),
-      sizeBytes: stats.bytes,
-      files: { db: true, secretKey: hasKey, uploads: hasUploads ? folderStats(path.join(tmp, 'uploads')).files : 0 },
+      sizeBytes: folderStats(dir).bytes,
+      files: { db: true, secretKey: hasKey, uploads: hasUploads ? folderStats(path.join(dir, 'uploads')).files : 0 },
     };
-    fs.writeFileSync(path.join(tmp, 'manifest.json'), JSON.stringify(manifest, null, 2));
-    fs.renameSync(tmp, path.join(env.backupDir, name));
-    if (opts.prune !== false) pruneBackups(env.backupDir, readBackupSettings(env.db).keep, [name]);
-    return { name, createdAt: manifest.createdAt, reason, sizeBytes: manifest.sizeBytes };
+    // 마지막에 manifest를 쓴다 = 이 백업이 다 만들어졌다는 표시
+    retryFsSync(() => fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest, null, 2)));
   } catch (e) {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    try {
+      retryFsSync(() => fs.rmSync(dir, { recursive: true, force: true }));
+    } catch {
+      // 못 지운 반쪽 폴더는 manifest가 없어 목록에 나오지 않는다
+    }
     throw e;
   }
+  if (opts.prune !== false) pruneBackups(env.backupDir, readBackupSettings(env.db).keep, [name]);
+  return { name, createdAt: manifest.createdAt, reason, sizeBytes: manifest.sizeBytes };
+}
+
+/**
+ * 백업 폴더 자리를 잡는다(mkdir가 성공한 이름을 돌려준다). 이미 있으면 base-2, base-3 …을 쓴다.
+ * 남아 있던 반쪽 폴더(manifest 없음)와도 겹치지 않는다.
+ */
+function reserveFolder(backupDir: string, first: string, base: string): string {
+  for (let i = 1; i < 10000; i++) {
+    const name = i === 1 ? first : `${base}-${i}`;
+    try {
+      retryFsSync(() => fs.mkdirSync(path.join(backupDir, name)));
+      return name;
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e;
+    }
+  }
+  throw new Error('백업 폴더 이름을 정하지 못했어요. 백업 폴더를 정리해 주세요.');
 }
 
 /** 오늘(KST) 만든 백업이 있는지. 이유와 관계없이 하나라도 있으면 있다고 본다 */
@@ -266,28 +294,25 @@ export function zipBackup(backupDir: string, name: string): Uint8Array {
   return zipSync(files, { level: 6 });
 }
 
-/** 파일 하나를 지운다(없으면 그냥 넘어감). Windows에서 잠깐 잠긴 경우를 대비해 몇 번 다시 시도한다 */
-function removeFile(file: string): void {
-  fs.rmSync(file, { force: true, maxRetries: 5, retryDelay: 50 });
-}
-
 /**
  * 데이터 폴더의 app.db·uploads·secret.key를 백업 폴더의 것으로 바꾸고 DB를 다시 연다(마이그레이션 포함).
  * 부르기 전에 DB 안쪽 연결을 닫아야 한다. 성공하면 새 연결을 바꿔 끼운다.
+ * 파일 지우기·복사는 Windows의 잠깐 잠김(백신·색인이 방금 닫은 app.db를 여는 등)에 대비해 다시 시도한다(backup-fs.ts).
+ * 특히 다른 프로그램이 열어 둔 파일을 지우면 "지우는 중" 상태로 남아, 같은 이름으로 복사하는 일이 그 프로그램이 닫을 때까지 EPERM이 된다.
  */
 async function replaceDataFrom(env: RestoreEnv, fromDir: string): Promise<void> {
   const dbFile = appDbPath(env.dataDir);
-  for (const f of [dbFile, `${dbFile}-wal`, `${dbFile}-shm`]) removeFile(f);
-  await fs.promises.copyFile(path.join(fromDir, 'app.db'), dbFile);
+  for (const f of [dbFile, `${dbFile}-wal`, `${dbFile}-shm`]) await retryFs(() => fs.promises.rm(f, { force: true }));
+  await retryFs(() => fs.promises.copyFile(path.join(fromDir, 'app.db'), dbFile));
 
   const up = uploadsDir(env.dataDir);
-  await fs.promises.rm(up, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+  await retryFs(() => fs.promises.rm(up, { recursive: true, force: true }));
   const fromUploads = path.join(fromDir, 'uploads');
-  if (fs.existsSync(fromUploads)) await fs.promises.cp(fromUploads, up, { recursive: true });
+  if (fs.existsSync(fromUploads)) await retryFs(() => fs.promises.cp(fromUploads, up, { recursive: true, force: true }));
 
   // secret.key가 백업에 있으면 바꾼다. 없으면(키를 만들기 전 백업) 지금 키를 그대로 둔다
   const fromKey = path.join(fromDir, 'secret.key');
-  if (fs.existsSync(fromKey)) await fs.promises.copyFile(fromKey, secretKeyPath(env.dataDir));
+  if (fs.existsSync(fromKey)) await retryFs(() => fs.promises.copyFile(fromKey, secretKeyPath(env.dataDir)));
 
   const { db } = openAppDb(env.dataDir, { clock: env.clock });
   env.db.swap(db);
