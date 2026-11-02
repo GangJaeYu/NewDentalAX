@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-01
-status: in_progress
+status: completed
 phase: "04"
 title: "근무표"
 depends_on: [phase-03-task-09]
