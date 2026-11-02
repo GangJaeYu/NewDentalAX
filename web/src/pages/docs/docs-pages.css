@@ -1,0 +1,45 @@
+/* 이 파일이 하는 일: 문서 화면들(AI 문서 작성·회의록 요약·서식 보관함·상세·문서 인쇄)의 배치 스타일.
+   넓은 화면은 입력(왼쪽)·편집(오른쪽) 두 칸, 1100px 이하는 한 칸으로 쌓는다. 색·간격은 tokens.css 변수만 쓴다(DESIGN §2). */
+.doc-cols { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; min-width: 0; }
+@media (max-width: 1100px) { .doc-cols { grid-template-columns: minmax(0, 1fr); } }
+.doc-cols > * { min-width: 0; }
+
+.doc-form { display: grid; gap: 14px; min-width: 0; }
+.doc-form-row { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.doc-form-row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 720px) { .doc-form-row, .doc-form-row.two { grid-template-columns: minmax(0, 1fr); } }
+
+.doc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.doc-actions .grow { flex: 1; }
+.doc-note { color: var(--muted); font-size: var(--fs-small); margin: 0; }
+.doc-revise { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: var(--r-md); background: var(--surface-2); }
+.doc-revise b { font-size: var(--fs-small); margin-right: 4px; }
+.doc-alert { display: grid; gap: 4px; padding: 10px 12px; border-radius: var(--r-md); background: var(--danger-weak); color: var(--danger); font-size: var(--fs-small); }
+.doc-alert b { display: flex; gap: 6px; align-items: center; }
+
+.doc-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.doc-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: var(--fs-small); margin: 0; }
+.doc-meta b { color: var(--fg); font-weight: 600; }
+.doc-title-cell { font-weight: 600; overflow-wrap: anywhere; }
+
+.doc-versions li { flex-wrap: wrap; padding-block: 6px; }
+.doc-version-body { max-height: 60vh; overflow: auto; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2); }
+
+.minutes-cols { display: grid; gap: var(--gap); grid-template-columns: repeat(3, minmax(0, 1fr)); min-width: 0; }
+@media (max-width: 1100px) { .minutes-cols { grid-template-columns: minmax(0, 1fr); } }
+.minutes-cols > * { min-width: 0; }
+.minutes-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.minutes-list li { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); overflow-wrap: anywhere; }
+.minutes-todo-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.minutes-todo-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.minutes-summary { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
+
+.print-doc .md-view { overflow-wrap: anywhere; }
+
+/* AI 결과 상자(.ai-out, AiPanel)는 높이 제한 때문에 스크롤 영역이 되는데, 키보드로 초점을 줄 수 없어 접근성 검사(scrollable-region-focusable)에 걸린다.
+   공용 부품을 고치기 전까지 문서 화면에서는 높이 제한을 풀어 스크롤 영역이 생기지 않게 한다(변경 요청: AiPanel .ai-out에 tabIndex=0). */
+.doc-ai .ai-out { max-height: none; overflow-y: visible; }
+/* 회의록: 정리가 끝나면 날 JSON 글 대신 아래 세 칸(결정·할 일·요약)으로 보여 준다(받는 동안에는 글이 보임) */
+.minutes-done .ai-out { display: none; }
+/* 서식 보관함 도구줄의 고르기 상자(너비는 글자에 맞춤) */
+select.input.doc-filter { width: auto; min-width: 128px; max-width: 100%; }
