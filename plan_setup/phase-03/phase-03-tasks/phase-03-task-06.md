@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-06
-status: in_progress
+status: completed
 phase: "03"
 title: "AI 문서 작성기·회의록 요약·서식 보관함·문서 인쇄"
 depends_on: [phase-02-task-03]
