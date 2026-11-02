@@ -44,7 +44,8 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'audit', url: '/admin/audit', state: 'user', ready: '시작 날짜' },
   // phase-02-task-05: 백업·복원, 데모 데이터 초기화
   { name: 'admin-backup', url: '/admin/backup', state: 'user', ready: '보관할 백업 개수' },
-  { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '업무 데이터 비어 있음' },
+  // 스크린샷용 예시 알림(업무 데이터)이 들어가 있어 '있음/비어 있음' 대신 공통 제목으로 기다린다(02-04·02-05 통합 결함 수정)
+  { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '지금 상태' },
 ];
 
 /** 스크린샷용 예시 알림(관리자가 받는 것): 읽지 않음 4건 + 읽음 1건 */
