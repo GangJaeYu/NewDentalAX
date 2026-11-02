@@ -1,6 +1,6 @@
 ---
 id: phase-05-task-02
-status: pending
+status: in_progress
 phase: "05"
 title: "보안 점검·SECURITY.md"
 depends_on: [phase-04-task-08, phase-04-task-05]
