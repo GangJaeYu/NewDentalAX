@@ -63,7 +63,7 @@ function runMain(env: NodeJS.ProcessEnv) {
 }
 
 /** 서버가 준비될 때까지 /api/health를 확인한다 */
-async function waitHealth(port: number, timeoutMs = 15000): Promise<{ ok: boolean; db: string; version: string }> {
+async function waitHealth(port: number, timeoutMs = 45000): Promise<{ ok: boolean; db: string; version: string }> {
   const until = Date.now() + timeoutMs;
   let last: unknown;
   while (Date.now() < until) {
@@ -317,7 +317,7 @@ describe('main.ts 실제 실행', () => {
     expect(await run.exited).toBe(0);
     expect(fs.existsSync(pidFile)).toBe(false);
     expect(run.output()).toContain('서버가 꺼졌어요');
-  });
+  }, 90000); // PC 부하가 클 때 기동 대기(최대 45초)를 고려(04-04 보고, 2026-11-03)
 
   // 다른 프로그램이 포트를 쓰는 다섯 방식((d)는 Node·.NET 두 가지) × 미리 확인 켬/끔(끄면 자기 확인만으로 찾아야 한다)
   const kinds: Array<[string, BlockerKind]> = [
