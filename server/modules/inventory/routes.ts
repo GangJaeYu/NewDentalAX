@@ -22,6 +22,7 @@ import {
   updateVendor,
 } from './service.ts';
 import './notify.ts';
+import csvRoutes, { sendMovesCsv } from './csv-routes.ts';
 
 const idParam = z.object({ id: z.coerce.number({ error: '번호가 올바르지 않아요.' }).int().positive('번호가 올바르지 않아요.') });
 const pageFields = {
@@ -66,6 +67,9 @@ const vendorsQuery = z.object({ active: z.enum(['active', 'inactive', 'all']).op
 
 /** inventory 모듈 API를 등록한다 */
 export default async function routes(app: FastifyInstance): Promise<void> {
+  // CSV 가져오기·내보내기(phase-03-task-03, csv-routes.ts)
+  await app.register(csvRoutes);
+
   // 품목 목록: 검색·분류·상태·정렬·쪽 나누기. { data, total, counts, categories }
   app.get('/items', async (req) => listItems(app.db, app.clock, parseInput(itemsQuery, req.query)));
 
@@ -98,7 +102,11 @@ export default async function routes(app: FastifyInstance): Promise<void> {
   });
 
   // 입출고 기록 목록(최근 것부터)
-  app.get('/inventory/moves', async (req) => listMoves(app.db, parseInput(movesQuery, req.query)));
+  app.get('/inventory/moves', async (req, reply) => {
+    // ?format=csv면 같은 조건으로 CSV 내려받기(inventory.export, phase-03-task-03)
+    if ((req.query as { format?: unknown }).format === 'csv') return sendMovesCsv(req, reply);
+    return listMoves(app.db, parseInput(movesQuery, req.query));
+  });
 
   // 단가 기록(최근 것부터, 직전 대비 변동률)
   app.get('/prices', async (req) => {
