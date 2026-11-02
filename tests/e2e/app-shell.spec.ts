@@ -313,7 +313,7 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
     await expect(banner).toHaveCount(0, { timeout: 30000 });
     // 다시 연결된 뒤에도 로그인 상태 그대로 화면을 쓸 수 있다
     await page.getByRole('link', { name: '재고 현황' }).click();
-    await expect(page.getByText('준비 중인 화면이에요')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '재고 현황' })).toBeVisible();
     await ctx.close();
   });
 });
