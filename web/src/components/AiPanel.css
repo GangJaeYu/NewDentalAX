@@ -1,0 +1,63 @@
+/* 이 파일이 하는 일: AI 공용 부품(AiPanel·PrivacyGuard)과 AI 관리 화면(/admin/ai, /admin/ai-usage)의 모양.
+   빨간 개인정보 안내(.guard)·노란 입력 경고(.pii)·등급 고르기(.tiers)·결과 상자(.ai-out)는 시안 docs/design/preview.html과 같은 모양이다. 색은 tokens.css 변수만 쓴다. */
+
+/* ── 개인정보 안내 ── */
+.guard { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--danger-weak); color: var(--danger); font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+.pii { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--warn-weak); color: var(--warn); font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+.guard .i, .pii .i { margin-top: 1px; }
+
+/* ── AI 패널 ── */
+.ai-panel { display: grid; gap: 12px; min-width: 0; }
+.ai-panel .ai-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: 12.5px; }
+.ai-panel .ai-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ai-panel .ai-actions .grow { flex: 1; }
+.ai-panel .ai-disclaimer { margin: 0; color: var(--muted); font-size: 12px; }
+.ai-panel .ai-note { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--accent-weak); color: var(--accent-strong); font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+.ai-panel .ai-off { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--surface-2); color: var(--fg); font-size: 13px; }
+.ai-panel .ai-error { display: grid; gap: 4px; padding: 10px 12px; border-radius: var(--r-md); background: var(--danger-weak); color: var(--danger); font-size: 13px; }
+.ai-panel .ai-error b { font-weight: 700; display: flex; gap: 6px; align-items: flex-start; }
+.ai-panel .ai-error span { color: var(--fg); }
+.ai-out { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2); min-height: 48px; max-height: 420px; overflow-y: auto; }
+.ai-result { display: grid; gap: 8px; min-width: 0; }
+.ai-result .ai-result-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ai-result .ai-result-head b { font-size: 13.5px; }
+.ai-result .ai-cost { color: var(--muted); font-size: 12px; }
+
+/* 등급 고르기(라디오 3개) */
+.tiers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.tiers legend { font-size: var(--fs-small); font-weight: 600; margin-bottom: 6px; padding: 0; }
+.tiers label { position: relative; display: grid; gap: 2px; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--r-md); cursor: pointer; font-weight: 600; font-size: 13px; min-width: 0; }
+.tiers label:has(input:checked) { border-color: var(--accent); background: var(--accent-weak); color: var(--accent-strong); }
+.tiers label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tiers input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tiers small { color: var(--muted); font-weight: 500; font-size: 12px; }
+@media (max-width: 720px) { .tiers { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── AI 관리 화면 ── */
+.ai-admin-grid { display: grid; gap: var(--gap); grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.ai-admin-grid > .wide { grid-column: 1 / -1; }
+@media (max-width: 1100px) { .ai-admin-grid { grid-template-columns: minmax(0, 1fr); } }
+.form-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.form-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.form-actions .grow { flex: 1; }
+.form-actions.under, .form-error.under { margin-top: 12px; }
+.form-actions .note { color: var(--muted); font-size: 12px; }
+.keyrow { display: grid; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+.keyrow:first-child { border-top: 0; padding-top: 0; }
+.keyrow .keyhead { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.keyrow .keyhead b { font-weight: 700; }
+.keyrow .keyform { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+.keyrow .keyform .field { flex: 1 1 220px; }
+.masked { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; letter-spacing: .02em; }
+.table input.cell, .table select.cell { height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); color: var(--fg); font: inherit; font-size: 13px; min-width: 0; }
+.table input.cell:focus, .table select.cell:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); outline: none; }
+.table input.cell.num { width: 84px; text-align: right; }
+.table input.cell.model { width: 190px; }
+.table td .roles { display: flex; gap: 10px; flex-wrap: nowrap; }
+.table td .roles label, .table td label.inline { display: inline-flex; gap: 4px; align-items: center; font-size: 12.5px; cursor: pointer; }
+.table td input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+.terms { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.usage-meter { display: grid; gap: 6px; }
+.usage-meter .row { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.month-nav { display: inline-flex; gap: 6px; align-items: center; }
+.month-nav b { min-width: 92px; text-align: center; }

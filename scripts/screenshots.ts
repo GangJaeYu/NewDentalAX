@@ -21,6 +21,8 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'login', url: '/login', state: 'anon', ready: '로그인' },
   { name: 'dashboard', url: '/', state: 'user', ready: '오늘 할 일' },
   { name: 'stub', url: '/inventory', state: 'user', ready: '준비 중인 화면이에요' },
+  { name: 'admin-ai', url: '/admin/ai', state: 'user', ready: 'AI 시험해 보기' },
+  { name: 'admin-ai-usage', url: '/admin/ai-usage', state: 'user', ready: 'AI 사용 기록이 없어요' },
 ];
 
 /** 서버가 준비될 때까지 /api/health를 확인한다 */

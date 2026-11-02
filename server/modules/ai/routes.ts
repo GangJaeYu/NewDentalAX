@@ -9,12 +9,12 @@ import { AppError, toErrorResponse } from '../../lib/errors.ts';
 import { thisMonthKst } from '../../lib/dates.ts';
 import { auditCtx, currentUser } from '../../auth/guard.ts';
 import { parseInput } from '../../security/validate.ts';
-import { AI_FEATURE_IDS, REAL_PROVIDERS } from '../../../shared/ai-features.ts';
+import { AI_FEATURE_IDS, AI_TIERS, REAL_PROVIDERS, type AiTier } from '../../../shared/ai-features.ts';
 import { can } from '../../../shared/roles.ts';
 import { aiRunSchema, ClientAbortedError, prepareAiCall, runAi, runAiStream, testProvider, type AiCallContext } from '../../ai/gateway.ts';
 import { openSse } from '../../ai/stream.ts';
 import { budgetStatus } from '../../ai/budget.ts';
-import { listModels, modelsPatchSchema, updateModels } from '../../ai/pricing.ts';
+import { activeModel, listModels, modelsPatchSchema, updateModels } from '../../ai/pricing.ts';
 import { usageReport } from '../../ai/usage.ts';
 import { aiSettingsPatchSchema, applyAiSettingsPatch, effectiveProvider, featureSettings, publicAiSettings, readAiSettings, writeAiSettings } from '../../ai/settings.ts';
 import { baseUrlsFromEnv, type AiOptions } from '../../ai/types.ts';
@@ -69,10 +69,21 @@ export default async function routes(app: FastifyInstance): Promise<void> {
       const f = featureSettings(s, id);
       return { id, label: f.label, enabled: f.enabled, allowed: f.enabled && f.roles.includes(user.role) && f.defaultRoles.includes(user.role), tier: f.tier, userTier: f.userTier };
     });
+    // 등급별 예상 비용 표시용 단가(FR-033 AC2, phase-02-task-03 추가). 데모면 비용이 0원이라 보내지 않는다
+    let pricing: { fxKrwPerUsd: number; tiers: Partial<Record<AiTier, { modelId: string; inputUsdPerM: number; outputUsdPerM: number }>> } | null = null;
+    if (provider !== 'demo') {
+      const tiers: Partial<Record<AiTier, { modelId: string; inputUsdPerM: number; outputUsdPerM: number }>> = {};
+      for (const t of AI_TIERS) {
+        const m = activeModel(app.db, provider, t);
+        if (m) tiers[t] = { modelId: m.modelId, inputUsdPerM: m.inputUsdPerM, outputUsdPerM: m.outputUsdPerM };
+      }
+      pricing = { fxKrwPerUsd: s.fxKrwPerUsd, tiers };
+    }
     return {
       data: {
         demo: provider === 'demo',
         provider,
+        pricing,
         features,
         budget: { exceeded: b.exceeded, ...(can(user.role, 'ai.usage') ? { monthKrw: b.monthKrw, budgetKrw: b.budgetKrw, pct: b.pct, warnPct: b.warnPct } : {}) },
       },
