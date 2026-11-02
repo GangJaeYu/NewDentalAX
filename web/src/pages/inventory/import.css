@@ -1,0 +1,38 @@
+/* 이 파일이 하는 일: CSV 가져오기·내보내기 화면(/inventory/import)의 모양. 카드 세로 쌓기, 가져오기 4단계 안내, 미리보기 요약 숫자,
+   카드 본문 여백은 Card가 주므로 따로 더하지 않는다. 오류 이유 목록(아이콘 + 글자, 색만으로 구분하지 않음, DESIGN §5-5), 확정 버튼 줄. 색은 tokens.css 변수만 쓴다. 520px 이하는 단계를 한 칸으로 쌓는다. */
+
+.imp-stack { display: grid; gap: var(--gap); min-width: 0; }
+.imp-pad { padding: 2px 0 0; display: grid; gap: 12px; min-width: 0; }
+/* 숨긴 파일 입력(.sr-only)이 .field input의 width:100%를 받아 화면 폭만큼 넘치지 않게, 놓기 칸을 기준 상자로 둔다 */
+.imp-pad .filedrop { position: relative; overflow: hidden; }
+
+.imp-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.imp-steps li { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2); min-width: 0; }
+.imp-steps b { font-weight: 700; font-size: 13.5px; }
+.imp-steps small { color: var(--muted); font-size: var(--fs-xs); overflow-wrap: anywhere; }
+
+.imp-summary { padding: 0 0 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; border-bottom: 1px solid var(--line); }
+.imp-count { display: inline-flex; gap: 6px; align-items: center; }
+.imp-count b { font-size: 16px; font-weight: 700; }
+.imp-enc { font-size: var(--fs-small); flex-basis: 100%; overflow-wrap: anywhere; }
+
+/* 내용 칸은 좁은 화면에서 글자 단위로 쪼개지지 않게 최소 폭을 두고, 표 안에서 가로로 밀어 본다(.tablewrap) */
+.imp-reasons, .imp-detail { min-width: 240px; max-width: 520px; }
+.imp-reasons { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; color: var(--danger); font-size: var(--fs-small); font-weight: 600; }
+.imp-reasons li { display: flex; gap: 6px; align-items: flex-start; min-width: 0; overflow-wrap: break-word; white-space: normal; }
+.imp-detail { display: grid; gap: 2px; font-size: var(--fs-small); min-width: 0; white-space: normal; }
+.imp-detail s { text-decoration-thickness: 1px; }
+
+.imp-foot { border-top: 1px solid var(--line); padding-top: 12px; }
+.imp-hint { margin: 0; color: var(--muted); font-size: var(--fs-small); }
+.imp-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.imp-actions.start { justify-content: flex-start; }
+
+@media (max-width: 1023px) {
+  .imp-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .imp-steps { grid-template-columns: minmax(0, 1fr); }
+  .imp-actions { justify-content: stretch; }
+  .imp-actions > * { flex: 1 1 auto; }
+}

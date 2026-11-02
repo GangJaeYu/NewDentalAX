@@ -4,6 +4,7 @@
 // 감사 로그를 고치거나 지우는 API는 만들지 않는다(DB 트리거도 막는다).
 import type { FastifyInstance } from 'fastify';
 import { audit } from '../../lib/audit.ts';
+import { toCsv } from '../../lib/csv.ts';
 import { kstDayRangeUtc, kstParts } from '../../lib/dates.ts';
 import type { Db } from '../../db/index.ts';
 import { auditCtx } from '../../auth/guard.ts';
@@ -13,8 +14,8 @@ import { auditActionLabel, auditQuerySchema, type AuditEntry, type AuditQuery, t
 /** CSV로 한 번에 내보낼 수 있는 최대 줄 수 */
 export const CSV_MAX_ROWS = 50_000;
 
-/** UTF-8 BOM(엑셀이 한글 CSV를 UTF-8로 읽게 하는 표시) */
-export const UTF8_BOM = '﻿';
+/** UTF-8 BOM·CSV 칸 만들기는 공용 server/lib/csv.ts로 모았다(phase-03-task-03). 예전 import 경로를 위해 다시 내보낸다 */
+export { UTF8_BOM, csvCell } from '../../lib/csv.ts';
 
 interface DbAudit {
   id: number;
@@ -102,16 +103,6 @@ function kstSeconds(iso: string): string {
   return `${p.year}-${two(p.month)}-${two(p.day)} ${two(p.hour)}:${two(p.minute)}:${two(p.second)}`;
 }
 
-/**
- * CSV 칸 하나를 만든다. 쉼표·따옴표·줄바꿈이 있으면 따옴표로 감싼다.
- * =, +, -, @로 시작하는 값은 엑셀이 수식으로 실행하지 않게 앞에 '를 붙인다.
- */
-export function csvCell(value: unknown): string {
-  let s = value === null || value === undefined ? '' : String(value);
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
-  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
 /** 활동 기록을 CSV 글로 만든다(맨 앞 UTF-8 BOM, 줄 끝 CRLF) */
 export function auditCsv(entries: readonly AuditEntry[]): string {
   const header = ['시각', '아이디', '이름', '행동', '행동 코드', '대상 종류', '대상 번호', '세부 내용', 'IP'];
@@ -126,7 +117,7 @@ export function auditCsv(entries: readonly AuditEntry[]): string {
     e.detail ? JSON.stringify(e.detail) : '',
     e.ip ?? '',
   ])];
-  return UTF8_BOM + lines.map((cells) => cells.map(csvCell).join(',')).join('\r\n') + '\r\n';
+  return toCsv(lines);
 }
 
 /** 활동 기록 API를 등록한다 */

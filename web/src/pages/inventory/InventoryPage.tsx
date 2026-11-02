@@ -128,9 +128,15 @@ export default function InventoryPage() {
               입출고 기록
             </Button>
             {canManage ? (
-              <Button icon="plus" onClick={() => setAdding(true)}>
-                품목 추가
-              </Button>
+              <>
+                {/* CSV 가져오기·내보내기 진입(03-03 변경 요청, 조정자 연결) */}
+                <Button to="/inventory/import" icon="doc">
+                  CSV 가져오기·내보내기
+                </Button>
+                <Button icon="plus" onClick={() => setAdding(true)}>
+                  품목 추가
+                </Button>
+              </>
             ) : null}
             <Button variant="primary" icon="box" onClick={() => setOutOpen(true)}>
               출고 기록
