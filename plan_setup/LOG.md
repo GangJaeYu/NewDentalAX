@@ -82,3 +82,13 @@
 - 증거: harness_setup/evidence/phase-01-task-02/validation-2026-11-02T1953-pass.md
 - 상태: 선행 01-01이 아직 재검증 중이라 completed는 보류한다(검증 PASS 기록만 남김).
 - 참고: npm ci가 moderate 취약점을 보고했다. high/critical 0 기준은 05-02에서 점검한다.
+
+## 2026-11-02 20:00 phase-01-task-01 task_validation 시도 2 → FAIL(AC4)
+- 검증 워커 ctx_48337e443893(대상 87ba834)
+  - AC1·2·3·5·6·7 PASS. AC3(새 콘솔 949에서 start.bat 첫 줄 오류)은 해결됐다.
+  - AC4 FAIL: 다른 프로그램이 `[::]:PORT`를 점유하면 서버가 0.0.0.0으로 따로 열리고 충돌을 감지하지 못한다. 안내한 localhost는 다른 프로그램으로 간다.
+- 증거: harness_setup/evidence/phase-01-task-01/validation-2026-11-02T2000-fail2.md
+- 조치
+  - 시도 3 수정 워커: listen host를 '::'(이중 스택)로 바꾼다.
+  - 01-03 워커에게 IPv4-mapped 주소 판별을 요청했다(send msg_61a2c49b1a56).
+- 누적 재시도: 01-01은 2회. 실패 원인이 서로 다르므로(코드 페이지 / IPv6 점유) 같은 방식의 반복이 아니다.
