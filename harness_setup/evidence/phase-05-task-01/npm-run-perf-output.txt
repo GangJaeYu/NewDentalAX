@@ -1,0 +1,61 @@
+[perf] 측정 데이터를 만듭니다(scale=10, C:\Users\main\orca\workspaces\DentalAX_with_Skills\phase-05-task-01-worker\.tmp\perf\run-1793661778558)...
+[perf] 데이터 준비 1.4초: {"items":1000,"stockMoves":61296,"orders":300,"audit":20000,"notices":300,"expenses":1000,"assistantMessages":1200,"users":10}
+[perf] 측정 서버 준비: http://localhost:18190 (pid 37884)
+[perf] 1회차 시작(직전 CPU 41.3%, 1번째 시도)
+[perf] 1회차 ① API: 최악 p95 114.8ms
+[perf] 1회차 ② 동시 연결: 요청 2007건, 오류 0건, 시간 초과 0건, p99 1351ms
+[perf] 1회차 ③ 첫 화면: 최악 296ms
+[perf] 1회차 완료(측정 중 PC 평균 CPU 43.6%, 최대 72.8%)
+[perf] 2회차 시작(직전 CPU 45.8%, 1번째 시도)
+[perf] 2회차 ① API: 최악 p95 114.8ms
+[perf] 2회차 ② 동시 연결: 요청 1690건, 오류 0건, 시간 초과 0건, p99 2023ms
+[perf] 2회차 ③ 첫 화면: 최악 508ms
+[perf] 2회차 완료(측정 중 PC 평균 CPU 59.8%, 최대 100%)
+[perf] PC CPU 사용률 94.7% — 50% 아래가 될 때까지 15초 기다립니다(1/8).
+[perf] PC CPU 사용률 56.7% — 50% 아래가 될 때까지 15초 기다립니다(2/8).
+[perf] 3회차 시작(직전 CPU 46.8%, 1번째 시도)
+[perf] 3회차 ① API: 최악 p95 105.3ms
+[perf] 3회차 ② 동시 연결: 요청 1849건, 오류 0건, 시간 초과 0건, p99 1629ms
+[perf] 3회차 ③ 첫 화면: 최악 388ms
+[perf] 3회차 완료(측정 중 PC 평균 CPU 52.8%, 최대 82.8%)
+
+측정 환경: 12th Gen Intel(R) Core(TM) i7-12700F · 논리 CPU 20개 · 메모리 31.8GB · Node v24.13.0 · Windows_NT 10.0.26300 (x64)
+데이터: scale=10, 품목 1000 · 입출고 61296 · 발주서 300 · 감사 기록 20000 · 공지 300 · 지출 1000 · 도우미 질문·답 1200 · 직원 10
+판정에 쓴 회차의 PC CPU 사용률: 1회 직전 41.3% · 측정 중 평균 43.6%(최대 72.8%), 2회 직전 45.8% · 측정 중 평균 59.8%(최대 100%), 3회 직전 46.8% · 측정 중 평균 52.8%(최대 82.8%)
+
+① 주요 목록 API (API마다 100번 차례로, 회차 중 가장 나쁜 p95) — 기준 p95 ≤ 300ms
+| 화면 | 주소 | 1회 p95 | 2회 p95 | 3회 p95 | 최악 p50 | 최악 p95 | 최악 최대 | 판정 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 재고 목록 | GET /api/items?status=all&active=active&page=1&pageSize=100 | 58.6ms | 56.3ms | 61.9ms | 51.6ms | 61.9ms | 64.9ms | PASS |
+| 재고 목록(검색) | GET /api/items?status=all&active=active&page=1&pageSize=100&q=%EC%B8%A1%EC%A0%95%EC%9A%A9 | 40.8ms | 50.2ms | 54.1ms | 43ms | 54.1ms | 56.5ms | PASS |
+| 재고 목록(부족만) | GET /api/items?status=low&active=active&page=1&pageSize=100 | 48.3ms | 61.6ms | 61.7ms | 50.6ms | 61.7ms | 67.9ms | PASS |
+| 입출고 기록 | GET /api/inventory/moves?page=1&pageSize=50 | 38.8ms | 44.5ms | 44.8ms | 38.7ms | 44.8ms | 46.3ms | PASS |
+| 입출고 기록(출고·검색) | GET /api/inventory/moves?page=1&pageSize=50&type=out&q=%EA%B8%80%EB%9F%AC%EB%B8%8C | 3.4ms | 3.4ms | 3.5ms | 2.9ms | 3.5ms | 3.8ms | PASS |
+| 발주서 | GET /api/orders?status=open&page=1&pageSize=50 | 2.2ms | 2.7ms | 3.2ms | 2.3ms | 3.2ms | 4.3ms | PASS |
+| 발주서(전체) | GET /api/orders?status=all&page=1&pageSize=50 | 2.5ms | 3ms | 2.7ms | 2.3ms | 3ms | 3.8ms | PASS |
+| 공지 | GET /api/posts?kind=notice&pageSize=200 | 4.2ms | 4.9ms | 4.3ms | 3.7ms | 4.9ms | 8ms | PASS |
+| 인수인계 | GET /api/posts?kind=handover&pageSize=200 | 1.3ms | 1.9ms | 2ms | 1.4ms | 2ms | 6.7ms | PASS |
+| 지출(이번 달) | GET /api/expenses?pageSize=500 | 1.7ms | 2ms | 2.6ms | 1.4ms | 2.6ms | 3.2ms | PASS |
+| 지출(전체) | GET /api/expenses?pageSize=500&month=all | 6.1ms | 19ms | 5.5ms | 4ms | 19ms | 28.6ms | PASS |
+| 감사 로그 | GET /api/audit?page=1&pageSize=50 | 1.5ms | 1.3ms | 2.2ms | 1.3ms | 2.2ms | 6.2ms | PASS |
+| 원내 도우미 질문 기록 | GET /api/assistant/history | 2.1ms | 4.9ms | 5ms | 4.1ms | 5ms | 8.5ms | PASS |
+| 원내 도우미 질문(데모 답변) | POST /api/assistant/ask | 3.8ms | 3.8ms | 4.1ms | 2.9ms | 4.1ms | 8.7ms | PASS |
+| 대시보드 | GET /api/dashboard | 114.8ms | 114.8ms | 105.3ms | 92.2ms | 114.8ms | 144ms | PASS |
+
+② 동시 연결 20개 · 60초 (대시보드·목록·알림 요약 섞기) — 기준 오류 0건
+| 회차 | 요청 | 초당 | 오류(2xx 아님 포함) | 시간 초과 | p50 | p97.5 | p99 | 최대 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1회 | 2007 | 33 | 0 | 0 | 616ms | 1200ms | 1351ms | 1708ms |
+| 2회 | 1690 | 28 | 0 | 0 | 725ms | 1737ms | 2023ms | 2650ms |
+| 3회 | 1849 | 31 | 0 | 0 | 663ms | 1491ms | 1629ms | 1866ms |
+
+③ 첫 화면(1440×900, 빈 캐시, 회차마다 5번) — 기준 2000ms 이내
+| 회차 | 로그인 단추 → 대시보드 완성 | 주소 / 열기 → 대시보드 완성 | 회차 최악 |
+| --- | --- | --- | --- |
+| 1회 | 262ms, 270ms, 267ms, 274ms, 265ms | 257ms, 279ms, 279ms, 257ms, 296ms | 296ms |
+| 2회 | 361ms, 371ms, 462ms, 394ms, 410ms | 377ms, 352ms, 508ms, 450ms, 346ms | 508ms |
+| 3회 | 278ms, 299ms, 302ms, 268ms, 281ms | 388ms, 325ms, 284ms, 286ms, 287ms | 388ms |
+
+판정: API PASS(최악 p95 114.8ms) · 동시 연결 PASS(오류 0건, 최악 p99 2023ms) · 첫 화면 PASS(최악 508ms) → PASS
+[perf] 결과 파일: artifacts\perf\perf-2026-11-02T23-28-33-487Z.json
+exit=0
