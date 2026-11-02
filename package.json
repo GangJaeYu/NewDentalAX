@@ -1,0 +1,53 @@
+{
+  "name": "haneulsoop-clinic-ax",
+  "version": "0.1.0",
+  "private": true,
+  "description": "치과 원내 업무 AX 웹 서비스(하늘숲치과 원내 업무)",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/main.ts",
+    "dev": "node scripts/dev.ts",
+    "build:web": "vite build",
+    "lint": "node scripts/lint.ts",
+    "test:unit": "vitest run --no-color",
+    "test:e2e": "npm run build:web && playwright test",
+    "screenshots": "npm run build:web && node scripts/screenshots.ts",
+    "perf": "node scripts/perf.ts",
+    "validate": "node harness_setup/scripts/task-brief.mjs"
+  },
+  "dependencies": {
+    "@fastify/cookie": "11.1.5",
+    "@fastify/multipart": "10.1.7",
+    "@fastify/static": "10.1.8",
+    "fastify": "5.12.7",
+    "fflate": "0.8.3",
+    "mammoth": "1.13.0",
+    "papaparse": "5.7.0",
+    "unpdf": "2.1.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@types/autocannon": "7.12.7",
+    "@types/node": "24.19.2",
+    "@types/papaparse": "5.5.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "autocannon": "8.0.0",
+    "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router": "8.5.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}
