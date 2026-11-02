@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-09
-status: pending
+status: in_progress
 phase: "03"
 title: "연차·휴가 신청과 승인"
 depends_on: [phase-01-task-05, phase-02-task-04]
