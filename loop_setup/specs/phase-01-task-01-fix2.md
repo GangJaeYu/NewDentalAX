@@ -1,6 +1,6 @@
 # 구현 워커 지시문 — phase-01-task-01
 
-너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@a6ada4f에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
+너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@eacce5a에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
 
 ## 먼저 읽을 것
 1. `CLAUDE.md`(문서 포인터·금지 사항)
@@ -49,19 +49,26 @@ node harness_setup/scripts/gate.mjs e2e phase-01-task-01
 전체 Loop 마감 2026-11-03T18:55:20+09:00. 이 태스크는 가능하면 3시간 안에 끝낸다. 길어지면 진행분을 커밋하고 남은 일을 보고한다.
 
 ## 조정자 메모
-- git 저장소는 이미 있다(main). `git init`을 하지 말 것. `.gitignore`와 `.gitattributes`도 이미 있으니 필요한 줄만 추가한다. `web/dist/`는 Loop 동안 git에서 제외하고, 최종 단계에서 조정자가 포함으로 바꾼다.
-- 이 태스크가 package.json, 잠금 파일, tsconfig, eslint, vitest, playwright 설정을 처음 만든다. 이후 태스크가 모두 이 위에 붙으므로 TD-023의 런타임 의존성과 개발 의존성을 전부 설치하고 버전을 잠금 파일로 고정한다.
-- `npm run test:e2e`는 필요하면 `build:web`을 먼저 실행해서 dist가 최신이게 한다.
-- Playwright 설정
-  - `channel:'msedge'`
-  - `retries:0`
-  - webServer는 `scripts/e2e-server.ts`. E2E_PORT 환경 변수, 임시 DATA_DIR, TEST_NOW를 쓴다.
-- `npm run lint`는 `scripts/lint.ts`(또는 .mjs)가 단계별로 실행한다.
-  - 각 단계마다 `[lint:<단계>] checked <N>`을 출력한다(quality_gates/lint.md).
-  - tsc 단계의 N은 프로젝트에 포함된 .ts/.tsx 파일 수다.
-- start.bat 동작 확인
-  - 슬롯 포트로 대신 확인해도 된다(`set PORT=18190`).
-  - 기본값 8090 경로가 코드상 동작하는지도 확인한다.
-  - 실제로 8090으로 띄웠다면 반드시 직접 종료한다.
-- 웹 첫 화면은 최소 셸("하늘숲치과 원내 업무" 제목 + 준비 중)이면 된다. 디자인 시스템은 phase-01-task-04가 담당한다.
+**수정 작업(시도 2)이다.** 태스크 전체는 이미 구현되어 main에 병합돼 있다. 독립 검증에서 기준 3번이 FAIL이었고, 이번에는 그 결함만 고친다. 검증 원문은 `harness_setup/evidence/phase-01-task-01/validation-2026-11-02T1930-fail.md`에 있다.
+
+결함
+- 한국어 Windows의 새 콘솔(기본 코드 페이지 949, 더블클릭과 같은 조건)에서 start.bat을 실행하면 첫 줄에 다음이 출력된다.
+  `'��료되면' is not recognized as an internal or external command...`
+- 원인: start.bat 2행의 `chcp 65001` 뒤에 오는 3~4행의 한국어 `rem` 줄을 cmd가 잘못된 바이트 위치에서 읽는다. 코드 페이지가 실행 도중에 바뀌기 때문이다.
+
+권장 수정 방향(더 나은 방법이 있으면 근거를 남기고 써도 된다)
+- `start.bat`·`stop.bat`
+  - ASCII만 쓴다: `@echo off`, `chcp 65001 >nul`, 본 스크립트 call, 종료 코드 전달
+  - "이 파일이 하는 일" 머리 주석도 ASCII 영어로 바꾸거나, 한국어 머리 주석은 호출되는 파일에 둔다(머리 주석 검사 규칙을 지킬 것).
+- 한국어 안내가 든 실제 로직은 별도 파일(예: `scripts/windows/start-main.cmd`, `stop-main.cmd`)로 옮긴다. 이 파일은 코드 페이지가 이미 65001인 상태에서 처음부터 읽힌다.
+- 머리 주석 검사(`check-file-headers`)가 .bat/.cmd를 검사한다면 규칙에 맞게 처리한다.
+
+반드시 확인할 것
+- 재현 방법 그대로 새 콘솔에서 실행한다.
+  `Start-Process cmd.exe -ArgumentList '/c','.\start.bat < nul > .tmp\x.log 2>&1' -WindowStyle Hidden -PassThru -Wait`
+  (PORT=18190, DATA_DIR=.tmp\..., NO_BROWSER=1)
+- 로그 첫 줄부터 깨진 문자나 "is not recognized"가 없어야 한다. 한국어 안내, 원내 IP, health OK도 확인한다.
+- stop.bat으로 종료되는지, 포트가 사용 중일 때 안내가 나오는지(기준 4)도 새 콘솔 조건에서 다시 확인한다.
+- 이 재현을 자동화한 테스트를 추가한다(vitest에서 child_process로 새 cmd를 띄워 출력 첫 줄을 검사). 테스트 이름에 `phase-01-task-01 AC3`를 넣는다.
+- 게이트 3종을 모두 PASS시킨 뒤 커밋한다.
 

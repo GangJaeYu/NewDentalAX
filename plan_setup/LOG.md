@@ -48,3 +48,9 @@
 - **워커 변경 요청 반영**: `cmd /c start.bat` → `cmd /c .\start.bat`(TRD TD-019, HARNESS, 01-01·05-05 기준 문구). 실행 방법만 정정한 것이고 기준을 완화하지 않았다. YAML 이스케이프도 확인했다(계획 구조 검사 통과).
 - **결정 반영**: 워커 결정 7건을 DECISIONS.md에 옮겼다.
 - **다음**: task_validation 검증 워커(새 작업 사본, 병합 커밋 기준)
+
+## 2026-11-02 19:30 phase-01-task-01 task_validation 시도 1 → FAIL
+- 검증 워커 ctx_641dd1b22d58(대상 de2e72a). AC1·2·4·5·6·7은 PASS, AC3은 FAIL.
+- AC3 결함: 새 콘솔(코드 페이지 949)에서 start.bat을 실행하면 첫 줄에 `'��료되면' is not recognized...`가 나온다. chcp 65001 뒤의 한국어 rem 줄을 cmd가 잘못된 위치에서 읽는다(2회 재현).
+- 증거: harness_setup/evidence/phase-01-task-01/validation-2026-11-02T1930-fail.md
+- 분류: 코드 결함. status=failed로 바꾸고 수정 워커를 배정한다(시도 2). 수정 뒤에는 다른 검증 워커가 lint부터 다시 판정한다.
