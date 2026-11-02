@@ -1,5 +1,6 @@
 // 이 파일이 하는 일: 상단바(56px). 병원 이름, 메뉴 찾기, 데모 모드 배지, 알림 종, 밝기 전환, 사용자 메뉴(비밀번호 바꾸기·밝기 3단계·로그아웃)를 둔다(DESIGN §4).
 // 메뉴 찾기는 메뉴 이름으로 화면을 찾아 이동한다('/' 키로 바로 입력). 휴대폰(720px 이하)에서는 찾기·이름 글자를 숨긴다.
+// 데모 모드 배지는 두 가지 이유를 함께 알려 준다: 가상 데이터(하늘숲치과 데모 데이터 사용 중)와 AI 키 미설정(GET /api/ai/status의 demo, FR-030 AC1).
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ROLE_LABELS } from '../../../shared/roles.ts';
@@ -11,7 +12,15 @@ import { useToast } from '../components/Toast.tsx';
 import { HOME_ITEM, searchMenu, visibleGroups } from '../lib/nav.ts';
 import { effectiveTheme, setTheme, THEME_LABELS, toggleTheme, useTheme, type ThemePref } from '../lib/theme.ts';
 import { initials } from '../lib/format.ts';
+import { fetchAiStatus } from '../lib/ai.ts';
+import { useApi } from '../lib/useApi.ts';
 import { NotificationBell } from './NotificationBell.tsx';
+
+/** 데모 모드 배지 글자: 가상 데이터를 쓰는지, AI 키가 없어 예시 응답을 쓰는지(둘 다 아니면 null = 배지 없음) */
+export function demoBadgeDetail(demoData: boolean, aiDemo: boolean): string | null {
+  const parts = [demoData ? '가상 데이터' : '', aiDemo ? 'AI 키 미설정' : ''].filter(Boolean);
+  return parts.length ? parts.join(' · ') : null;
+}
 
 /** 데모 모드 배지(가상 데이터·예시 AI 응답으로 동작 중일 때) */
 export function DemoBadge({ detail = '가상 데이터' }: { detail?: string }) {
@@ -161,6 +170,9 @@ interface TopBarProps {
 export function TopBar({ user, clinicName, demoMode, notificationCount, onLogout }: TopBarProps) {
   const theme = useTheme();
   const dark = effectiveTheme(theme) === 'dark';
+  // AI 키가 없으면(데모 공급자) 배지에 "AI 키 미설정"을 붙인다. AI 화면과 같은 key라 설정을 바꾸면 함께 다시 불러온다
+  const aiStatus = useApi('ai:status', fetchAiStatus);
+  const badge = demoBadgeDetail(demoMode, aiStatus.data?.demo === true);
   return (
     <header className="top">
       <Link className="brand" to="/" title="대시보드로">
@@ -173,7 +185,7 @@ export function TopBar({ user, clinicName, demoMode, notificationCount, onLogout
       </Link>
       <MenuSearch user={user} />
       <div className="spacer" />
-      {demoMode ? <DemoBadge /> : null}
+      {badge ? <DemoBadge detail={badge} /> : null}
       <NotificationBell count={notificationCount} />
       <IconButton icon={dark ? 'sun' : 'moon'} label={dark ? '밝게 보기' : '어둡게 보기'} onClick={toggleTheme} />
       <UserMenu user={user} onLogout={onLogout} />
