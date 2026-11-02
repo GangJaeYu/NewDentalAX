@@ -71,9 +71,14 @@ export function stockHint(s: DashboardData['kpis']['stock']): string {
   return parts.length ? parts.join(' · ') : '경고 없음';
 }
 
-/** 점검·의무 요약 숫자 보조 문구 */
+/** 점검·의무 요약 숫자 보조 문구(멸균 불합격 미조치를 가장 먼저 알린다) */
 export function dueHint(d: DashboardData['kpis']['due']): string {
-  const parts = [d.overdue ? `기한 지남 ${d.overdue}` : '', d.today ? `오늘 ${d.today}` : '', d.needCheck ? `확인 필요 ${d.needCheck}` : ''].filter(Boolean);
+  const parts = [
+    d.sterilizerFail ? `멸균 불합격 ${d.sterilizerFail}` : '',
+    d.overdue ? `기한 지남 ${d.overdue}` : '',
+    d.today ? `오늘 ${d.today}` : '',
+    d.needCheck ? `확인 필요 ${d.needCheck}` : '',
+  ].filter(Boolean);
   return parts.length ? parts.join(' · ') : d.total ? '여유 있게 준비하세요' : '30일 안 일정 없음';
 }
 

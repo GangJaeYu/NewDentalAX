@@ -92,7 +92,7 @@ export default function DashboardPage() {
           value={k ? k.due.total : null}
           unit="건"
           hint={k ? dueHint(k.due) : loadingHint}
-          tone={k ? (k.due.overdue + k.due.today > 0 ? 'danger' : k.due.total > 0 ? 'warn' : undefined) : undefined}
+          tone={k ? (k.due.overdue + k.due.today + k.due.sterilizerFail > 0 ? 'danger' : k.due.total > 0 ? 'warn' : undefined) : undefined}
           to="/facility/legal?view=due"
         />
         {manager ? (

@@ -65,7 +65,10 @@ describe('대시보드 API', () => {
     expect(s.total).toBe(s.low + s.expiring + s.soonLow + s.expired);
     expect(d.stockAlerts.items.every((i) => i.status !== 'ok' && i.id > 0)).toBe(true);
     expect(d.dueSoon.items.length).toBeGreaterThan(0);
-    expect(d.dueSoon.items.every((t) => t.daysLeft !== null && t.daysLeft <= 30)).toBe(true);
+    expect(d.dueSoon.items.every((t) => t.daysLeft !== null && t.daysLeft <= 30 && t.link.startsWith('/facility/'))).toBe(true);
+    // 법정 일정과 장비 점검(phase-04-task-03)이 남은 날 순으로 섞여 있다
+    const days = d.dueSoon.items.map((t) => t.daysLeft ?? 0);
+    expect(days).toEqual([...days].sort((x, y) => x - y));
     // 공지는 고정이 먼저
     expect(d.notices.items[0]?.pinned).toBe(true);
     expect(d.notices.items[0]?.totalUsers).toBeGreaterThan(0);
@@ -112,7 +115,7 @@ describe('대시보드 API', () => {
       working: null,
       checklistOpen: { done: 0, total: 0 },
       stock: { total: 0, low: 0, expiring: 0, soonLow: 0, expired: 0 },
-      due: { total: 0, overdue: 0, today: 0, needCheck: 0 },
+      due: { total: 0, overdue: 0, today: 0, needCheck: 0, sterilizerFail: 0 },
       approvals: 0,
       myPendingLeave: 0,
     });
@@ -121,6 +124,7 @@ describe('대시보드 API', () => {
     expect(d.approvals).toEqual({ total: 0, items: [] });
     expect(d.stockAlerts).toEqual({ total: 0, orderable: 0, items: [] });
     expect(d.dueSoon).toEqual({ total: 0, items: [] });
+    expect(d.sterilizerAlerts).toEqual({ total: 0, items: [] });
     expect(d.notices).toEqual({ total: 0, items: [] });
     expect(d.orders).toEqual({ open: 0, items: [] });
     expect(d.week.events).toEqual([]);
@@ -161,5 +165,38 @@ describe('도움 함수', () => {
     expect(percentile([5], 95)).toBe(5);
     expect(percentile([3, 1, 2], 50)).toBe(2);
     expect(() => percentile([], 95)).toThrow();
+  });
+});
+
+describe('장비 점검·멸균 불합격 연결(phase-04-task-03)', () => {
+  test('phase-03-task-10 AC2: 30일 안 장비 점검이 점검 카드에 들고, 조치 전 멸균 불합격은 조치를 기록할 때까지 대시보드에 보인다(FR-102 AC2)', async () => {
+    const a = await makeApp(false);
+    const who = loginAs(a, 'admin');
+    const at = new Date(NOW).toISOString();
+    // 설치일 기준 12개월 주기 → 다음 점검 2026-11-20(D-18)
+    const eq = a.db.run(
+      "INSERT INTO equipment (name, kind, installed_on, inspect_cycle_months, active, created_at, updated_at) VALUES ('1번 멸균기', 'sterilizer', '2025-11-20', 12, 1, ?, ?)",
+      [at, at],
+    ).lastInsertRowid;
+    const log = a.db.run(
+      "INSERT INTO sterilizer_logs (equipment_id, date, test_type, result, user_id, created_at) VALUES (?, '2026-11-01', 'bi', 'fail', ?, ?)",
+      [eq, who.userId, at],
+    ).lastInsertRowid;
+
+    let d = await dashboard(a, who);
+    expect(d.dueSoon.items).toEqual([
+      expect.objectContaining({ key: `equipment:${eq}`, source: 'equipment', title: '1번 멸균기 정기 점검', nextDueOn: '2026-11-20', daysLeft: 18, link: `/facility/equipment?open=${eq}` }),
+    ]);
+    expect(d.kpis.due).toMatchObject({ total: 1, sterilizerFail: 1 });
+    expect(d.sterilizerAlerts).toEqual({
+      total: 1,
+      items: [{ id: log, equipmentName: '1번 멸균기', date: '2026-11-01', testType: 'BI(생물학적 지표)', link: `/facility/sterilizer?from=2026-11-01&to=2026-11-01&focus=${log}` }],
+    });
+
+    // 조치를 기록하면 경고가 사라진다
+    a.db.run("UPDATE sterilizer_logs SET action_taken = '재멸균·재검사', action_at = ?, action_user_id = ? WHERE id = ?", [at, who.userId, log]);
+    d = await dashboard(a, who);
+    expect(d.sterilizerAlerts).toEqual({ total: 0, items: [] });
+    expect(d.kpis.due.sterilizerFail).toBe(0);
   });
 });

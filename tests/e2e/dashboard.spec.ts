@@ -224,6 +224,21 @@ test.describe.serial('대시보드', () => {
     await expect(page).toHaveURL(url('/facility/legal?view=due'));
     await expect(page.getByRole('heading', { level: 1, name: '법정 의무 일정' })).toBeVisible();
 
+    // 장비 점검(phase-04-task-03) → 장비 화면(그 장비 열림)
+    await openDemoDashboard(page);
+    await card(page, '다가오는 점검·의무 일정').getByRole('link').filter({ hasText: '파노라마 촬영장치 정기 점검' }).click();
+    await expect(page).toHaveURL(/\/facility\/equipment\?open=\d+$/);
+    await expect(page.getByRole('heading', { level: 1, name: '장비 점검·유지보수' })).toBeVisible();
+
+    // 조치 전 멸균 불합격(FR-102 AC2) → 멸균기 점검 기록(그 기록)
+    await openDemoDashboard(page);
+    const fail = card(page, '다가오는 점검·의무 일정').getByRole('link').filter({ hasText: '불합격' });
+    await expect(fail).toContainText('조치 필요');
+    await expect(kpi(page, '30일 내 점검·의무')).toContainText('멸균 불합격 1');
+    await fail.click();
+    await expect(page).toHaveURL(/\/facility\/sterilizer\?from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}&focus=\d+$/);
+    await expect(page.getByRole('heading', { level: 1, name: '멸균기 점검 기록' })).toBeVisible();
+
     // 공지 → 그 공지(고정 공지가 먼저)
     await openDemoDashboard(page);
     const notice = card(page, '공지').getByRole('listitem').first();

@@ -41,13 +41,14 @@ describe('대시보드 글자 계산', () => {
       end: '2026-11-08',
       events: [
         { date: '2026-11-04', kind: 'legal', title: '의료폐기물 보관시설 소독', link: '/facility/legal?view=due', tone: 'warn' },
+        { date: '2026-11-04', kind: 'equipment', title: '1번 멸균기 정기 점검', link: '/facility/equipment?open=1', tone: 'warn' },
         { date: '2026-11-06', kind: 'leave', title: '오소담 연차', link: '/hr/leave', tone: null },
       ],
     };
     const cells = weekCells(week, '2026-11-02');
     expect(cells.map((c) => c.label)).toEqual(['월 2', '화 3', '수 4', '목 5', '금 6', '토 7', '일 8']);
     expect(cells.filter((c) => c.today).map((c) => c.date)).toEqual(['2026-11-02']);
-    expect(cells[2]?.events.map((e) => e.title)).toEqual(['의료폐기물 보관시설 소독']);
+    expect(cells[2]?.events.map((e) => e.title)).toEqual(['의료폐기물 보관시설 소독', '1번 멸균기 정기 점검']);
     expect(cells[4]?.events.map((e) => e.title)).toEqual(['오소담 연차']);
     expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
     expect(weekdayOf('2026-11-02')).toBe(1);
@@ -64,9 +65,10 @@ describe('대시보드 글자 계산', () => {
   test('phase-03-task-10 AC4: 요약 숫자 보조 문구는 0인 항목을 빼고, 모두 0이면 비었다고 말한다', () => {
     expect(stockHint({ total: 5, low: 2, expiring: 1, soonLow: 1, expired: 1 })).toBe('부족 2 · 유효기간 2 · 곧 부족 1');
     expect(stockHint({ total: 0, low: 0, expiring: 0, soonLow: 0, expired: 0 })).toBe('경고 없음');
-    expect(dueHint({ total: 4, overdue: 1, today: 0, needCheck: 2 })).toBe('기한 지남 1 · 확인 필요 2');
-    expect(dueHint({ total: 3, overdue: 0, today: 0, needCheck: 0 })).toBe('여유 있게 준비하세요');
-    expect(dueHint({ total: 0, overdue: 0, today: 0, needCheck: 0 })).toBe('30일 안 일정 없음');
+    expect(dueHint({ total: 4, overdue: 1, today: 0, needCheck: 2, sterilizerFail: 0 })).toBe('기한 지남 1 · 확인 필요 2');
+    expect(dueHint({ total: 3, overdue: 0, today: 0, needCheck: 0, sterilizerFail: 0 })).toBe('여유 있게 준비하세요');
+    expect(dueHint({ total: 0, overdue: 0, today: 0, needCheck: 0, sterilizerFail: 0 })).toBe('30일 안 일정 없음');
+    expect(dueHint({ total: 2, overdue: 0, today: 1, needCheck: 0, sterilizerFail: 1 })).toBe('멸균 불합격 1 · 오늘 1');
   });
 
   test('phase-03-task-10 AC2: 머리말 요약·휴가 제목·금액 글자', () => {

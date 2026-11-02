@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { can, type Role } from '../../../shared/roles.ts';
 import type { DashboardData } from '../../../shared/schemas/dashboard.ts';
-import { LEGAL_CATEGORY_LABELS, LEGAL_VERIFY_HINTS, LEGAL_VERIFY_LABELS } from '../../../shared/schemas/legal.ts';
+import { LEGAL_VERIFY_HINTS, LEGAL_VERIFY_LABELS } from '../../../shared/schemas/legal.ts';
 import { ORDER_STATUS_LABELS } from '../../../shared/schemas/orders.ts';
 import type { OrderStatus } from '../../../shared/schemas/orders.ts';
 import { AiPanel } from '../components/AiPanel.tsx';
@@ -203,42 +203,59 @@ export function StockCard({ state, role }: SlotProps) {
   );
 }
 
-/** 3. 다가오는 점검·의무 일정(30일 안, 기한 지남 포함) */
+/** 3. 다가오는 점검·의무 일정: 조치 전 멸균 불합격(맨 위, FR-102 AC2) + 법정 일정·장비 점검(30일 안, 기한 지남 포함, 남은 날 순) */
 export function DueCard({ state }: SlotProps) {
   const d = state.data;
   return (
     <Card id="dash-due" title="다가오는 점검·의무 일정" sub={d && d.dueSoon.total ? `${d.dueSoon.total}건` : undefined} action={{ label: '전체', to: '/facility/legal' }}>
       <Body
         state={state}
-        isEmpty={(x) => x.dueSoon.items.length === 0}
+        isEmpty={(x) => x.dueSoon.items.length === 0 && x.sterilizerAlerts.items.length === 0}
         empty={
           <Empty icon="shield" title="30일 안에 할 점검이 없어요" hint="장비 점검과 법정 의무 일정의 기한이 다가오면 여기에 보여요." to="/facility/legal" label="법정 일정 보기" />
         }
       >
-        {(x) => (
-          <ul className="list" aria-label="점검·의무 일정 목록">
-            {x.dueSoon.items.map((t) => {
-              const dd = dueLabel(t.daysLeft);
-              return (
-                <RowLink key={t.id} to="/facility/legal?view=due">
-                  <span className={`dash-dday num ${dd.tone ?? ''}`}>{dd.text}</span>
+        {(x) => {
+          const fails = x.sterilizerAlerts.items;
+          // 첫 화면에 카드 4개가 들어오도록 전체 5줄까지(멸균 경고가 있으면 그만큼 일정 줄을 줄이되 최소 2줄)
+          const dues = x.dueSoon.items.slice(0, Math.max(2, 5 - fails.length));
+          return (
+            <ul className="list" aria-label="점검·의무 일정 목록">
+              {fails.map((f) => (
+                <RowLink key={`s${f.id}`} to={f.link}>
+                  <span className="dash-dday danger">경고</span>
                   <span className="t">
-                    <b>{t.title}</b>
-                    <small className="num">
-                      {LEGAL_CATEGORY_LABELS[t.category]} · {t.cycleText}
-                      {t.nextDueOn ? ` · ${shortDay(t.nextDueOn)}` : ''}
-                    </small>
+                    <b>
+                      {f.equipmentName} {f.testType} 불합격
+                    </b>
+                    <small className="num">{shortDay(f.date)} · 조치를 기록할 때까지 보여요</small>
                   </span>
-                  {t.verifyStatus === 'needs_check' ? (
-                    <Chip tone="ghost" title={LEGAL_VERIFY_HINTS.needs_check}>
-                      {LEGAL_VERIFY_LABELS.needs_check}
-                    </Chip>
-                  ) : null}
+                  <Chip tone="danger">조치 필요</Chip>
                 </RowLink>
-              );
-            })}
-          </ul>
-        )}
+              ))}
+              {dues.map((t) => {
+                const dd = dueLabel(t.daysLeft);
+                return (
+                  <RowLink key={t.key} to={t.link}>
+                    <span className={`dash-dday num ${dd.tone ?? ''}`}>{dd.text}</span>
+                    <span className="t">
+                      <b>{t.title}</b>
+                      <small className="num">
+                        {t.detail}
+                        {t.nextDueOn ? ` · ${shortDay(t.nextDueOn)}` : ''}
+                      </small>
+                    </span>
+                    {t.verifyStatus === 'needs_check' ? (
+                      <Chip tone="ghost" title={LEGAL_VERIFY_HINTS.needs_check}>
+                        {LEGAL_VERIFY_LABELS.needs_check}
+                      </Chip>
+                    ) : null}
+                  </RowLink>
+                );
+              })}
+            </ul>
+          );
+        }}
       </Body>
     </Card>
   );

@@ -3,7 +3,7 @@
 // 빈 값과 ready:false로 오고, 담당 태스크(phase-04-task-01·03·04)가 끝나면 서버 service에서 채운다.
 import type { ChecklistKind } from './desk.ts';
 import type { MoveType, StockStatus } from './inventory.ts';
-import type { LegalCategory, LegalDueState, LegalVerifyStatus } from './legal.ts';
+import type { LegalVerifyStatus } from './legal.ts';
 import type { LeaveType } from './leave.ts';
 import type { OrderStatus } from './orders.ts';
 
@@ -60,16 +60,30 @@ export interface DashStockAlert {
   dday: number | null;
 }
 
-/** 다가오는 점검·법정 의무 한 건 */
+/** 다가오는 점검·법정 의무 한 건(법정 일정 phase-03-task-08 + 장비 점검 phase-04-task-03, 남은 날 순) */
 export interface DashDue {
+  /** 화면 key('legal:3', 'equipment:2') */
+  key: string;
+  source: 'legal' | 'equipment';
   id: number;
   title: string;
-  category: LegalCategory;
-  cycleText: string;
+  /** 분류·주기 설명(예: '의료폐기물 · 주 1회', '장비 점검 · 멸균기 · 12개월마다') */
+  detail: string;
   nextDueOn: string | null;
   daysLeft: number | null;
-  dueState: LegalDueState;
-  verifyStatus: LegalVerifyStatus;
+  /** 법정 일정의 확인 상태(장비는 null) */
+  verifyStatus: LegalVerifyStatus | null;
+  /** 누르면 갈 화면 */
+  link: string;
+}
+
+/** 조치 전 멸균 불합격 기록 한 건(FR-102 AC2: 조치를 기록할 때까지 대시보드에 보인다) */
+export interface DashSterilizerAlert {
+  id: number;
+  equipmentName: string;
+  date: string;
+  testType: string;
+  link: string;
 }
 
 /** 공지 한 건(고정 먼저, 그다음 최근) */
@@ -101,7 +115,7 @@ export interface DashOrder {
 /** 이번 주 일정 한 건 */
 export interface DashWeekEvent {
   date: string;
-  kind: 'leave' | 'legal' | 'roster' | 'training';
+  kind: 'leave' | 'legal' | 'equipment' | 'roster' | 'training';
   title: string;
   /** 누르면 갈 화면 */
   link: string;
@@ -139,7 +153,7 @@ export interface DashboardData {
     working: number | null;
     checklistOpen: { done: number; total: number };
     stock: { total: number; low: number; expiring: number; soonLow: number; expired: number };
-    due: { total: number; overdue: number; today: number; needCheck: number };
+    due: { total: number; overdue: number; today: number; needCheck: number; /** 조치 전 멸균 불합격 */ sterilizerFail: number };
     /** 승인 대기 휴가 수(실장 이상), staff는 null */
     approvals: number | null;
     /** 내가 신청하고 기다리는 휴가 수(staff 칸에 쓴다) */
@@ -156,6 +170,8 @@ export interface DashboardData {
   approvals: { total: number; items: DashApproval[] } | null;
   stockAlerts: { total: number; items: DashStockAlert[]; /** 발주서 초안으로 만들 수 있는 부족 품목 수(부족·곧 부족) */ orderable: number };
   dueSoon: { total: number; items: DashDue[] };
+  /** 조치 전 멸균 불합격(오래된 것부터) */
+  sterilizerAlerts: { total: number; items: DashSterilizerAlert[] };
   notices: { total: number; items: DashNotice[] };
   /** 실장 이상만. staff는 null */
   orders: { open: number; items: DashOrder[] } | null;

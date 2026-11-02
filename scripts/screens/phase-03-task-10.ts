@@ -29,7 +29,8 @@ const ALREADY: Partial<Record<SeedModuleName, string>> = {
   docs: 'SELECT 1 AS x FROM documents LIMIT 1',
   assistant: 'SELECT 1 AS x FROM kb_docs LIMIT 1',
   hr: 'SELECT 1 AS x FROM leave_requests LIMIT 1',
-  facility: 'SELECT 1 AS x FROM legal_task_logs LIMIT 1',
+  // 법정 일정 이력과 장비(04-03)가 모두 있어야 건너뛴다(facility seed는 이미 있는 부분을 스스로 건너뛴다)
+  facility: 'SELECT 1 AS x WHERE EXISTS (SELECT 1 FROM legal_task_logs) AND EXISTS (SELECT 1 FROM equipment)',
 };
 
 /** 아직 비어 있는 모듈의 데모 데이터만 넣는다 */

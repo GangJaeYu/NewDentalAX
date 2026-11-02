@@ -3,18 +3,22 @@
 // 법정 일정 listLegalDue, 휴가 pendingLeaveCount·listLeave·approvedLeaveDays, AI 예산 budgetStatus)를 부르고,
 // 역할에 따라 보이면 안 되는 영역(승인 대기·발주·지출)은 staff에게 null로 준다(FR-008 AC4).
 // 오늘 근무는 근무표(phase-04-task-01)의 todayRoster로 채운다. 아직 없는 기능은 연결 지점만 남긴다: 교육(04-02) → week 'training',
-// 멸균기 경고(04-03) → 재고·점검 카드 옆 경고, 지출(04-04) → expenseMonth. 해당 태스크가 이 파일의 표시된 곳을 채운다.
+// 지출(04-04) → expenseMonth. 장비 점검(listEquipmentDue)·멸균 불합격(listOpenSterilizerFailures)은 phase-04-task-03 것을 부른다. 해당 태스크가 이 파일의 표시된 곳을 채운다.
 import type { Db } from '../../db/index.ts';
 import type { Clock } from '../../lib/clock.ts';
 import { addDays, todayKst, weekday } from '../../lib/dates.ts';
 import { can, type Role } from '../../../shared/roles.ts';
-import type { DashboardData, DashWeekEvent } from '../../../shared/schemas/dashboard.ts';
+import type { DashboardData, DashDue, DashWeekEvent } from '../../../shared/schemas/dashboard.ts';
 import { LEAVE_TYPE_LABELS } from '../../../shared/schemas/leave.ts';
 import { listItems, listMoves } from '../inventory/service.ts';
 import { listOrders } from '../inventory/orders.service.ts';
 import { listPosts } from '../desk/posts.ts';
 import { getChecklistDay } from '../desk/checklists.ts';
 import { listLegalDue } from '../facility/legal.ts';
+import { listEquipmentDue } from '../facility/equipment.ts';
+import { listOpenSterilizerFailures } from '../facility/sterilizer.ts';
+import { LEGAL_CATEGORY_LABELS } from '../../../shared/schemas/legal.ts';
+import { EQUIPMENT_KIND_LABELS, STERILIZER_TEST_LABELS } from '../../../shared/schemas/equipment.ts';
 import { approvedLeaveDays, listLeave, pendingLeaveCount } from '../hr/leave.ts';
 import { todayRoster } from '../hr/roster.ts';
 import { budgetStatus } from '../../ai/budget.ts';
@@ -53,8 +57,35 @@ function checklistPart(db: Db, clock: Clock): DashboardData['checklist'] {
   return { open: { done: open.done, total: open.total }, close: { done: close.done, total: close.total }, items };
 }
 
+/** 다가오는 점검·의무: 법정 일정과 장비 점검을 합쳐 남은 날 순으로 */
+function duePart(db: Db, clock: Clock): DashDue[] {
+  const legal: DashDue[] = listLegalDue(db, clock).map((t) => ({
+    key: `legal:${t.id}`,
+    source: 'legal',
+    id: t.id,
+    title: t.title,
+    detail: `${LEGAL_CATEGORY_LABELS[t.category]} · ${t.cycleText}`,
+    nextDueOn: t.nextDueOn,
+    daysLeft: t.daysLeft,
+    verifyStatus: t.verifyStatus,
+    link: '/facility/legal?view=due',
+  }));
+  const equipment: DashDue[] = listEquipmentDue(db, clock).map((e) => ({
+    key: `equipment:${e.id}`,
+    source: 'equipment',
+    id: e.id,
+    title: `${e.name} 정기 점검`,
+    detail: `장비 점검 · ${EQUIPMENT_KIND_LABELS[e.kind]}${e.inspectCycleMonths ? ` · ${e.inspectCycleMonths}개월마다` : ''}`,
+    nextDueOn: e.nextInspectionOn,
+    daysLeft: e.daysLeft,
+    verifyStatus: null,
+    link: `/facility/equipment?open=${e.id}`,
+  }));
+  return [...legal, ...equipment].sort((a, b) => (a.daysLeft ?? 0) - (b.daysLeft ?? 0) || a.key.localeCompare(b.key));
+}
+
 /** 이번 주 일정: 승인된 휴가·법정 일정(근무·교육은 해당 태스크가 더한다) */
-function weekPart(db: Db, today: string, names: Map<number, string>, due: ReturnType<typeof listLegalDue>): DashboardData['week'] {
+function weekPart(db: Db, today: string, names: Map<number, string>, due: DashDue[]): DashboardData['week'] {
   const { start, end } = weekRange(today);
   const events: DashWeekEvent[] = [];
   for (const d of approvedLeaveDays(db, start, end)) {
@@ -63,8 +94,8 @@ function weekPart(db: Db, today: string, names: Map<number, string>, due: Return
   for (const t of due) {
     if (!t.nextDueOn || t.daysLeft === null) continue;
     // 기한이 지난 일은 오늘 칸에 "기한 지남"으로 올린다
-    if (t.daysLeft < 0) events.push({ date: today, kind: 'legal', title: `${t.title}(기한 지남)`, link: '/facility/legal?view=due', tone: 'danger' });
-    else if (t.nextDueOn <= end) events.push({ date: t.nextDueOn, kind: 'legal', title: t.title, link: '/facility/legal?view=due', tone: t.daysLeft === 0 ? 'danger' : 'warn' });
+    if (t.daysLeft < 0) events.push({ date: today, kind: t.source, title: `${t.title}(기한 지남)`, link: t.link, tone: 'danger' });
+    else if (t.nextDueOn <= end) events.push({ date: t.nextDueOn, kind: t.source, title: t.title, link: t.link, tone: t.daysLeft === 0 ? 'danger' : 'warn' });
   }
   // [연결 지점] phase-04-task-01 근무표(휴진·특별 근무), phase-04-task-02 교육 일정을 여기에 더한다(kind 'roster'·'training')
   events.sort((a, b) => a.date.localeCompare(b.date));
@@ -100,8 +131,9 @@ export function getDashboard(db: Db, clock: Clock, dataDir: string, viewer: Dash
   const stock = listItems(db, clock, { status: 'warning', sort: 'status', pageSize: CARD_ROWS });
   const c = stock.counts;
 
-  // 점검·법정 일정(30일 안·기한 지남)
-  const due = listLegalDue(db, clock);
+  // 점검·법정 일정(30일 안·기한 지남)과 조치 전 멸균 불합격
+  const due = duePart(db, clock);
+  const sterFails = listOpenSterilizerFailures(db);
 
   // 휴가
   const onLeave = approvedLeaveDays(db, today, today).map((d) => ({ userId: d.userId, name: names.get(d.userId) ?? '직원', type: d.type }));
@@ -133,9 +165,10 @@ export function getDashboard(db: Db, clock: Clock, dataDir: string, viewer: Dash
       stock: { total: c.warning, low: c.low, expiring: c.expiring, soonLow: c.soon_low, expired: c.expired },
       due: {
         total: due.length,
-        overdue: due.filter((t) => t.dueState === 'overdue').length,
-        today: due.filter((t) => t.dueState === 'today').length,
+        overdue: due.filter((t) => (t.daysLeft ?? 0) < 0).length,
+        today: due.filter((t) => t.daysLeft === 0).length,
         needCheck: due.filter((t) => t.verifyStatus === 'needs_check').length,
+        sterilizerFail: sterFails.length,
       },
       approvals: approvalsTotal,
       myPendingLeave,
@@ -158,17 +191,15 @@ export function getDashboard(db: Db, clock: Clock, dataDir: string, viewer: Dash
       orderable: c.low + c.soon_low,
       items: stock.data.map((i) => ({ id: i.id, name: i.name, unit: i.unit, stock: i.stock, par: i.par, status: i.status, nearestExpiry: i.nearestExpiry, dday: i.dday })),
     },
-    dueSoon: {
-      total: due.length,
-      items: due.slice(0, CARD_ROWS).map((t) => ({
-        id: t.id,
-        title: t.title,
-        category: t.category,
-        cycleText: t.cycleText,
-        nextDueOn: t.nextDueOn,
-        daysLeft: t.daysLeft,
-        dueState: t.dueState,
-        verifyStatus: t.verifyStatus,
+    dueSoon: { total: due.length, items: due.slice(0, CARD_ROWS) },
+    sterilizerAlerts: {
+      total: sterFails.length,
+      items: sterFails.slice(0, 2).map((f) => ({
+        id: f.id,
+        equipmentName: f.equipmentName,
+        date: f.date,
+        testType: STERILIZER_TEST_LABELS[f.testType],
+        link: `/facility/sterilizer?from=${f.date}&to=${f.date}&focus=${f.id}`,
       })),
     },
     notices: {

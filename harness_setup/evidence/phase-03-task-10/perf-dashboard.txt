@@ -1,0 +1,2 @@
+[perf:dashboard] scale=1 요청 100건 p50 10.3ms p95 16ms 최대 17.6ms 평균 10.8ms (기준 p95 ≤ 300ms)
+[perf:dashboard] scale=10 요청 50건 p50 92.2ms p95 102.8ms 최대 112.9ms 평균 90.9ms (기준 p95 ≤ 300ms)
