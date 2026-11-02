@@ -1,5 +1,5 @@
 // 이 파일이 하는 일: 모든 소스 파일의 첫 5줄 안에 "이 파일이 하는 일" 한국어 요약 주석이 있는지 검사한다(NFR-010).
-// 대상: server/ web/src/ shared/ scripts/ tests/ 아래 소스 파일과 루트 설정 파일·실행 배치 파일. tests/fixtures/는 검사 자료라 뺀다.
+// 대상: server/ web/src/ shared/ scripts/ tests/ 아래 소스 파일과 루트 설정 파일·실행 배치 파일(.bat·.cmd). tests/fixtures/는 검사 자료라 뺀다.
 // 사용법: node scripts/check-file-headers.ts [--root <폴더>]   (빠진 파일이 있으면 목록을 출력하고 종료 코드 1)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,7 +12,7 @@ export const HEADER_ROOT_FILES = [
   'web/index.html', 'start.bat', 'stop.bat',
 ];
 /** 소스 파일로 보는 확장자 */
-export const SOURCE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css', '.sql', '.html', '.bat', '.ps1']);
+export const SOURCE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css', '.sql', '.html', '.bat', '.cmd', '.ps1']);
 /** 검사하지 않는 폴더 이름(경로 일부) */
 const SKIP_PARTS = ['node_modules', 'dist', 'fixtures'];
 
