@@ -8,12 +8,11 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git main)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-- phase-01-task-01(failed → 시도 2 병합됨, 재검증 중)
-    - 검증 워커 `ctx_48337e443893`, 검증 슬롯 0, 작업 사본 `.../phase-01-task-01-validation-worker`
-    - 수정 커밋 357c902, main 게이트 PASS(lint, unit 26, e2e 3)
-  - phase-01-task-02(in_progress)
-    - 구현 워커 `ctx_e72706fe9123`, 슬롯 1, 작업 사본 `.../phase-01-task-02-worker`
-    - completed 판정은 01-01이 completed가 된 뒤에만 한다
+- phase-01-task-01(failed → 시도 2 병합됨, 재검증 중): 검증 워커 `ctx_48337e443893`, 검증 슬롯 0, 대상 87ba834
+  - phase-01-task-02(in_progress, 구현 병합 cd40371, 검증 중): 검증 워커 `ctx_18e1112307d1`, 검증 슬롯 1, 대상 6f6c3f5. completed는 01-01 completed 이후에만
+  - phase-01-task-03(in_progress): 구현 `ctx_698b9246edd8`, 슬롯 2. 선행 01-02 검증 전에 시작
+  - phase-01-task-06(in_progress): 구현 `ctx_824184074eee`, 슬롯 3. 선행 01-02 검증 전에 시작
+  - phase-02-task-01(in_progress): 구현 `ctx_5ea908d2ce07`, 슬롯 0. 선행 01-02 검증 전에 시작
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
@@ -32,7 +31,7 @@
   - `loop_started_at: 2026-11-02T18:55:20+09:00`
   - `deadline: 2026-11-03T18:55:20+09:00`
   - 신규 대형 태스크 시작 마감: 2026-11-03T17:55+09:00
-- elapsed: 0.8h (19시 43분 11초 기준)
+- elapsed: 0.9h (19시 47분 33초 기준)
 - 누적 재시도: 01-01 1회(시도 2 진행 중)
 
 ## 미결·차단
