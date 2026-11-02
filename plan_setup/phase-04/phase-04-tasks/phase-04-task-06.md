@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-06
-status: in_progress
+status: completed
 phase: "04"
 title: "의료광고 문구 점검·홍보 글 초안"
 depends_on: [phase-02-task-03]
