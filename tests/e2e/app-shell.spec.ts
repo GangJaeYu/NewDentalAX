@@ -76,6 +76,11 @@ function watchErrors(page: Page): string[] {
   return errors;
 }
 
+/** axe 위반 목록을 "규칙: 위치, 위치" 글줄로 바꾼다(실패 메시지에서 어디가 문제인지 바로 보이게) */
+function axeList(violations: Array<{ id: string; nodes: Array<{ target: unknown[] }> }>): string[] {
+  return violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+}
+
 /** 새 브라우저 묶음을 만들고 API로 로그인해 둔다 */
 async function loggedIn(browser: Browser, who: { username: string; password: string }, opts: Parameters<Browser['newContext']>[0] = {}): Promise<BrowserContext> {
   const ctx = await browser.newContext({ locale: 'ko-KR', timezoneId: 'Asia/Seoul', ...opts });
@@ -208,31 +213,35 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
     }
   });
 
-  test('phase-01-task-04 AC4: 로그인 화면과 셸(라이트·다크) axe 위반이 0건이다', async ({ browser }) => {
-    for (const theme of THEMES) {
+  // axe 검사는 한 번에 1~5초 걸린다(PC 부하에 따라 다름). 예전에는 10번을 테스트 하나에 몰아 30초 제한을 부하가 클 때 넘겼다
+  // (2026-11-02 통합 실패: 화면은 0.3초 안에 떴는데 시간 제한에 걸려 이동 중에 끊김). 검사 대상·기준은 그대로 두고 테마·화면별 테스트로 나눈다.
+  for (const theme of THEMES) {
+    test(`phase-01-task-04 AC4: 로그인 화면(${theme}) axe 위반이 0건이다`, async ({ browser }) => {
       const anon = await browser.newContext({ colorScheme: theme, viewport: { width: 1440, height: 900 } });
       const p1 = await anon.newPage();
       await p1.goto(url('/login'));
       await expect(p1.getByRole('heading', { level: 1, name: '로그인' })).toBeVisible();
       const r1 = await new AxeBuilder({ page: p1 }).analyze();
-      expect(r1.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`), `로그인 ${theme}`).toEqual([]);
+      expect(axeList(r1.violations), `로그인 ${theme}`).toEqual([]);
       await anon.close();
+    });
 
-      for (const [width, height] of [[1440, 900], [390, 844]] as const) {
+    for (const [width, height] of [[1440, 900], [390, 844]] as const) {
+      test(`phase-01-task-04 AC4: 셸·스텁 화면(${width}px ${theme}) axe 위반이 0건이다`, async ({ browser }) => {
         const ctx = await loggedIn(browser, ADMIN, { colorScheme: theme, viewport: { width, height } });
         const p2 = await ctx.newPage();
         await p2.goto(url('/'));
         await expect(p2.getByRole('region', { name: '오늘 현황' })).toBeVisible();
         const r2 = await new AxeBuilder({ page: p2 }).analyze();
-        expect(r2.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`), `셸 ${width} ${theme}`).toEqual([]);
+        expect(axeList(r2.violations), `셸 ${width} ${theme}`).toEqual([]);
         await p2.goto(url('/inventory'));
         await expect(p2.getByText('준비 중인 화면이에요')).toBeVisible();
         const r3 = await new AxeBuilder({ page: p2 }).analyze();
-        expect(r3.violations.map((v) => v.id), `스텁 ${width} ${theme}`).toEqual([]);
+        expect(axeList(r3.violations), `스텁 ${width} ${theme}`).toEqual([]);
         await ctx.close();
-      }
+      });
     }
-  });
+  }
 
   test('phase-01-task-04 AC4: 마우스 없이 Tab 키만으로 로그인을 끝낼 수 있고 포커스가 청록 2px 외곽선으로 보인다', async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
