@@ -1,8 +1,9 @@
 // 이 파일이 하는 일: 발주서(FR-054·063)의 API 모양과 입력 검사 규칙을 서버와 화면이 함께 쓰게 둔다.
 // 상태는 작성(draft) → 발주함(ordered) → 입고 완료(received), 또는 취소(canceled)다. 권장 수량 계산(올림(적정 × 1.5 − 현재고))도 여기 둔다.
 // 입력 검사는 zod 스키마로 하고, 틀리면 항목별 쉬운 한국어 이유가 나간다. 환자 정보 항목은 두지 않는다.
-// shared 폴더는 다른 폴더를 import하지 않는다(zod만 쓴다).
+// shared 폴더는 다른 폴더를 import하지 않는다(zod와 같은 shared의 finance.ts만 쓴다).
 import { z } from 'zod';
+import { expenseFromOrderSchema } from './finance.ts';
 
 /** 발주서 상태 */
 export const ORDER_STATUSES = ['draft', 'ordered', 'received', 'canceled'] as const;
@@ -135,7 +136,7 @@ export const orderPatchSchema = z
   });
 export type OrderPatchInput = z.output<typeof orderPatchSchema>;
 
-/** 입고 처리 입력(POST /api/orders/:id/receive). 수량 0인 줄은 이번에 들어오지 않은 것으로 보고 기록하지 않는다 */
+/** 입고 처리 입력(POST /api/orders/:id/receive). 수량 0인 줄은 이번에 들어오지 않은 것으로 보고 기록하지 않는다. alsoExpense를 보내면 지출 1건도 함께 남긴다 */
 export const orderReceiveSchema = z
   .object({
     lines: z
@@ -159,6 +160,8 @@ export const orderReceiveSchema = z
       )
       .min(1, '입고할 품목을 한 개 이상 넣어 주세요.')
       .max(200, '한 번에 200줄까지 입고할 수 있어요.'),
+    /** 지출로도 기록(phase-04-task-04, FR-110 AC2). 금액은 입고 합계, 거래처는 발주서 거래처, 분류를 비우면 재료비 */
+    alsoExpense: expenseFromOrderSchema.optional(),
   })
   .strict()
   .superRefine((v, ctx) => {

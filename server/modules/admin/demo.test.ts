@@ -53,7 +53,7 @@ function fillBusinessData(env: Env, admin: TestLogin): void {
     CREATE TABLE aaa_vendors (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
     CREATE TABLE zzz_moves (id INTEGER PRIMARY KEY, vendor_id INTEGER NOT NULL REFERENCES aaa_vendors(id), user_id INTEGER REFERENCES users(id), qty REAL);
     CREATE TABLE equipment (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
-    CREATE TABLE expense_categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL);
+    CREATE TABLE IF NOT EXISTS expense_categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL); -- 070_finance.sql(phase-04-task-04)이 이미 만든다
     CREATE VIRTUAL TABLE IF NOT EXISTS kb_fts USING fts5(heading, grams, cross, tokenize='unicode61');
   `);
   const staff = loginAs(app, 'staff');
@@ -65,7 +65,7 @@ function fillBusinessData(env: Env, admin: TestLogin): void {
   app.db.run("UPDATE legal_tasks SET last_done_on = '2026-10-01', equipment_id = 1 WHERE template_key = 'radiation-inspection'");
   app.db.run("INSERT INTO legal_tasks (template_key, title, category, last_done_on, created_at, updated_at) VALUES (NULL, '직접 추가한 일정', 'other', '2026-10-02', ?, ?)", [now, now]);
   app.db.run("INSERT INTO legal_task_logs (legal_task_id, done_on, user_id, created_at) SELECT id, '2026-10-01', ?, ? FROM legal_tasks WHERE template_key = 'radiation-inspection'", [manager.userId, now]);
-  app.db.run("INSERT INTO expense_categories (name) VALUES ('재료비'), ('기타')");
+  app.db.run("INSERT OR IGNORE INTO expense_categories (name) VALUES ('재료비'), ('기타'), ('시험용 분류')");
   app.db.run("INSERT INTO kb_fts (rowid, heading, grams, cross) VALUES (1, '멸균', '멸균 균기', '')");
   app.db.run("INSERT INTO notifications (user_id, type, title, created_at) VALUES (?, 'notice', '공지', ?), (?, 'notice', '공지', ?)", [staff.userId, now, admin.userId, now]);
   app.db.run("INSERT INTO files (stored_path, original_name, mime, size, sha256, purpose, uploaded_by, created_at) VALUES ('2026/11/a.pdf', 'a.pdf', 'application/pdf', 3, 'x', 'form', ?, ?)", [staff.userId, now]);
@@ -111,7 +111,7 @@ describe('데모 데이터 초기화', () => {
       { user_id: admin.userId, cost_krw: 3 },
     ]);
     // 지출 분류는 남고, legal_tasks는 템플릿만 남아 수행 기록·장비 연결이 비워진다
-    expect(count(app, 'SELECT COUNT(*) AS n FROM expense_categories')).toBe(2);
+    expect(count(app, "SELECT COUNT(*) AS n FROM expense_categories WHERE name IN ('재료비', '기타', '시험용 분류')")).toBe(3);
     expect(count(app, 'SELECT COUNT(*) AS n FROM legal_tasks WHERE template_key IS NULL')).toBe(0);
     expect(count(app, 'SELECT COUNT(*) AS n FROM legal_tasks WHERE last_done_on IS NOT NULL OR equipment_id IS NOT NULL')).toBe(0);
     expect(count(app, 'SELECT COUNT(*) AS n FROM legal_tasks')).toBe(LEGAL_TEMPLATES.length);

@@ -26,8 +26,8 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'setup', url: '/setup', state: 'setup', ready: '첫 설정' },
   { name: 'login', url: '/login', state: 'anon', ready: '로그인' },
   { name: 'dashboard', url: '/', state: 'user', ready: '오늘 할 일' },
-  // 아직 준비 중인 화면 하나(실제 화면이 되면 다른 준비 중 화면으로 옮기거나 지운다. 04-04가 /finance/monthly를 만들면 갱신)
-  { name: 'stub', url: '/finance/monthly', state: 'user', ready: '준비 중인 화면이에요' },
+  // 아직 준비 중인 화면 하나(실제 화면이 되면 다른 준비 중 화면으로 옮기거나 지운다. 04-04가 /finance/monthly를 만들어 /inventory/receipt로 옮김, 04-08이 만들면 갱신)
+  { name: 'stub', url: '/inventory/receipt', state: 'user', ready: '준비 중인 화면이에요' },
   { name: 'notifications', url: '/notifications', state: 'user', ready: '거즈 재고가 부족해요' },
   {
     name: 'notification-popover',

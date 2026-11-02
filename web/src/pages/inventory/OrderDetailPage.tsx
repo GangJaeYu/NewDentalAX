@@ -1,7 +1,7 @@
 // 이 파일이 하는 일: "발주서 상세" 화면(/inventory/orders/:id, FR-054). 발주서의 상태·품목 수·합계·거래처를 숫자 타일로 보여 주고,
 // 작성 중이면 품목 수량을 고치고 품목을 넣거나 빼며 거래처·메모를 바꾼 뒤 "발주함"으로 확정한다(확정하면 더는 고칠 수 없다).
 // 발주함 상태면 "입고 처리"로 실제 들어온 수량·단가·로트·유효기간을 적어 한 번에 재고 입고 기록으로 넘긴다(상태 → 입고 완료).
-// 어느 상태에서나 A4 인쇄 화면(/print/order/:id)을 열 수 있다. "지출로도 기록"은 지출 기능이 생긴 뒤 붙인다(지금은 숨김).
+// 어느 상태에서나 A4 인쇄 화면(/print/order/:id)을 열 수 있다. 입고 처리 때 "지출로도 기록"을 켜면 입고 합계가 재료비 지출 1건으로 남는다(지출 권한이 있는 사람만 보임, phase-04-task-04).
 import { useState, type FormEvent } from 'react';
 import { useParams } from 'react-router';
 import { Button, IconButton } from '../../components/Button.tsx';
@@ -9,13 +9,16 @@ import { Card, PageHeader } from '../../components/Card.tsx';
 import { Chip, Kpi, KpiRow } from '../../components/Chip.tsx';
 import { DataTable, type Column } from '../../components/DataTable.tsx';
 import { ConfirmDialog, Dialog } from '../../components/Dialog.tsx';
-import { DateInput, Field, NumberInput, Select, TextArea, TextInput } from '../../components/Field.tsx';
+import { Checkbox, DateInput, Field, NumberInput, Select, TextArea, TextInput } from '../../components/Field.tsx';
 import { Icon } from '../../components/Icon.tsx';
 import { EmptyState, ErrorState, Skeleton } from '../../components/States.tsx';
 import { useToast } from '../../components/Toast.tsx';
 import { api, ApiError } from '../../lib/api.ts';
 import { formatDate, formatDateTime, formatWon } from '../../lib/format.ts';
-import { useApi } from '../../lib/useApi.ts';
+import { invalidate, useApi } from '../../lib/useApi.ts';
+import { useSession } from '../../lib/session.tsx';
+import { can } from '../../../../shared/roles.ts';
+import { PAY_METHOD_LABELS, PAY_METHODS, type ExpenseRow, type PayMethod } from '../../../../shared/schemas/finance.ts';
 import { ORDER_STATUS_LABELS, suggestedQty, type OrderDetail, type OrderLine } from '../../../../shared/schemas/orders.ts';
 import type { ItemRow } from '../../../../shared/schemas/inventory.ts';
 import { ItemPicker, messageOf, qty, refreshInventory, useVendors } from './inventory-ui.tsx';
@@ -386,6 +389,12 @@ function ReceiveDialog({ order: d, onClose }: { order: OrderDetail; onClose: () 
   const [formError, setFormError] = useState<string | null>(null);
   const [fields, setFields] = useState<Record<string, string>>({});
   const set = (i: number, k: keyof ReceiveLine, v: string) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, [k]: v } : l)));
+  const { info } = useSession();
+  const canExpense = can(info?.user?.role, 'expenses.manage');
+  const [alsoExpense, setAlsoExpense] = useState(false);
+  const [payMethod, setPayMethod] = useState<PayMethod>('transfer');
+  // 지출 금액 미리 보기: 들어온 수량 × 단가 합계(서버도 같은 방법으로 계산한다)
+  const expenseTotal = Math.round(lines.reduce((sum, l) => sum + Math.max(0, parseNum(l.qty) ?? 0) * Math.max(0, parseNum(l.unitPrice) ?? 0), 0));
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -408,9 +417,11 @@ function ReceiveDialog({ order: d, onClose }: { order: OrderDetail; onClose: () 
     setBusy(true);
     setFormError(null);
     try {
-      const r = await api.post<OrderDetail>(`/api/orders/${d.id}/receive`, { lines: receiveBody(lines) });
+      const r = await api.post<OrderDetail & { expense?: ExpenseRow | null }>(`/api/orders/${d.id}/receive`, { lines: receiveBody(lines), ...(alsoExpense ? { alsoExpense: { payMethod } } : {}) });
       refreshInventory();
-      toast.show(`입고 처리했어요. 품목 ${r.lines.filter((l) => l.receivedQty > 0).length}개가 재고에 더해졌어요.`);
+      if (r.expense) invalidate('finance');
+      const added = `입고 처리했어요. 품목 ${r.lines.filter((l) => l.receivedQty > 0).length}개가 재고에 더해졌어요.`;
+      toast.show(r.expense ? `${added} 지출 ${formatWon(r.expense.amount)}(${r.expense.category})도 기록했어요.` : added);
       onClose();
     } catch (err) {
       if (err instanceof ApiError && err.fields) setFields(err.fields);
@@ -468,6 +479,30 @@ function ReceiveDialog({ order: d, onClose }: { order: OrderDetail; onClose: () 
             </fieldset>
           );
         })}
+        {canExpense ? (
+          <fieldset className="po-receive-line">
+            <legend>
+              <b>지출</b>
+            </legend>
+            <Checkbox
+              label="지출로도 기록"
+              hint={`입고 합계 ${formatWon(expenseTotal)}을(를) 재료비 지출 1건으로 남겨요(거래처: ${d.vendor ?? '없음'}).`}
+              checked={alsoExpense}
+              onChange={(e) => setAlsoExpense(e.target.checked)}
+            />
+            {alsoExpense ? (
+              <Field label="결제 수단" error={fields['alsoExpense.payMethod'] ?? fields.alsoExpense}>
+                <Select value={payMethod} onChange={(e) => setPayMethod(e.target.value as PayMethod)}>
+                  {PAY_METHODS.map((m) => (
+                    <option key={m} value={m}>
+                      {PAY_METHOD_LABELS[m]}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+          </fieldset>
+        ) : null}
       </form>
     </Dialog>
   );
