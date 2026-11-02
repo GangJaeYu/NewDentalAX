@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-04
-status: in_progress
+status: completed
 phase: "03"
 title: "데스크: 공지·인수인계·오픈/마감 체크리스트"
 depends_on: [phase-01-task-05, phase-02-task-04]

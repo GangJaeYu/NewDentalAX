@@ -311,3 +311,17 @@
   - 확인: `npm run screenshots` 전체 exit 0, 104장 OK. lint PASS
 - **02-05는 아직 completed 아님**: 조정자가 직접 고쳤으므로 화면 행은 다른 검증자가 다시 판정한다. 다음 검증 묶음(03-xx 검증 워커)에 "02-05 화면 행 재판정"을 넣는다.
 - 증거: evidence/phase-02-task-05/validation-2026-11-02T2208-fail-screens.md
+
+## 2026-11-02 22:27 03-04 PASS, 02-05 화면 행 PASS → 03-04·02-05 completed. phase-02 완료
+- 검증 워커 ctx_5e5866b8affc(대상 167bf96)
+  - 03-04: AC1~5와 화면 모두 PASS(수동 서버 관찰, 다음 날 재시작 관찰 포함)
+  - 02-05 화면 행: 조정자가 고친 스크린샷 스크립트로 16장 성공, 기준선 대조 PASS
+- 증거
+  - evidence/phase-03-task-04/
+  - evidence/phase-02-task-05/validation-2026-11-02T2227-screens-pass.md
+- completed: 03-04(선행 01-05·02-04 completed), 02-05(선행 01-02·01-04 completed)
+- **phase-02 묶음 판정**: 5/5 completed. 묶음 기준을 모두 충족했다.
+  - 데모 AI 기록과 가짜 공급자 3종: 02-02 검증
+  - 필터 50개 이상: 02-01
+  - 백업·복원·보관: 02-05
+- 개선 후보(05-03): 768·390px에서 표가 카드 안에서 가로로 스크롤되어 오른쪽 열이 처음에 가려진다. 허용된 공통 패턴이다.

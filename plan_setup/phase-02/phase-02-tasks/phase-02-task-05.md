@@ -1,6 +1,6 @@
 ---
 id: phase-02-task-05
-status: in_progress
+status: completed
 phase: "02"
 title: "백업·복원·데모 데이터 적재/초기화"
 depends_on: [phase-01-task-02, phase-01-task-04]
