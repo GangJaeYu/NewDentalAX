@@ -1,10 +1,14 @@
 // 이 파일이 하는 일: 화면의 알림 상태(읽지 않은 수·목록)를 서버와 맞춘다(FR-090 AC1·AC3, backend.md §3.3).
-// - createNotificationsApi: /api/notifications 요약·목록·읽음·모두 읽음을 부르는 작은 클라이언트(CSRF 토큰은 /api/session에서 받아 둔다)
+// - createNotificationsApi: /api/notifications 요약·목록·읽음·모두 읽음을 부르는 클라이언트. 앱 공용 통로(lib/api.ts)를 써서
+//   CSRF 헤더·연결 끊김 보고·401(로그인 화면으로) 처리를 함께 받는다. 목록만 { data, total }을 그대로 받으려고 fetch로 직접 부른다.
 // - createNotificationsStore: 30초마다(창이 보일 때만) 요약을 다시 받고, 창이 다시 활성화되면 바로 갱신한다. 새 알림이 오면 열어 둔 목록도 새로 받는다
 // - useNotifications: React 화면(상단바 종 아이콘·/notifications 화면)이 쓰는 훅. 여러 곳에서 써도 폴링은 한 번만 돈다
 // 시간·타이머·창 상태는 바꿔 끼울 수 있어 테스트가 30초 폴링을 직접 흉내 낸다(폴링 주기도 intervalMs로 바꿀 수 있음).
+// 연결 확인(lib/connection.ts의 /api/health 10초 확인)과는 타이머를 합치지 않는다: 그쪽은 로그인 전에도 돌고 끊기면 2초로 줄어든다(DECISIONS 후보).
 import { useEffect, useSyncExternalStore } from 'react';
 import { isInternalLink, type NotificationItem, type NotificationPage, type NotificationSummary } from '../../../shared/schemas/notifications.ts';
+import { api, ApiError, NETWORK_MESSAGE, toApiError } from './api.ts';
+import { connection } from './connection.ts';
 
 /** 기본 폴링 주기: 30초(FR-090 AC3 "1분 안에" 보다 짧게) */
 export const NOTIFICATION_POLL_MS = 30_000;
@@ -12,18 +16,6 @@ export const NOTIFICATION_POLL_MS = 30_000;
 export const NOTIFICATION_PAGE_SIZE = 20;
 
 const LOAD_FAILED = '알림을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
-
-/** 알림 API 오류(화면에 보여 줄 한국어 문구와 서버 오류 코드) */
-export class NotificationsApiError extends Error {
-  readonly status: number;
-  readonly code: string;
-  constructor(status: number, code: string, message: string) {
-    super(message);
-    this.name = 'NotificationsApiError';
-    this.status = status;
-    this.code = code;
-  }
-}
 
 /** 서버 알림 API를 부르는 함수 묶음 */
 export interface NotificationsApi {
@@ -33,77 +25,36 @@ export interface NotificationsApi {
   markAllRead(): Promise<void>;
 }
 
-/** createNotificationsApi에 넣는 값 */
-export interface NotificationsApiOptions {
-  /** fetch 함수(기본: 브라우저 fetch) */
-  fetchImpl?: typeof fetch;
-  /** CSRF 토큰을 주는 함수(기본: GET /api/session의 csrfToken을 받아 기억) */
-  csrfToken?: () => string | null | Promise<string | null>;
+/** 목록 주소를 만든다(?page&pageSize&unread=1) */
+export function notificationsListUrl(q: { page?: number; pageSize?: number; unreadOnly?: boolean } = {}): string {
+  const p = new URLSearchParams({ page: String(q.page ?? 1), pageSize: String(q.pageSize ?? NOTIFICATION_PAGE_SIZE) });
+  if (q.unreadOnly) p.set('unread', '1');
+  return `/api/notifications?${p.toString()}`;
 }
 
-/** 응답이 실패면 서버의 한국어 문구로 오류를 만든다 */
-async function toError(res: Response): Promise<NotificationsApiError> {
-  try {
-    const body = (await res.json()) as { error?: { code?: string; message?: string } };
-    return new NotificationsApiError(res.status, body.error?.code ?? 'HTTP', body.error?.message ?? LOAD_FAILED);
-  } catch {
-    return new NotificationsApiError(res.status, 'HTTP', LOAD_FAILED);
-  }
-}
-
-/** 서버 알림 API 클라이언트를 만든다. 연결이 끊기면 "불러오지 못했어요" 오류를 던진다 */
-export function createNotificationsApi(opts: NotificationsApiOptions = {}): NotificationsApi {
+/**
+ * 서버 알림 API 클라이언트를 만든다. 실패하면 서버의 한국어 문구를 담은 ApiError를 던진다.
+ * fetchImpl은 목록 요청에만 쓴다(테스트용). 나머지는 앱 공용 api 통로를 쓴다.
+ */
+export function createNotificationsApi(opts: { fetchImpl?: typeof fetch } = {}): NotificationsApi {
   const doFetch: typeof fetch = opts.fetchImpl ?? ((input, init) => fetch(input, init));
-  let cachedToken: string | null = null;
-
-  /** CSRF 토큰(넣어 준 함수가 없으면 /api/session에서 받아 기억한다) */
-  async function token(fresh: boolean): Promise<string | null> {
-    if (opts.csrfToken) return opts.csrfToken();
-    if (cachedToken && !fresh) return cachedToken;
-    const res = await doFetch('/api/session', { credentials: 'same-origin', headers: { accept: 'application/json' } });
-    if (!res.ok) throw await toError(res);
-    const body = (await res.json()) as { data?: { csrfToken?: string | null } };
-    cachedToken = body.data?.csrfToken ?? null;
-    return cachedToken;
-  }
-
-  async function call(url: string, init: RequestInit = {}): Promise<Response> {
-    try {
-      return await doFetch(url, { credentials: 'same-origin', ...init, headers: { accept: 'application/json', ...(init.headers ?? {}) } });
-    } catch {
-      throw new NotificationsApiError(0, 'NETWORK', '서버에 연결하지 못했어요. 원내 와이파이에 연결되어 있는지 확인해 주세요.');
-    }
-  }
-
-  async function getJson<T>(url: string): Promise<T> {
-    const res = await call(url);
-    if (!res.ok) throw await toError(res);
-    return (await res.json()) as T;
-  }
-
-  /** 상태를 바꾸는 POST. 본문 없이 보낸다(빈 JSON 본문은 서버가 거부함). CSRF가 낡았으면 토큰을 새로 받아 한 번 더 보낸다 */
-  async function post(url: string): Promise<void> {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const t = await token(attempt > 0);
-      const res = await call(url, { method: 'POST', headers: t ? { 'x-csrf-token': t } : {} });
-      if (res.ok) return;
-      const err = await toError(res);
-      if (err.code === 'CSRF' && attempt === 0 && !opts.csrfToken) continue;
-      throw err;
-    }
-  }
-
   return {
-    async summary() {
-      return (await getJson<{ data: NotificationSummary }>('/api/notifications/summary')).data;
-    },
+    summary: () => api.get<NotificationSummary>('/api/notifications/summary'),
     async list(q = {}) {
-      const p = new URLSearchParams({ page: String(q.page ?? 1), pageSize: String(q.pageSize ?? NOTIFICATION_PAGE_SIZE) });
-      if (q.unreadOnly) p.set('unread', '1');
-      return getJson<NotificationPage>(`/api/notifications?${p.toString()}`);
+      let res: Response;
+      try {
+        res = await doFetch(notificationsListUrl(q), { credentials: 'same-origin', headers: { accept: 'application/json' } });
+      } catch {
+        connection.reportFailure();
+        throw new ApiError(0, 'NETWORK', NETWORK_MESSAGE);
+      }
+      connection.reportSuccess();
+      const body: unknown = await res.json().catch(() => null);
+      if (!res.ok) throw toApiError(res.status, body);
+      return body as NotificationPage;
     },
-    markRead: (id) => post(`/api/notifications/${encodeURIComponent(String(id))}/read`),
-    markAllRead: () => post('/api/notifications/read-all'),
+    markRead: (id) => api.post<void>(`/api/notifications/${encodeURIComponent(String(id))}/read`),
+    markAllRead: () => api.post<void>('/api/notifications/read-all'),
   };
 }
 
@@ -207,7 +158,7 @@ const INITIAL: NotificationsState = {
 
 /** 오류를 화면 문구로 */
 function messageOf(e: unknown): string {
-  return e instanceof NotificationsApiError ? e.message : LOAD_FAILED;
+  return e instanceof ApiError ? e.message : LOAD_FAILED;
 }
 
 /** 알림 상태 저장소를 만든다(React와 무관해서 테스트에서 바로 쓸 수 있다) */
@@ -222,6 +173,8 @@ export function createNotificationsStore(api: NotificationsApi, opts: Notificati
   let offVisible: (() => void) | null = null;
   let listSeq = 0;
   let page = 1;
+  /** 폴링을 모두 끌 때(로그아웃 등) 올린다. 그 전에 보낸 요청의 답은 버린다(다른 사용자 알림이 남지 않게) */
+  let gen = 0;
 
   function set(patch: Partial<NotificationsState>): void {
     state = { ...state, ...patch };
@@ -229,13 +182,15 @@ export function createNotificationsStore(api: NotificationsApi, opts: Notificati
   }
 
   async function refreshSummary(): Promise<void> {
+    const g = gen;
     try {
       const s = await api.summary();
+      if (g !== gen) return;
       const changed = state.summaryLoaded && s.latestId !== state.latestId;
       set({ unread: s.unread, latestId: s.latestId, summaryLoaded: true, summaryError: null });
       if (changed && state.listStatus === 'ready') await loadList();
     } catch (e) {
-      set({ summaryError: messageOf(e) });
+      if (g === gen) set({ summaryError: messageOf(e) });
     }
   }
 
@@ -336,6 +291,11 @@ export function createNotificationsStore(api: NotificationsApi, opts: Notificati
       timer = null;
       offVisible?.();
       offVisible = null;
+      // 마지막 화면이 닫혔다(로그아웃 등): 받아 둔 알림을 비운다
+      gen += 1;
+      listSeq += 1;
+      page = 1;
+      set(INITIAL);
     },
     refreshSummary,
     loadList,

@@ -1,28 +1,14 @@
 // 이 파일이 하는 일: 실제로 띄운 테스트 서버(scripts/e2e-server.ts)에 HTTP로 알림 API 흐름을 보내 확인한다(phase-02-task-04 AC1~AC4, FR-090).
-// 다른 E2E(auth-api.spec)가 admin을 잠그므로, 이 파일은 테스트 서버의 데이터 폴더(.tmp/e2e/run-*)의 app.db에 직접 별도 계정·세션을 만들고
-// 알림은 업무 모듈이 하듯 notify.emit으로 만든다(아직 알림을 만드는 화면·API가 없음). 화면(종 아이콘) E2E는 앱 셸 연결 뒤에 추가한다.
-// AC3(60초 안 배지 반영)은 화면 대신 "새 알림 뒤 요약 API가 60초 안에 바뀌는지"를 화면과 같은 30초 간격 폴링으로 확인한다.
-import fs from 'node:fs';
-import path from 'node:path';
-import { expect, test, type APIRequestContext } from '@playwright/test';
+// 이 파일 전용 격리 서버(tests/e2e/fixtures.ts의 isoServer)의 app.db에 직접 계정·세션을 만들고(로그인 잠금과 무관),
+// 알림은 업무 모듈이 하듯 notify.emit으로 만든다(아직 알림을 만드는 업무 API가 없음). 화면(종·팝오버·/notifications) 흐름은 notifications.spec.ts가 본다.
+// AC3은 여기서는 "새 알림 뒤 요약 API가 60초 안에 바뀌는지"를 화면과 같은 30초 간격 폴링으로 확인한다.
+import type { APIRequestContext } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 import { appDbPath, openDb, type Db } from '../../server/db/index.ts';
 import { fixedClock, type Clock } from '../../server/lib/clock.ts';
 import { createSession } from '../../server/auth/sessions.ts';
 import { emitNotification } from '../../server/modules/notifications/emit.ts';
 import type { NotificationPage, NotificationSummary } from '../../shared/schemas/notifications.ts';
-
-/** 테스트 서버가 쓰는 데이터 폴더(.tmp/e2e 아래 server.pid가 있는 가장 최근 run-* 폴더) */
-function serverDataDir(): string {
-  const base = path.join(process.cwd(), '.tmp', 'e2e');
-  const runs = fs
-    .readdirSync(base, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && d.name.startsWith('run-') && fs.existsSync(path.join(base, d.name, 'server.pid')))
-    .map((d) => path.join(base, d.name))
-    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
-  const dir = runs[0];
-  if (!dir) throw new Error('테스트 서버의 데이터 폴더를 찾지 못했어요(.tmp/e2e/run-*)');
-  return dir;
-}
 
 interface Who {
   userId: number;
@@ -62,12 +48,12 @@ test.describe.serial('알림 API 흐름(실제 서버)', () => {
   let manager: Who;
   let staff: Who;
 
-  test.beforeAll(async ({ request }) => {
+  test.beforeAll(async ({ request, isoServer }) => {
     const health = await request.get('/api/health');
     const body = (await health.json()) as { ok: boolean; now: string };
     expect(body.ok).toBe(true);
     clock = fixedClock(body.now); // 서버와 같은 고정 시각(TEST_NOW)으로 세션을 만든다
-    db = openDb(appDbPath(serverDataDir()));
+    db = openDb(appDbPath(isoServer.dataDir));
     manager = makeUser('manager', 'm');
     staff = makeUser('staff', 's');
   });

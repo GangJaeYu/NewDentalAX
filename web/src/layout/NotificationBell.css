@@ -1,0 +1,53 @@
+/* 이 파일이 하는 일: 알림 종 팝오버와 알림 목록(상단바·/notifications 화면 공용)의 모양. 색·간격·반지름은 디자인 토큰(styles/tokens.css)만 쓴다.
+   팝오버는 넓은 화면에서 종 아래 오른쪽 정렬, 휴대폰(720px 이하)에서는 화면 좌우 16px 안쪽에 고정해 가로 스크롤이 생기지 않게 한다. */
+
+.notif-bell { position: relative; flex: none; }
+
+.notif-pop {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - var(--top-h) - 24px));
+  display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-pop);
+  overflow: hidden;
+}
+.notif-pop-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px 10px; border-bottom: 1px solid var(--line); }
+.notif-pop-head h2 { font-size: var(--fs-card-title); font-weight: 700; }
+.notif-pop-head .sub { color: var(--muted); font-size: var(--fs-small); }
+.notif-pop-head .btn { margin-left: auto; }
+.notif-pop-body { overflow-y: auto; min-height: 0; padding: 4px 6px; }
+.notif-pop-body .skel { padding: 8px; }
+.notif-pop-foot { border-top: 1px solid var(--line); padding: 8px 14px; text-align: center; }
+.notif-pop-foot a { color: var(--accent-strong); font-size: var(--fs-small); font-weight: 600; text-decoration: none; }
+.notif-pop-foot a:hover { text-decoration: underline; }
+
+@media (max-width: 720px) {
+  .notif-pop { position: fixed; left: 16px; right: 16px; top: calc(var(--top-h) + 6px); width: auto; }
+}
+
+/* 알림 목록 */
+.notif-list { list-style: none; margin: 0; padding: 0; }
+.notif-list li { border-top: 1px solid var(--line); }
+.notif-list li:first-child { border-top: 0; }
+.notif-row {
+  display: flex; align-items: flex-start; gap: 10px; width: 100%; min-height: var(--row);
+  padding: 10px 8px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg);
+  text-align: left; cursor: pointer; font: inherit; transition: background var(--t-fast);
+}
+.notif-row:hover { background: var(--surface-2); }
+.notif-row .mark { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: transparent; }
+.notif-list li.unread .notif-row .mark { background: var(--accent); }
+.notif-row .t { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.notif-row b { font-weight: 600; overflow-wrap: anywhere; }
+.notif-list li:not(.unread) .notif-row b { font-weight: 500; color: var(--muted); }
+.notif-row .desc { color: var(--muted); font-size: var(--fs-small); overflow-wrap: anywhere; }
+.notif-row .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.notif-row time { color: var(--muted); font-size: var(--fs-xs); }
+.notif-list.compact .notif-row { padding: 8px; }
+.notif-list.compact .notif-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 알림 전체 화면 */
+.notif-card .toolbar { border-bottom: 1px solid var(--line); }
+.notif-card .body { padding-top: 6px; }
+.notif-more { justify-self: center; margin-top: 8px; }
+.notif-action-error { margin: 0 var(--pad) 8px; }

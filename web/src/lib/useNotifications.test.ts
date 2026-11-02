@@ -1,7 +1,9 @@
 // 이 파일이 하는 일: 화면 알림 저장소(30초 폴링·창 활성화 시 갱신·읽음 처리·링크 이동)와 API 클라이언트를 확인한다
-// (phase-02-task-04 AC2·AC3). 가짜 서버(메모리)·가짜 타이머로 30초 폴링을 직접 돌린다. 브라우저 E2E는 앱 셸 연결 뒤에 추가한다.
-import { describe, expect, test } from 'vitest';
+// (phase-02-task-04 AC2·AC3). 가짜 서버(메모리)·가짜 타이머로 30초 폴링을 직접 돌린다. 브라우저 흐름은 tests/e2e/notifications.spec.ts가 본다.
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { NotificationItem } from '../../../shared/schemas/notifications.ts';
+import { setCsrfToken } from './api.ts';
+import { connection } from './connection.ts';
 import { createNotificationsApi, createNotificationsStore, NOTIFICATION_POLL_MS, type NotificationsApi, type PollEnv } from './useNotifications.ts';
 
 /** 메모리 안의 가짜 알림 서버 */
@@ -164,6 +166,8 @@ describe('알림 저장소(폴링)', () => {
     expect(t.intervals.size).toBe(1);
     store.stop();
     expect(t.intervals.size).toBe(0);
+    // 마지막 화면이 닫히면(로그아웃 등) 받아 둔 알림을 비운다
+    expect(store.getState()).toMatchObject({ unread: 0, latestId: 0, items: [], listStatus: 'idle', summaryLoaded: false });
   });
 
   test('phase-02-task-04 AC2: 알림을 누르면 읽음 처리되어 배지 수가 줄고, 링크 화면으로 이동한다', async () => {
@@ -222,48 +226,42 @@ describe('알림 저장소(폴링)', () => {
   });
 });
 
-describe('알림 API 클라이언트', () => {
-  test('요약·목록 주소, POST에 CSRF 헤더(본문 없음), 오류는 서버의 한국어 문구, 끊기면 연결 안내', async () => {
-    const seen: { url: string; method: string; headers: Record<string, string>; body: unknown }[] = [];
-    const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      seen.push({ url, method: init?.method ?? 'GET', headers: (init?.headers ?? {}) as Record<string, string>, body: init?.body });
-      if (url === '/api/session') return Response.json({ data: { csrfToken: 'tok1' } });
-      if (url === '/api/notifications/summary') return Response.json({ data: { unread: 3, latestId: 9 } });
-      if (url.startsWith('/api/notifications?')) return Response.json({ data: [], total: 0 });
-      if (url === '/api/notifications/7/read') return new Response(null, { status: 204 });
-      return Response.json({ error: { code: 'NOT_FOUND', message: '찾는 알림이 없어요. 이미 지워졌을 수 있어요.' } }, { status: 404 });
-    }) as typeof fetch;
-    const api = createNotificationsApi({ fetchImpl });
-    expect(await api.summary()).toEqual({ unread: 3, latestId: 9 });
-    await api.list({ page: 2, pageSize: 10, unreadOnly: true });
-    expect(seen.at(-1)?.url).toBe('/api/notifications?page=2&pageSize=10&unread=1');
-    await api.markRead(7);
-    const post = seen.at(-1);
-    expect(post).toMatchObject({ url: '/api/notifications/7/read', method: 'POST', body: undefined });
-    expect(post?.headers['x-csrf-token']).toBe('tok1');
-    expect(post?.headers['content-type']).toBeUndefined();
-    await expect(api.markRead(8)).rejects.toThrow('찾는 알림이 없어요. 이미 지워졌을 수 있어요.');
-
-    const offline = createNotificationsApi({ fetchImpl: (async () => { throw new TypeError('Failed to fetch'); }) as typeof fetch });
-    await expect(offline.summary()).rejects.toThrow('원내 와이파이에 연결되어 있는지 확인해 주세요');
+describe('알림 API 클라이언트(앱 공용 api 통로)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setCsrfToken(null);
+    connection.reportSuccess();
   });
 
-  test('CSRF 토큰이 낡았으면 새로 받아 한 번 더 보낸다', async () => {
-    let tokenNo = 0;
-    const posts: string[] = [];
-    const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  test('요약·목록 주소, POST에 CSRF 헤더, 목록은 { data, total } 그대로, 오류는 서버의 한국어 문구', async () => {
+    const seen: { url: string; method: string; headers: Record<string, string> }[] = [];
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-      if (url === '/api/session') {
-        tokenNo += 1;
-        return Response.json({ data: { csrfToken: `tok${tokenNo}` } });
-      }
-      const t = (init?.headers as Record<string, string>)['x-csrf-token'] ?? '';
-      posts.push(t);
-      if (t === 'tok1') return Response.json({ error: { code: 'CSRF', message: '보안 확인에 실패했습니다. 화면을 새로 고쳐 주세요.' } }, { status: 403 });
-      return new Response(null, { status: 204 });
-    }) as typeof fetch;
-    await createNotificationsApi({ fetchImpl }).markAllRead();
-    expect(posts).toEqual(['tok1', 'tok2']);
+      seen.push({ url, method: init?.method ?? 'GET', headers: (init?.headers ?? {}) as Record<string, string> });
+      if (url === '/api/notifications/summary') return Response.json({ data: { unread: 3, latestId: 9 } });
+      if (url.startsWith('/api/notifications?')) return Response.json({ data: [], total: 4 });
+      if (url === '/api/notifications/7/read') return new Response(null, { status: 204 });
+      return Response.json({ error: { code: 'NOT_FOUND', message: '찾는 알림이 없어요. 이미 지워졌을 수 있어요.' } }, { status: 404 });
+    });
+    setCsrfToken('tok1');
+    const client = createNotificationsApi();
+    expect(await client.summary()).toEqual({ unread: 3, latestId: 9 });
+    expect(await client.list({ page: 2, pageSize: 10, unreadOnly: true })).toEqual({ data: [], total: 4 });
+    expect(seen.at(-1)?.url).toBe('/api/notifications?page=2&pageSize=10&unread=1');
+    await client.markRead(7);
+    expect(seen.at(-1)).toMatchObject({ url: '/api/notifications/7/read', method: 'POST' });
+    expect(seen.at(-1)?.headers['x-csrf-token']).toBe('tok1');
+    await expect(client.markRead(8)).rejects.toThrow('찾는 알림이 없어요. 이미 지워졌을 수 있어요.');
+    await expect(client.list()).resolves.toMatchObject({ total: 4 });
+  });
+
+  test('서버에 닿지 못하면 연결 안내 문구를 던지고 연결 끊김 판단에 알린다', async () => {
+    vi.stubGlobal('fetch', async () => {
+      throw new TypeError('Failed to fetch');
+    });
+    const client = createNotificationsApi();
+    await expect(client.summary()).rejects.toThrow('원내 와이파이에 연결되어 있는지 확인해 주세요');
+    await expect(client.list()).rejects.toThrow('원내 와이파이에 연결되어 있는지 확인해 주세요');
+    expect(connection.isOffline()).toBe(true);
   });
 });

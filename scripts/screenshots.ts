@@ -2,10 +2,14 @@
 // Edge에서 찍어 artifacts/screens/<page>-<너비>-<테마>.png(화면 크기)와 -full.png(전체 길이)로 저장하고, 가로 스크롤이 생긴 화면과 Pretendard 글꼴이 안 걸린 화면을 알려 준다.
 // 순서: 첫 설정 전 화면(setup) → API로 첫 설정(관리자 생성) → 로그아웃 상태 화면(login) → 로그인 상태 화면(대시보드 셸·스텁 등).
 // 화면 목록은 각 화면 태스크(최종 phase-05-task-03)가 PAGES에 더한다. 특정 화면만: node scripts/screenshots.ts dashboard stub
+// 알림 화면·종 팝오버(phase-02-task-04)를 위해 첫 설정 뒤 서버 DB(임시 데이터 폴더)에 예시 알림을 notify.emit으로 넣는다. action이 있는 화면은 찍기 전에 그 동작(팝오버 열기)을 한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { chromium, type BrowserContext } from '@playwright/test';
+import { chromium, type BrowserContext, type Page } from '@playwright/test';
+import { appDbPath, openDb } from '../server/db/index.ts';
+import { fixedClock } from '../server/lib/clock.ts';
+import { emitNotification } from '../server/modules/notifications/emit.ts';
 
 const ROOT = process.cwd();
 const PORT = Number(process.env.E2E_PORT || 18090);
@@ -16,12 +20,39 @@ const THEMES = ['light', 'dark'] as const;
 const ADMIN = { clinicName: '하늘숲치과', name: '김지현', username: 'shotadmin', password: 'Shot-Admin-Pass-1', withDemo: false };
 
 /** 찍을 화면: 이름, 주소, 상태(setup = 첫 설정 전, anon = 로그아웃, user = 관리자로 로그인), 화면이 다 그려졌다고 볼 글자 */
-const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'; ready: string }> = [
+const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'; ready: string; action?: (page: Page) => Promise<void> }> = [
   { name: 'setup', url: '/setup', state: 'setup', ready: '첫 설정' },
   { name: 'login', url: '/login', state: 'anon', ready: '로그인' },
   { name: 'dashboard', url: '/', state: 'user', ready: '오늘 할 일' },
   { name: 'stub', url: '/inventory', state: 'user', ready: '준비 중인 화면이에요' },
+  { name: 'notifications', url: '/notifications', state: 'user', ready: '거즈 재고가 부족해요' },
+  {
+    name: 'notification-popover',
+    url: '/',
+    state: 'user',
+    ready: '오늘 할 일',
+    action: async (page) => {
+      await page.getByTestId('notification-bell').click();
+      await page.getByRole('dialog', { name: '알림' }).getByText('거즈 재고가 부족해요').waitFor();
+    },
+  },
 ];
+
+/** 스크린샷용 예시 알림(관리자가 받는 것): 읽지 않음 4건 + 읽음 1건 */
+function seedNotifications(dataDir: string): void {
+  const db = openDb(appDbPath(dataDir));
+  const clock = fixedClock(process.env.TEST_NOW || '2026-11-02T09:00:00+09:00');
+  try {
+    emitNotification(db, { type: 'notice', title: '11월 원내 감염관리 교육 일정 안내', link: '/desk/board', dedupeKey: 'shot:notice' }, clock);
+    db.run('UPDATE notifications SET read_at = created_at');
+    emitNotification(db, { type: 'leave_requested', title: '이수진 님이 11월 7일 연차를 신청했어요', body: '사유: 개인 일정', link: '/hr/leave', dedupeKey: 'shot:leave' }, clock);
+    emitNotification(db, { type: 'equipment_due', title: '오토클레이브 정기 점검이 7일 남았어요', link: '/facility/equipment', dedupeKey: 'shot:equip' }, clock);
+    emitNotification(db, { type: 'ai_budget', title: '이번 달 AI 사용 금액이 예산의 80%를 넘었어요', body: '사용 40,120원 / 예산 50,000원', link: '/admin/ai-usage', dedupeKey: 'shot:budget' }, clock);
+    emitNotification(db, { type: 'stock_low', title: '거즈 재고가 부족해요', body: '현재 3팩 · 적정 10팩', link: '/inventory', dedupeKey: 'shot:stock' }, clock);
+  } finally {
+    db.close();
+  }
+}
 
 /** 서버가 준비될 때까지 /api/health를 확인한다 */
 async function waitReady(timeoutMs = 30000): Promise<void> {
@@ -47,7 +78,10 @@ async function login(ctx: BrowserContext): Promise<void> {
 const only = process.argv.slice(2);
 const pages = only.length ? PAGES.filter((p) => only.includes(p.name)) : PAGES;
 fs.mkdirSync(OUT, { recursive: true });
-const server = spawn(process.execPath, ['scripts/e2e-server.ts'], { cwd: ROOT, stdio: 'inherit', env: { ...process.env, E2E_PORT: String(PORT) } });
+// 데이터 폴더를 직접 정해 예시 알림을 넣을 수 있게 한다(끝나면 지운다)
+const DATA_DIR = path.join(ROOT, '.tmp', 'screens', `run-${Date.now()}`);
+fs.mkdirSync(DATA_DIR, { recursive: true });
+const server = spawn(process.execPath, ['scripts/e2e-server.ts'], { cwd: ROOT, stdio: 'inherit', env: { ...process.env, E2E_PORT: String(PORT), E2E_DATA_DIR: DATA_DIR } });
 let problems = 0;
 try {
   await waitReady();
@@ -58,6 +92,7 @@ try {
       const r = await fetch(`${BASE}/api/setup`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(ADMIN) });
       if (r.status !== 201) throw new Error(`스크린샷용 첫 설정 실패: ${r.status}`);
       setupDone = true;
+      seedNotifications(DATA_DIR);
     }
     for (const [width, height] of WIDTHS) {
       for (const theme of THEMES) {
@@ -66,6 +101,7 @@ try {
         const page = await ctx.newPage();
         await page.goto(`${BASE}${p.url}`, { waitUntil: 'networkidle' });
         await page.getByText(p.ready).first().waitFor({ state: 'attached', timeout: 10000 });
+        if (p.action) await p.action(page);
         await page.evaluate('document.fonts.ready');
         const file = path.join(OUT, `${p.name}-${width}-${theme}.png`);
         // 기준선(harness_setup/evidence/design-baseline)과 같은 화면 크기 캡처 + 아래까지 이어 찍은 캡처(-full).
@@ -84,6 +120,12 @@ try {
   await browser.close();
 } finally {
   server.kill();
+  await new Promise((res) => setTimeout(res, 500));
+  try {
+    fs.rmSync(DATA_DIR, { recursive: true, force: true });
+  } catch {
+    // 서버가 아직 파일을 쥐고 있으면 남겨 둔다(.tmp는 git 제외)
+  }
 }
 if (problems) {
   console.error(`문제가 있는 화면 ${problems}개`);
