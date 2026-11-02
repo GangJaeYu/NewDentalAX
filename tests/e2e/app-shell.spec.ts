@@ -227,17 +227,14 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
     });
 
     for (const [width, height] of [[1440, 900], [390, 844]] as const) {
-      test(`phase-01-task-04 AC4: 셸·스텁 화면(${width}px ${theme}) axe 위반이 0건이다`, async ({ browser }) => {
+      test(`phase-01-task-04 AC4: 셸 화면(${width}px ${theme}) axe 위반이 0건이다`, async ({ browser }) => {
         const ctx = await loggedIn(browser, ADMIN, { colorScheme: theme, viewport: { width, height } });
         const p2 = await ctx.newPage();
         await p2.goto(url('/'));
         await expect(p2.getByRole('region', { name: '오늘 현황' })).toBeVisible();
         const r2 = await new AxeBuilder({ page: p2 }).analyze();
         expect(axeList(r2.violations), `셸 ${width} ${theme}`).toEqual([]);
-        await p2.goto(url('/hr/hiring')); // 아직 스텁인 화면(phase-04-task-07). 명세서 입고는 phase-04-task-08에서 실제 화면이 됨
-        await expect(p2.getByText('준비 중인 화면이에요')).toBeVisible();
-        const r3 = await new AxeBuilder({ page: p2 }).analyze();
-        expect(axeList(r3.violations), `스텁 ${width} ${theme}`).toEqual([]);
+        // 준비 중(스텁) 화면 검사는 지웠다: 2026-11-03 모든 화면이 실제 화면이 되어 StubPage를 쓰는 경로가 없다. 각 화면의 axe는 그 화면의 spec이 검사한다.
         await ctx.close();
       });
     }
