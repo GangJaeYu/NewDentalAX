@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-02
-status: pending
+status: in_progress
 phase: "03"
 title: "발주서 자동 작성·인쇄·입고 처리"
 depends_on: [phase-03-task-01]

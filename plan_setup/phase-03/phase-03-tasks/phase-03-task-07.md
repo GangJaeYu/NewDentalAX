@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-07
-status: pending
+status: in_progress
 phase: "03"
 title: "원내 AI 도우미(문서 올리기·질문·근거)"
 depends_on: [phase-01-task-06, phase-03-task-06]

@@ -97,3 +97,8 @@
 | 2026-11-02 | 초기화 범위 = seed 등록 tables ∪ DB 전체 테이블 − 남길 목록. POST /api/demo/reset은 직전 백업 이름을 돌려준다. 손상된 백업은 복원 전에 400으로 거절한다 (02-05) | 모듈이 tables를 빠뜨려도 업무 데이터가 남지 않게 하려고 |
 | 2026-11-02 | 체크리스트 항목을 빼면 active=0으로 둔다(지난 체크 기록 보존). 앞으로의 날짜 조회는 400. 글 삭제는 deleted_at으로 숨긴다. 새 공지 알림은 작성자를 포함한 활성 사용자 전원에게 보낸다(dedupe notice:<id>). POST /posts의 category는 생략할 수 있다 (03-04) | 기록을 보존하고, 03-06 회의록 보내기와 호환하려고 |
 | 2026-11-02 | 스크린샷 화면 목록은 태스크마다 `scripts/screens/<태스크ID>.ts`에 둔다(screenshots.ts가 자동으로 불러옴) (조정자) | 병렬 태스크마다 PAGES 배열이 병합 충돌을 일으켜서 |
+| 2026-11-02 | document_versions에 title 열을 추가한다. 문서 인쇄 머리말은 @page 여백 상자를 CSSOM(adoptedStyleSheets)으로 붙인다 (03-06) | 버전별 제목 표시. CSP style-src 'self'가 <style>을 막아서 |
+| 2026-11-02 | GET /files/:id 권한은 목적별로 나눈다(form·training·equipment=S, kb=kb.manage, receipt·expense=expenses.manage). 서식 업로드 허용 확장자는 pdf·docx·xlsx·hwp·hwpx·jpg·jpeg·png(사진 8MB, 그 외 20MB). 매직 넘버가 맞지 않으면 415 (03-06) | TD-012 |
+| 2026-11-02 | 재고 알림: 부족은 하루 1번(stock_low:item:<id>:<날짜>), 유효기간은 30일·7일·당일·지남 단계마다 1번 (03-01) | 매일 반복되는 알림을 피하려고 |
+| 2026-11-02 | stock_moves.order_id는 외래키 없이 정수만 둔다. 재고를 0 미만으로 만드는 조정은 400, 사용 안 함 품목의 입출고는 409. 직전 단가는 같은 품목의 바로 앞 입고 단가 (03-01) | SQLite는 나중에 FK를 더할 수 없음(purchase_orders는 03-02) |
+| 2026-11-02 | 재고 목록 기본 정렬은 상태(만료→부족→임박→곧 부족→정상) 다음 이름순이다. api.page()와 ApiError.details를 추가하고, DataTable 감싸개에 tabIndex·role=region을 준다 (03-01) | 급한 품목이 먼저 보이게. 목록 total 표시. 접근성 |
