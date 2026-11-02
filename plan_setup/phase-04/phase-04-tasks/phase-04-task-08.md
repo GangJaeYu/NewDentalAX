@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-08
-status: pending
+status: in_progress
 phase: "04"
 title: "명세서·영수증 사진 → 입고·지출 입력"
 depends_on: [phase-03-task-01, phase-04-task-04]
