@@ -52,7 +52,18 @@ export interface AppDeps {
   logger?: boolean;
   /** true면 원내망 밖 접속도 허용한다(config.json의 allowExternal, 기본 false) */
   allowExternal?: boolean;
+  /**
+   * 이 서버 실행마다 새로 만드는 무작위 표식(main.ts가 넣는다). 있으면 GET /api/health 응답에 X-Instance 헤더로 붙인다.
+   * main.ts는 켜진 직후 안내할 주소로 직접 물어보고, 같은 표식이 오는지로 다른 프로그램이 주소를 가로챘는지 확인한다.
+   * 키·개인정보는 넣지 않는다(내부 확인용 무작위 값).
+   */
+  instanceId?: string;
 }
+
+/** 준비 상태 확인 주소 */
+export const HEALTH_PATH = '/api/health';
+/** 자기 확인 표식을 담는 응답 헤더 이름(소문자) */
+export const INSTANCE_HEADER = 'x-instance';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const DEFAULT_WEB_DIST = path.join(ROOT, 'web', 'dist');
@@ -96,6 +107,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.decorate('clock', clock);
   if (ownDb) app.addHook('onClose', async () => db.close());
 
+  // 자기 확인 표식: 원내망 검사가 막는 응답에도 붙도록 다른 검사보다 먼저 건다(health 주소에만)
+  const instanceId = deps.instanceId;
+  if (instanceId) {
+    app.addHook('onRequest', async (req, reply) => {
+      if ((req.url.split('?')[0] ?? '') === HEALTH_PATH) reply.header(INSTANCE_HEADER, instanceId);
+    });
+  }
+
   // 보안 헤더(모든 응답) → 원내망 검사(가장 먼저) → 쿠키 → 세션·CSRF·권한 검사
   registerSecurityHeaders(app);
   registerNetworkGuard(app, { allowExternal: deps.allowExternal ?? false });
@@ -110,7 +129,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   // 준비 상태 확인: 포트가 열린 것만이 아니라 DB까지 응답해야 ok:true(HARNESS §2)
-  app.get('/api/health', async (_req, reply) => {
+  app.get(HEALTH_PATH, async (_req, reply) => {
     const db = checkDb();
     const ok = db === 'ok';
     reply.code(ok ? 200 : 503).header('cache-control', 'no-store');
