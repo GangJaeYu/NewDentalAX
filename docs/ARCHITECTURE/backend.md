@@ -141,6 +141,7 @@ type PiiType = 'rrn' | 'phone' | 'email' | 'card' | 'account' | 'passport'
 |---|---|---|---|
 | GET/POST/PATCH `/equipment` · GET/POST `/equipment/:id/logs` | 조회 S, 등록 M, 기록 S | | 101 |
 | GET `/sterilizer-logs?equipmentId&from&to` · POST | S | fail이면 즉시 알림 | 102 |
+| GET `/sterilizer-logs/export` · GET `/equipment/:id` | S | CSV 내보내기, 장비 상세(04-03 추가) | 101·102 |
 | POST `/sterilizer-logs/:id/action` | S | `{actionTaken}` | 102 AC2 |
 | GET `/legal-tasks` · PATCH `/legal-tasks/:id` · POST `/legal-tasks` | 조회 S, 수정·추가 A | 주기·상태·적용 여부 수정 | 100 AC2 |
 | POST `/legal-tasks/:id/done` | M | `{doneOn, note, fileId?}` | 100 AC3 |

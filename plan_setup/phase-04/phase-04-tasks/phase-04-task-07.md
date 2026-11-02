@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-07
-status: pending
+status: in_progress
 phase: "04"
 title: "채용 공고·면접 질문 초안"
 depends_on: [phase-04-task-06]
