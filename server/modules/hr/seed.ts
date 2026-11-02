@@ -6,6 +6,7 @@ import type { Db } from '../../db/index.ts';
 import type { SeedContext } from '../../db/seed/types.ts';
 import { addDays, kstDate, kstMidnight } from '../../lib/dates.ts';
 import { readClinic } from '../admin/clinic.ts';
+import { seedTrainingDemo } from './training-seed.ts';
 import { countLeaveDays, isClinicOpen, type LeaveStatus, type LeaveType } from '../../../shared/schemas/leave.ts';
 
 /** 이 모듈이 소유한 업무 테이블(초기화 때 비울 대상). 근무표·교육·온보딩 테이블은 각 태스크가 더한다 */
@@ -56,6 +57,7 @@ function atKst(day: string, hour: number): string {
 
 /** 데모 연차 신청과 부여 일수를 넣는다 */
 export function seedDemo(db: Db, ctx: SeedContext): void {
+  seedTrainingDemo(db, ctx); // 교육·온보딩(phase-04-task-02, training-seed.ts)
   if (db.get('SELECT 1 AS x FROM leave_requests LIMIT 1')) return;
   const today = kstDate(ctx.clock.now());
   const year = Number(today.slice(0, 4));

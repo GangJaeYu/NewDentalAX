@@ -1,0 +1,62 @@
+/* 이 파일이 하는 일: 교육 이수 기록(/hr/training)·신규 직원 온보딩(/hr/onboarding) 화면의 모양. 카드 세로 쌓기, 표 안 교육 이름·버튼 묶음, 이수 기록 목록,
+   증빙 파일 고르기 칸, 온보딩 진행 카드(진행률 막대·체크 항목), AI 초안 편집 목록. 색은 tokens.css 변수만 쓰고 상태는 글자로도 보인다(DESIGN §5-5).
+   좁은 화면(520px 이하)에서는 두 칸 입력과 버튼 줄을 한 칸으로 쌓아 가로 스크롤이 생기지 않게 한다. */
+
+.training-stack { display: grid; gap: var(--gap); margin-top: var(--gap); min-width: 0; }
+.training-pad { padding: var(--pad); }
+
+.training-name { display: inline-grid; gap: 2px; min-width: 140px; white-space: normal; padding: 6px 0; }
+.training-name small { color: var(--muted); font-size: var(--fs-xs); }
+.training-acts { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.training-note { display: inline-block; white-space: normal; min-width: 120px; max-width: 280px; overflow-wrap: anywhere; padding: 6px 0; font-size: var(--fs-small); }
+
+.training-form { display: grid; gap: 12px; }
+.training-form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .training-form .row2 { grid-template-columns: 1fr; } }
+
+.training-file { display: grid; gap: 6px; min-width: 0; }
+.training-file-label { font-size: var(--fs-small); font-weight: 600; }
+.training-file-picked { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2); min-width: 0; flex-wrap: wrap; }
+.training-file-picked .name { flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.training-file-err { margin: 0; color: var(--danger); font-size: var(--fs-xs); font-weight: 600; }
+
+.training-records { list-style: none; margin: 0; padding: 0; display: grid; }
+.training-records > li { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); min-width: 0; }
+.training-records > li:first-child { border-top: 0; }
+.training-records .when { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.training-records .when .muted { font-size: var(--fs-small); overflow-wrap: anywhere; }
+.training-records .acts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.training-records .acts .btn { max-width: 100%; }
+.training-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+
+/* 온보딩 */
+.onb-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: var(--gap); padding: var(--pad); min-width: 0; }
+.onb-card { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); min-width: 0; align-content: start; }
+.onb-card header { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.onb-card header h3 { margin: 0; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.onb-card header small { display: block; color: var(--muted); font-size: var(--fs-xs); margin-top: 2px; }
+.onb-pct { display: flex; align-items: center; gap: 10px; }
+.onb-pct .progress { flex: 1; }
+.onb-pct b { font-size: 18px; min-width: 52px; text-align: right; }
+.onb-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.onb-items li { display: grid; grid-template-columns: minmax(0, 1fr); padding: 4px 0; border-top: 1px solid var(--line); }
+.onb-items li:first-child { border-top: 0; }
+.onb-items .check { align-items: flex-start; }
+.onb-items .by { color: var(--muted); font-size: var(--fs-xs); padding-left: 26px; }
+.onb-items .static { display: flex; gap: 8px; align-items: flex-start; font-size: var(--fs-small); }
+.onb-items .static .mark { flex: none; font-weight: 700; color: var(--muted); }
+.onb-items .static.done .mark { color: var(--ok); }
+
+.onb-draft { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.onb-draft li { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.onb-draft li .num { flex: none; width: 22px; color: var(--muted); font-size: var(--fs-xs); text-align: right; }
+.onb-draft li .input { flex: 1; min-width: 0; }
+.onb-save { display: grid; gap: 10px; margin-top: 12px; }
+.onb-save .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.onb-save .acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 520px) { .onb-save .row2 { grid-template-columns: 1fr; } }
+
+.onb-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); min-width: 0; }
+@media (min-width: 1680px) { .onb-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.onb-tpl-items { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: var(--fs-small); }
+.onb-tpl-items li { overflow-wrap: anywhere; }
