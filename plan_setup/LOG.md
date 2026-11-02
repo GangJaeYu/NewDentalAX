@@ -478,3 +478,8 @@
   - stub 스크린샷을 /inventory/receipt로 옮겼다.
 - 게이트는 백그라운드에서 실행 중이다.
 - 남은 변경 요청: 공용 components.css의 .c1~.c6 fill이 DonutChart 호를 채우는 문제(04-04가 지역적으로 보정함) → 05-03 공용 정리
+
+## 2026-11-03 01:55 04-03 검증: AC1~4 PASS, 대시보드 표시는 판정 불가 → completed 보류
+- 검증 워커 ctx_d8cf020b0b36: 게이트 lint·unit 641·e2e 190 PASS, Edge로 직접 관찰. AC2의 "대시보드 경고"는 검증 커밋이 03-10 병합 전이라 판정할 수 없었다.
+- 03-10 검증 때 "04-03 AC2 대시보드 멸균 경고 행"을 함께 판정하게 한 뒤 completed로 바꾼다.
+- 증거: evidence/phase-04-task-03/validation-2026-11-03T0155-partial.md
