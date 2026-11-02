@@ -1,7 +1,8 @@
 // 이 파일이 하는 일: 실제로 띄운 테스트 서버(scripts/e2e-server.ts)에 HTTP로 첫 설정 → 세션 → CSRF 거부 → 로그아웃 → 잠금 흐름을 보내 확인한다
 // (phase-01-task-03 AC1·AC2·AC4·AC5·AC6). 화면(/setup, /login)은 phase-01-task-04 담당이라 여기서는 API 흐름만 본다.
-// 서버는 빈 임시 데이터 폴더로 켜지므로 첫 테스트가 첫 설정을 한다. 테스트는 이 파일 안 순서대로 실행된다(serial).
-import { expect, test, type APIResponse } from '@playwright/test';
+// 서버는 이 파일 전용 격리 서버(tests/e2e/fixtures.ts, 빈 임시 데이터 폴더)라 첫 테스트가 첫 설정을 한다. 테스트는 이 파일 안 순서대로 실행된다(serial).
+import type { APIResponse } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '김원장', username: 'e2eadmin', password: 'E2e-Admin-Pass-31', withDemo: false };
 
@@ -74,7 +75,8 @@ test.describe.serial('인증 API 흐름', () => {
     page.on('pageerror', (e) => errors.push(e.message));
     const res = await page.goto('/');
     expect(res?.headers()['content-security-policy']).toContain("script-src 'self'");
-    await expect(page.getByRole('heading', { level: 1, name: '하늘숲치과 원내 업무' })).toBeVisible();
+    // 첫 설정이 끝난 서버라 화면은 로그인으로 간다(phase-01-task-04가 만든 화면)
+    await expect(page.getByRole('heading', { level: 1, name: '로그인' })).toBeVisible();
     expect(errors).toEqual([]);
   });
 

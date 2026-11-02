@@ -1,0 +1,143 @@
+/* 이 파일이 하는 일: 앱 골격(상단바 56px·왼쪽 메뉴 232px·본문 최대 1720px)과 반응형 규칙(DESIGN §4), 연결 끊김 띠, 로그인·첫 설정 화면 배치를 둔다.
+   1101px 이상: 메뉴 펼침 / 721~1100px: 64px 아이콘 막대 / 720px 이하: 메뉴 숨김 + 아래쪽 탭 막대. 시안 docs/design/preview.html의 골격 규칙을 옮겼다. */
+
+/* ── 앱 골격 ── */
+.app {
+  display: grid;
+  grid-template-columns: var(--side) minmax(0, 1fr);
+  grid-template-rows: var(--top-h) auto;
+  min-height: 100vh;
+}
+
+.top {
+  grid-column: 1 / -1;
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 12px; min-width: 0;
+  height: var(--top-h);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; width: calc(var(--side) - 16px); flex: none; font-weight: 700; letter-spacing: -.01em; color: var(--fg); text-decoration: none; min-width: 0; }
+.brand .mark { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; }
+.brand .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
+.brand small { display: block; font-weight: 500; color: var(--muted); font-size: 11.5px; line-height: 1.2; }
+
+.top-search { flex: 1; max-width: 420px; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: var(--r-md); background: var(--surface-2); color: var(--muted); border: 1px solid transparent; min-width: 0; }
+.top-search:focus-within { border-color: var(--accent); background: var(--surface); }
+.top-search input { border: 0; background: transparent; outline: none; width: 100%; min-width: 0; color: var(--fg); }
+.top-search input::placeholder { color: var(--muted); }
+.top-search kbd { font: inherit; font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; background: var(--surface); color: var(--muted); }
+.top .spacer { flex: 1; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pill.demo { background: var(--warn-weak); color: var(--warn); }
+
+.me { position: relative; }
+.me-btn { display: flex; align-items: center; gap: 8px; padding: 3px 6px; border: 0; border-radius: var(--r-md); background: transparent; cursor: pointer; text-align: left; }
+.me-btn:hover { background: var(--surface-2); }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-weak); color: var(--accent-strong); display: grid; place-items: center; font-weight: 700; font-size: 12.5px; flex: none; }
+.me-btn .who { font-size: 13px; line-height: 1.2; white-space: nowrap; }
+.me-btn .who small { display: block; color: var(--muted); font-size: 11.5px; }
+.menu-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 200px; padding: 6px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-pop); display: grid; gap: 2px; }
+.menu-pop .menu-head { padding: 8px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; font-size: 13px; }
+.menu-pop .menu-head small { display: block; color: var(--muted); font-size: 12px; }
+.menu-pop a, .menu-pop button { display: flex; align-items: center; gap: 8px; width: 100%; height: 36px; padding: 0 10px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg); font-size: 13.5px; text-decoration: none; cursor: pointer; text-align: left; }
+.menu-pop a:hover, .menu-pop button:hover { background: var(--surface-2); }
+
+/* ── 왼쪽 메뉴 ── */
+.side { background: var(--surface); border-right: 1px solid var(--line); min-width: 0; }
+.side-inner {
+  position: sticky; top: var(--top-h);
+  max-height: calc(100vh - var(--top-h));
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 10px 8px 24px;
+}
+.nav-list { display: grid; align-content: start; gap: 2px; }
+.side a, .side .gh { display: flex; align-items: center; gap: 10px; width: 100%; height: 32px; padding: 0 10px; border: 0; background: transparent; border-radius: var(--r-sm); color: var(--fg); text-decoration: none; font-size: 13.5px; cursor: pointer; text-align: left; }
+.side .gh { font-weight: 600; margin-top: 6px; }
+.side .gh .chev { margin-left: auto; width: 14px; height: 14px; color: var(--muted); transition: transform var(--t-fast); }
+.side .gh[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+.side .gh-rail { display: none; }
+.side .items { display: grid; gap: 1px; padding-left: 18px; position: relative; }
+.side .items::before { content: ""; position: absolute; left: 18px; top: 2px; bottom: 2px; width: 1px; background: var(--line); }
+.side .items a { height: 30px; font-size: 13px; color: var(--muted); padding-left: 16px; }
+.side a:hover, .side .gh:hover { background: var(--surface-2); color: var(--fg); }
+.side a[aria-current="page"] { background: var(--accent-weak); color: var(--accent-strong); font-weight: 600; }
+.side a.in-group { color: var(--accent-strong); }
+.nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side .cnt { margin-left: auto; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.side .cnt.alert { color: var(--danger); font-weight: 700; }
+.side .new { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--accent-strong); background: var(--accent-weak); border-radius: 4px; padding: 0 5px; line-height: 16px; }
+
+/* ── 본문 ── */
+.main {
+  min-width: 0;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.main:focus { outline: none; }
+@media (min-width: 1101px) { .main { padding-left: 24px; padding-right: 24px; } }
+.wrap { max-width: var(--content-max); margin: 0 auto; display: grid; gap: var(--gap); min-width: 0; }
+
+/* ── 아래쪽 탭 막대(휴대폰) ── */
+.bottomnav { display: none; }
+
+/* ── 연결 끊김 띠 ── */
+.offline {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 60;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  background: var(--warn-weak); color: var(--warn); border-bottom: 1px solid var(--line);
+  font-size: 13px; line-height: 1.45; box-shadow: var(--shadow);
+}
+.offline b { display: block; font-size: 13.5px; }
+.offline .i { margin-top: 1px; }
+
+/* ── 첫 설정·로그인·비밀번호 변경(셸 없음) ── */
+.auth { min-height: 100vh; display: grid; place-items: center; padding: 32px max(16px, env(safe-area-inset-left, 0px)); }
+.auth-card { width: 100%; max-width: 420px; display: grid; gap: 20px; padding: 28px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); }
+.auth-card.wide { max-width: 520px; }
+.auth-brand { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.auth-brand .mark { width: 32px; height: 32px; border-radius: 9px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; }
+.auth-card h1 { font-size: var(--fs-page-title); }
+.auth-card .lead { color: var(--muted); margin-top: 4px; }
+.auth-form { display: grid; gap: 14px; }
+.auth-foot { color: var(--muted); font-size: var(--fs-small); text-align: center; }
+
+/* ── 태블릿: 메뉴를 64px 아이콘 막대로 ── */
+@media (max-width: 1100px) {
+  .side .gh, .side .items { display: none !important; }
+  .side .gh-rail { display: flex; }
+  .side a { justify-content: center; padding: 0; height: 40px; }
+  .side a .cnt, .side a .new { display: none; }
+  .side a .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .brand { width: auto; }
+  .brand .name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+}
+
+/* ── 휴대폰: 메뉴를 숨기고 아래쪽 탭 막대 ── */
+@media (max-width: 720px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { display: none; }
+  .top { gap: 6px; }
+  .top-search, .pill.demo .long { display: none; }
+  .me-btn .who { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .main { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+  .bottomnav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 15;
+    background: var(--surface); border-top: 1px solid var(--line);
+    padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  }
+  .bottomnav a, .bottomnav button { flex: 1; min-width: 0; display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--muted); text-decoration: none; padding: 4px 0; border: 0; background: transparent; cursor: pointer; }
+  .bottomnav a[aria-current="page"] { color: var(--accent-strong); font-weight: 700; }
+  .auth-card { padding: 22px 18px; }
+}
+
+/* 더보기(휴대폰 전체 메뉴) 안에서는 메뉴를 펼친 모양으로 보여 준다 */
+.more-nav a, .more-nav .gh { display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 10px; border: 0; background: transparent; border-radius: var(--r-sm); color: var(--fg); text-decoration: none; font-size: 14px; text-align: left; }
+.more-nav .group-title { margin: 12px 0 4px; padding: 0 10px; font-size: 12px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.more-nav a[aria-current="page"] { background: var(--accent-weak); color: var(--accent-strong); font-weight: 600; }
+.more-nav a:hover { background: var(--surface-2); }

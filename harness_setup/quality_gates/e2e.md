@@ -18,7 +18,11 @@
     - 데모 데이터 적재 옵션
     - AI 공급자는 demo 또는 fake-llm
   - 준비 판정은 포트가 열렸는지가 아니라 `GET /api/health`가 `{ok:true, db:'ok'}`를 돌려주는지로 한다.
-  - 서버는 Playwright `webServer`가 띄우고 끈다. 수동으로 띄웠다면 PID 파일의 프로세스가 맞는지 확인한 뒤 종료한다.
+  - 서버는 `tests/e2e/fixtures.ts`가 **spec 파일마다 따로** 띄우고 끈다(2026-11-02 phase-01-task-04, 조정자 요청). 한 spec의 첫 설정·계정 잠금이 다른 spec에 번지지 않는다.
+    - spec은 `@playwright/test` 대신 `./fixtures.ts`의 `test`·`expect`를 import한다. `baseURL`은 그 서버 주소로 바뀐다.
+    - 포트: `E2E_PORT`(슬롯 기준값) + 워커 번호×10부터 10개 중 빈 것. 데이터: `.tmp/e2e-iso/` 아래 새 폴더(`E2E_DATA_DIR`로 e2e-server에 넘김).
+    - `isoServer.stop()`·`start()`로 같은 데이터·같은 포트로 재시작할 수 있고(연결 끊김 시험), `addUser()`로 역할별 계정을 넣는다.
+    - 끌 때는 fixture가 띄운 자식 프로세스만 종료한다. 수동으로 띄웠다면 PID 파일의 프로세스가 맞는지 확인한 뒤 종료한다.
 - **통과 조건**
   - 종료 코드 0
   - `N passed`에서 N > 0

@@ -1,24 +1,30 @@
-// 이 파일이 하는 일: 화면 앱의 시작점. 지금은 "하늘숲치과 원내 업무" 제목과 준비 중 안내만 보여 주는 최소 화면이다.
-// 디자인 시스템·레이아웃·화면 경로는 phase-01-task-04가 이 파일 위에 붙인다.
+// 이 파일이 하는 일: 화면 앱의 시작점. 디자인 토큰·기본·골격·컴포넌트·인쇄 스타일을 불러오고,
+// 라우터(BrowserRouter) → 로그인 상태(SessionProvider) → 알림(ToastProvider) → 연결 끊김 띠 + 경로(AppRoutes) 순서로 앱을 감싼다.
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './boot.css';
-
-/** 준비 중 안내 화면 */
-function BootScreen() {
-  return (
-    <main className="boot">
-      <h1>하늘숲치과 원내 업무</h1>
-      <p>서비스를 준비하고 있어요. 곧 업무 화면이 열려요.</p>
-    </main>
-  );
-}
+import { BrowserRouter } from 'react-router';
+import './styles/tokens.css';
+import './styles/base.css';
+import './styles/layout.css';
+import './styles/components.css';
+import './styles/print.css';
+import { SessionProvider } from './lib/session.tsx';
+import { ToastProvider } from './components/Toast.tsx';
+import { OfflineBanner } from './layout/OfflineBanner.tsx';
+import { AppRoutes } from './routes.tsx';
 
 const rootEl = document.getElementById('root');
 if (rootEl) {
   createRoot(rootEl).render(
     <StrictMode>
-      <BootScreen />
+      <BrowserRouter>
+        <SessionProvider>
+          <ToastProvider>
+            <OfflineBanner />
+            <AppRoutes />
+          </ToastProvider>
+        </SessionProvider>
+      </BrowserRouter>
     </StrictMode>,
   );
 }
