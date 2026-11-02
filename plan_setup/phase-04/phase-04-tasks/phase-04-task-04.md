@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-04
-status: pending
+status: in_progress
 phase: "04"
 title: "지출 기록·월간 요약"
 depends_on: [phase-02-task-03, phase-03-task-02]
