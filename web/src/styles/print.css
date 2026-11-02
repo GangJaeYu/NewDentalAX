@@ -1,0 +1,26 @@
+/* 이 파일이 하는 일: 인쇄 스타일. A4 용지·여백 15mm, 화면 전용 요소(.no-print·메뉴·상단바·탭 막대) 숨김, 쪽 번호,
+   표 행이 쪽 경계에서 잘리지 않게 한다. 인쇄 전용 화면(/print/*)과 일반 화면 인쇄에 함께 쓴다. */
+@page {
+  size: A4;
+  margin: 15mm;
+  @bottom-center { content: counter(page) " / " counter(pages); font-size: 9pt; color: #586968; }
+}
+
+@media print {
+  :root { color-scheme: light; }
+  html, body { background: #FFFFFF !important; color: #142120 !important; }
+  body { font-size: 10.5pt; }
+  .no-print, .top, .side, .bottomnav, .offline, .toasts, .skip-link { display: none !important; }
+  .app { display: block; }
+  .main { padding: 0 !important; }
+  .card, .paper { box-shadow: none !important; border-color: #DCE4E3 !important; }
+  .paper { padding: 0; border: 0 !important; min-height: 0; }
+  table { page-break-inside: auto; }
+  tr, td, th { page-break-inside: avoid; break-inside: avoid; }
+  thead { display: table-header-group; }
+  h1, h2, h3 { page-break-after: avoid; break-after: avoid; }
+  a { color: inherit; text-decoration: none; }
+  .print-head { display: flex !important; justify-content: space-between; font-size: 9pt; color: #586968; border-bottom: 1px solid #142120; padding-bottom: 4px; margin-bottom: 12px; }
+}
+
+.print-head { display: none; }

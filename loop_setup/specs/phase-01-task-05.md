@@ -1,17 +1,17 @@
-# 구현 워커 지시문 — phase-01-task-04
+# 구현 워커 지시문 — phase-01-task-05
 
-너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@c0d05a7에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
+너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@1b8aa5e에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
 
 ## 먼저 읽을 것
 1. `CLAUDE.md`(문서 포인터·금지 사항)
-2. 태스크 정의: `plan_setup/phase-01/phase-01-tasks/phase-01-task-04.md` — frontmatter의 acceptance_criteria가 완료 기준이다
+2. 태스크 정의: `plan_setup/phase-01/phase-01-tasks/phase-01-task-05.md` — frontmatter의 acceptance_criteria가 완료 기준이다
 3. `plan_setup/PLAN.md` §3 공유 파일 규칙(어기지 말 것)
 4. `harness_setup/HARNESS.md`와 `harness_setup/quality_gates/*.md`(게이트 계약)
 5. 태스크의 "설계 근거"에 적힌 `docs/ARCHITECTURE/` 절, 관련 `docs/PRD.md` FR/NFR, `docs/TRD.md` TD
 6. 화면이 있으면 `docs/DESIGN.md`(승인 기준: 청록 A + 기본 밀도)와 `docs/design/preview.html`, 기준선 `harness_setup/evidence/design-baseline/`
 
 ## 해야 할 일
-- 태스크 "범위"를 구현한다. 수용 기준마다 이를 확인하는 테스트를 만든다. 테스트 이름에 `phase-01-task-04 AC<번호>`를 넣는다(비화면: vitest, 화면·흐름: Playwright).
+- 태스크 "범위"를 구현한다. 수용 기준마다 이를 확인하는 테스트를 만든다. 테스트 이름에 `phase-01-task-05 AC<번호>`를 넣는다(비화면: vitest, 화면·흐름: Playwright).
 - 모든 새 소스 파일 첫 5줄 안에 `이 파일이 하는 일:` 한국어 주석, 주요 함수에 쉬운 한국어 설명을 단다. 화면·오류 문구는 쉬운 한국어로 쓴다.
 - 의존성: `package-lock.json`이 있으면 시작할 때 `npm ci`. 새 런타임 의존성 추가는 금지(TD-023). 꼭 필요하면 추가하지 말고 보고에 "변경 요청"으로 적는다. (phase-01-task-01만 예외로 TD-023 목록 전체를 설치한다.)
 - `web/dist/`는 git에 넣지 않는다(.gitignore). e2e 전에 필요하면 빌드만 한다.
@@ -20,16 +20,16 @@
 
 ## 검사 (모두 PASS여야 커밋·보고)
 ```
-node harness_setup/scripts/gate.mjs lint phase-01-task-04
-node harness_setup/scripts/gate.mjs unit phase-01-task-04
-node harness_setup/scripts/gate.mjs e2e phase-01-task-04
+node harness_setup/scripts/gate.mjs lint phase-01-task-05
+node harness_setup/scripts/gate.mjs unit phase-01-task-05
+node harness_setup/scripts/gate.mjs e2e phase-01-task-05
 ```
 - 앞이 FAIL이면 고친 뒤 lint부터 다시 돌린다. 0건 통과·skip·flaky·--fix·스냅샷 갱신·기준 낮추기는 금지다.
 - 화면 태스크는 `npm run screenshots`(있다면)로 해당 화면을 4너비×2테마로 찍고 직접 열어 DESIGN §5와 기준선을 대조한다. 확인한 파일과 문제를 보고에 적는다.
 - 같은 방식으로 3번 실패하면 관찰·가설을 정리하고 다른 전략으로 바꾼다.
 
 ## 커밋
-- 너의 브랜치에만 커밋한다: `git add -A && git commit -m "feat(phase-01-task-04): <요약>"`. push·merge·rebase main 금지.
+- 너의 브랜치에만 커밋한다: `git add -A && git commit -m "feat(phase-01-task-05): <요약>"`. push·merge·rebase main 금지.
 - 고치지 말 것: `plan_setup/STATE.md`, `plan_setup/LOG.md`, 태스크 파일의 status, `PROGRESS.md`, `docs/DECISIONS.md`(결정은 보고에 적으면 조정자가 옮긴다), 다른 태스크 소유 파일, PLAN.md §3의 공유 파일(네 태스크가 소유자가 아니면).
 
 ## 금지
@@ -49,20 +49,17 @@ node harness_setup/scripts/gate.mjs e2e phase-01-task-04
 전체 Loop 마감 2026-11-03T18:55:20+09:00. 이 태스크는 가능하면 3시간 안에 끝낸다. 길어지면 진행분을 커밋하고 남은 일을 보고한다.
 
 ## 조정자 메모
-- 선행 01-01~01-03은 main에 병합돼 있다. 먼저 기존 코드를 읽는다.
-  - `shared/roles.ts`: CAPS, PAGE_CAPS, canSeePage. 메뉴 숨김에 그대로 쓴다.
-  - `shared/schemas/auth.ts`
-  - `server/auth/*`
-  - 인증 API: 성공 응답은 `{data}`. GET /api/session, POST /api/setup, /api/auth/login·logout·password, GET /api/auth/me
-  - CSRF: 상태를 바꾸는 요청에 X-CSRF-Token 헤더
-  - must_change_pw: session·password·logout만 허용된다
-  - `web/src/lib/privacy.ts`: 02-01이 만든 입력 경고 래퍼다. 다시 만들지 말고 그대로 쓴다.
-- CSP가 엄격하다(`style-src 'self'; script-src 'self'`). 인라인 style 속성이나 인라인 스크립트가 막히는지 반드시 확인한다. React의 style prop은 CSSOM이라 대개 괜찮지만 `<style>` 태그와 인라인 이벤트는 쓰지 않는다. 테마 초기화 스크립트도 외부 파일로 둔다.
-- 상단바 알림 종: `web/src/layout/NotificationBell.tsx`를 자리만 만든다. 개수 prop을 받아 배지를 보여 주는 정도이고, 데이터 연결은 02-04가 한다. `/notifications` 경로에는 빈 페이지 스텁을 둔다.
-- AI 공용 부품(AiPanel, PrivacyGuard)은 02-03 담당이다. 이 태스크에서는 frontend.md §2의 나머지 공용 컴포넌트를 만든다.
-- 시안(docs/design/preview.html)의 사이드바 7묶음, 대시보드 셸, 아이콘 세트를 기준으로 한다. 대시보드 카드 내용은 03-10 담당이다. 여기서는 셸, 빈 상태, 요약 숫자 자리만 만든다.
-- 스크린샷: `npm run screenshots`를 이 태스크 화면(로그인, 설정, 대시보드 셸, 아무 스텁 페이지 1개)으로 넓히고, 4너비×2테마로 찍어 기준선과 대조한다.
-- 지금 다른 워커가 동시에 진행 중이다. 그 파일은 건드리지 않는다.
-  - 01-01 수정 워커: server/main.ts, server/config.ts
-  - 02-02 AI 게이트웨이: server/ai/**, shared/ai-features.ts, server/lib/crypto.ts, server/db/migrations/010_ai.sql, server/modules/notifications/emit.ts, server/modules/ai/**
+- 소유: `server/modules/admin/{users,clinic,audit}*`, `server/modules/admin/routes.ts`(등록부), `web/src/pages/admin/{UsersPage,ClinicPage,AuditPage}.tsx`, 필요하면 `server/db/migrations/002_admin.sql`
+  - 02-05가 같은 admin 폴더에 backup·demo를 만든다. routes.ts에서 서로 등록 줄만 다르게 추가한다(충돌은 조정자가 해결).
+- 01-03 검증의 참고 사항을 같이 처리한다.
+  - 로그아웃·만료 때 지우는 쿠키(clearCookie)가 SameSite=Lax로 나간다. 발급 쿠키(Strict)와 맞춘다(`server/auth/`).
+  - 사용자 비활성화·비밀번호 초기화 때 `deleteUserSessions()`를 호출한다.
+- 병원 기본 정보 저장값은 settings.clinic(database.md §5)이다. AI 스크립트(03-05)가 이 값을 읽는다.
+- 현재 main(01-01·01-02·01-03·01-06·02-01·02-02 completed, 01-04 병합)의 공통 규칙
+  - **e2e는 `tests/e2e/fixtures.ts`의 `test`·`expect`를 import한다.** spec 파일마다 격리 서버가 뜬다. 역할별 계정은 `addUser()`로 만든다. 자세한 내용은 `harness_setup/quality_gates/e2e.md`.
+  - 화면: `web/src/routes.tsx`(01-04 소유)에 모든 경로가 이미 등록돼 있다. **네 태스크의 `web/src/pages/.../*.tsx` 파일만 교체**한다(routes.tsx, layout/**는 수정 금지). 공용 컴포넌트는 `web/src/components/`(01-04)를 쓰고, 고칠 일이 있으면 보고에 변경 요청으로 적는다.
+  - API 권한: 중앙 표 `server/auth/api-permissions.ts`(API_RULES)와 `server/auth/guard.ts`. 응답은 `{data}`, 오류는 `AppError`(server/lib/errors.ts). 감사 기록은 `server/lib/audit.ts`.
+  - 알림: `server/modules/notifications/emit.ts`의 emitNotification(02-04가 확장 중)
+  - AI 호출: `server/ai/gateway.ts`(02-02), 화면용 상태는 `GET /api/ai/status`
+- 무거운 검사(e2e·스크린샷)를 돌릴 때 PC 부하가 크면 axe 같은 검사가 느려진다. 한 테스트에 오래 걸리는 검사를 몰지 말고 화면 단위로 나눈다.
 

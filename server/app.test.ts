@@ -43,6 +43,20 @@ describe('GET /api/health', () => {
     expect(res.json()).toMatchObject({ ok: false, db: 'error' });
     await app.close();
   });
+
+  test('phase-01-task-01 AC4: 자기 확인 표식(instanceId)을 넣으면 health 응답에만 X-Instance 헤더로 붙는다(원내망 밖으로 막힌 응답에도)', async () => {
+    const app = await buildApp({ dataDir: tmp, webDist, instanceId: 'abc123' });
+    expect((await app.inject({ method: 'GET', url: '/api/health' })).headers['x-instance']).toBe('abc123');
+    expect((await app.inject({ method: 'GET', url: '/api/health?x=1' })).headers['x-instance']).toBe('abc123');
+    expect((await app.inject({ method: 'GET', url: '/' })).headers['x-instance']).toBeUndefined();
+    const blocked = await app.inject({ method: 'GET', url: '/api/health', remoteAddress: '8.8.8.8' });
+    expect(blocked.statusCode).toBe(403);
+    expect(blocked.headers['x-instance']).toBe('abc123');
+    await app.close();
+    const plain = await buildApp({ dataDir: tmp, webDist });
+    expect((await plain.inject({ method: 'GET', url: '/api/health' })).headers['x-instance']).toBeUndefined();
+    await plain.close();
+  });
 });
 
 describe('화면 파일 제공', () => {

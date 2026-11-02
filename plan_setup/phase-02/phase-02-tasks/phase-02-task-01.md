@@ -1,6 +1,6 @@
 ---
 id: phase-02-task-01
-status: in_progress
+status: completed
 phase: "02"
 title: "개인정보 필터(서버·화면)"
 depends_on: [phase-01-task-02]
