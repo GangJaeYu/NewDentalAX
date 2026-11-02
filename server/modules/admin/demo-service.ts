@@ -10,6 +10,7 @@ import { AppError } from '../../lib/errors.ts';
 import { audit, type AuditContext } from '../../lib/audit.ts';
 import { SEED_MODULES, SEED_REGISTRY, seedDemoAll } from '../../db/seed/registry.ts';
 import { createBackup, uploadsDir, type BackupEnv } from './backup-service.ts';
+import { retryFsSync } from './backup-fs.ts';
 
 /** 초기화해도 그대로 남기는 테이블(database.md §11 + 시스템 테이블) */
 export const KEEP_TABLES: ReadonlySet<string> = new Set([
@@ -153,7 +154,7 @@ export interface ResetOutcome {
 export function resetDemo(env: BackupEnv, ctx: AuditContext): ResetOutcome {
   const backup = createBackup(env, 'pre-reset');
   const cleared = clearBusinessData(env.db);
-  fs.rmSync(uploadsDir(env.dataDir), { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+  retryFsSync(() => fs.rmSync(uploadsDir(env.dataDir), { recursive: true, force: true }));
   mergeSettingObject(env.db, env.clock, 'demo', { loaded: false, resetAt: env.clock.now().toISOString() });
   audit({ ...ctx, db: env.db }, 'demo.reset', 'settings', 'demo', { backup: backup.name, cleared: cleared.length });
   return { backup: backup.name, cleared };
