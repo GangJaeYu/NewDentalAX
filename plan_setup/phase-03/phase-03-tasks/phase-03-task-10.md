@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-10
-status: pending
+status: in_progress
 phase: "03"
 title: "대시보드"
 depends_on: [phase-03-task-01, phase-03-task-02, phase-03-task-04, phase-03-task-08, phase-03-task-09, phase-02-task-03]

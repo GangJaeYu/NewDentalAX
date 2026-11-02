@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-03
-status: pending
+status: in_progress
 phase: "04"
 title: "장비 점검·유지보수·멸균기 기록"
 depends_on: [phase-03-task-08]
