@@ -108,3 +108,9 @@
   - 02-02 구현(슬롯 2)
 - 02-04(알림)는 web/src/layout이 01-04와 겹쳐서, 01-04 병합 뒤로 미뤘다.
 - 메모리 여유는 14.5GB다.
+
+## 2026-11-02 20:07 phase-01-task-06 task_validation → PASS(4/4)
+- 검증 워커 ctx_3db61f21b801(대상 97df047). 게이트: lint PASS, unit 227건, e2e 3건(회귀 확인)
+- 견고성 참고: 검증자가 새로 만든 관련 질문 13개 중 상위 3개 적중이 12/13이었다. 판정과는 무관하다.
+- 증거: harness_setup/evidence/phase-01-task-06/
+- completed는 선행 01-02가 completed가 된 뒤에 처리한다(체인: 01-01 → 01-02).
