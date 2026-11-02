@@ -24,7 +24,7 @@ files:
 acceptance_criteria:
   - "`npm run lint`가 tsc(server·web)·eslint·머리 주석 검사를 모두 실행하고, 머리 주석이 없는 임시 파일을 넣으면 실패한다"
   - "`npm start` 후 `GET http://localhost:8090/api/health`가 `{ok:true}`를 돌려주고 브라우저 루트가 빌드된 index.html을 보여 준다"
-  - "`cmd /c start.bat`로 실행하면 콘솔에 한국어 안내와 이 PC의 원내 IP 주소가 출력되고 서버가 응답하며, `stop.bat`로 종료된다"
+  - "`cmd /c .\\start.bat`로 실행하면 콘솔에 한국어 안내와 이 PC의 원내 IP 주소가 출력되고 서버가 응답하며, `stop.bat`로 종료된다"
   - "PORT 8090이 이미 사용 중이면 start.bat/서버가 한국어로 원인과 해결 방법을 출력한다"
   - "`npm run test:unit`과 `npm run test:e2e`가 각각 최소 1개의 실제 테스트(health 확인, 첫 화면 로드)를 실행해 통과한다"
   - "`node harness_setup/scripts/gate.mjs lint|unit|e2e`가 모두 PASS다(lint는 각 단계가 `[lint:tsc-server|tsc-web|eslint|headers] checked N` 줄을 N>0으로 출력 — harness_setup/quality_gates/lint.md 계약)"

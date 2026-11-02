@@ -47,3 +47,10 @@
 |---|---|---|
 | 2026-11-02 | Loop 동안 `web/dist/`는 git에서 제외하고, 최종 단계(05-05 전)에 포함시켜 커밋한다 | 병렬 작업 사본끼리 빌드 결과물이 병합 충돌을 일으키지 않게 하려고. 사용자 PC에서 빌드하지 않는다는 원칙(TD-023)은 최종 산출물에서 지킨다 |
 | 2026-11-02 | Orca 작업 사본은 `C:\Users\main\orca\workspaces\DentalAX_with_Skills\`에 둔다(사용자 허용) | 병렬 구현을 격리하려고 |
+| 2026-11-02 | TypeScript 6.0.3으로 고정 (01-01) | 최신 7.0은 typescript-eslint 8.72가 지원하는 범위(<6.1) 밖이다 |
+| 2026-11-02 | `dangerouslySetInnerHTML`·`.only/.skip`·화면 코드의 `crypto.randomUUID` 금지를 eslint `no-restricted-syntax`로 구현 (01-01) | eslint-plugin-react를 추가하지 않으려고 |
+| 2026-11-02 | 서버 종료 코드 계약: 0 정상 / 1 오류(5초 뒤 재시작, 최대 5회) / 2 포트 문제 / 3 설정 오류(2·3은 재시작하지 않음) (01-01) | start.bat이 원인별로 한국어 안내를 하려고 |
+| 2026-11-02 | stop.bat은 `data\stop.flag`로 정상 종료를 요청하고, 10초 안에 안 꺼지면 PID·이름·명령줄을 확인한 뒤 강제 종료 (01-01) | 다른 프로세스를 잘못 종료하지 않으려고 |
+| 2026-11-02 | start.bat 설치 판단은 잠금 파일 해시(`node_modules\.install-stamp`)로. 개발 폴더면 `npm ci`, 아니면 `npm ci --omit=dev` (01-01) | 개발 도구가 지워지지 않게 하려고 |
+| 2026-11-02 | 에이전트의 start.bat 실행 확인은 `cmd /c .\start.bat`으로 한다 (01-01 발견) | 이 PC에서 `cmd /c start.bat`은 cmd 내장 명령 `start`와 이름이 겹쳐 실패한다. 탐색기 더블클릭은 전체 경로로 실행하므로 영향이 없다 |
+| 2026-11-02 | `/api/health`에 `now` 필드 추가, `test:unit`은 `vitest run --no-color` (01-01) | E2E에서 TEST_NOW 적용을 확인하려고. gate.mjs가 테스트 건수를 인식하게 하려고 |

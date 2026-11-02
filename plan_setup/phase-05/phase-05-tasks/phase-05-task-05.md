@@ -9,7 +9,7 @@ files:
   - "plan_setup/LOG.md"
   - "PROGRESS.md"
 acceptance_criteria:
-  - "새 폴더에서 `cmd /c start.bat` → npm ci 자동 → 서버 응답 → /setup 표시까지 성공(로그 첨부, 소요 시간 기록)"
+  - "새 폴더에서 `cmd /c .\\start.bat` → npm ci 자동 → 서버 응답 → /setup 표시까지 성공(로그 첨부, 소요 시간 기록)"
   - "그 상태에서 전체 lint·unit·e2e 통과 수치 기록"
   - "최종 보고용 \"검증한 것 / 미검증 / 사용자 할 일\" 목록이 PROGRESS.md에 있다"
 verification: [lint, unit, e2e, task_validation]

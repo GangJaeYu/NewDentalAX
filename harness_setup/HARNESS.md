@@ -28,7 +28,7 @@ node harness_setup/scripts/preflight.mjs
 |---|---|---|
 | 의존성 설치 | `npm ci` | 01-01 이후 |
 | 개발 실행 | `npm run dev` | Vite + 서버 감시 |
-| 실제 실행(사용자 방식) | `start.bat` 더블클릭. 에이전트는 `cmd /c start.bat`으로 흉내 낸다 | 기본 포트 8090 |
+| 실제 실행(사용자 방식) | `start.bat` 더블클릭. 에이전트는 `cmd /c .\start.bat`으로 흉내 낸다 | 기본 포트 8090 |
 | 직접 실행 | `npm start`. 환경 변수 `DATA_DIR`, `BACKUP_DIR`, `PORT`, `TEST_NOW`(테스트 전용), `AI_BASE_URL_*`(테스트 전용) | |
 | 접속 주소 | 이 PC: `http://localhost:8090`. 원내 다른 기기: `http://<이 PC의 원내 IP>:8090`(start.bat이 출력) | E2E는 `http://localhost:18090` |
 | 준비 상태 확인 | `GET /api/health` → `{ok:true, version, db:'ok'}` | 포트가 열린 것만으로는 준비로 보지 않는다 |
@@ -63,7 +63,7 @@ node harness_setup/scripts/preflight.mjs
 | NFR-005 성능(p95 300ms 이하, 동시 20명 오류 0, 첫 화면 2초) | 10배 데이터 부하 | `npm run perf` → `docs/PERF.md` | 05-01 |
 | NFR-002 보안 | `npm audit --omit=dev`, 보안 통합 테스트 | unit 게이트 + 명령 출력 | 05-02 |
 | NFR-006 화면 품질 | 4너비 × 2테마 스크린샷을 직접 열람 | `npm run screenshots` + 기준선 대조 | 01-04, 각 화면 태스크, 05-03 |
-| NFR-003 설치 | 새 폴더에 git 추적 파일만 내보낸 뒤 `cmd /c start.bat` | 기록: 소요 시간, 출력 | 05-05 |
+| NFR-003 설치 | 새 폴더에 git 추적 파일만 내보낸 뒤 `cmd /c .\start.bat` | 기록: 소요 시간, 출력 | 05-05 |
 | NFR-011 문서 | 필수 소제목 검사 | lint의 `docs` 단계(05-04에서 활성) | 05-04 |
 | OQ-008 검색 품질 | 질문 20개 적중률 80% 이상 | `npm run kb-eval` | 01-06 |
 
@@ -88,7 +88,7 @@ node harness_setup/scripts/preflight.mjs
 ## 6. 한계와 미검증 (현재)
 
 - **실제 LLM 공급자 응답**: 키가 없고 유료 호출이 금지돼서 검증하지 않는다. 요청·응답 형식은 공식 문서와 가짜 서버로만 확인한다(OQ-006, OQ-009).
-- **사용자 더블클릭**: 에이전트는 `cmd /c start.bat`으로 흉내 낸다. 탐색기에서 실제로 더블클릭하는 동작은 사용자 확인 항목이다.
+- **사용자 더블클릭**: 에이전트는 `cmd /c .\start.bat`으로 흉내 낸다. 탐색기에서 실제로 더블클릭하는 동작은 사용자 확인 항목이다.
 - **실제 태블릿·휴대폰 브라우저**(iOS Safari, Android Chrome): Edge 뷰포트 에뮬레이션으로만 확인한다. 실제 기기의 "홈 화면 추가"는 미검증이다.
 - **원내 다른 PC에서 접속**: 같은 PC의 원내 IP 주소로 접속되는지만 확인할 수 있다. 다른 기기와 방화벽 허용은 사용자 확인 항목(README)이다.
 - **Windows 방화벽 허용 팝업**: 처음 실행할 때 사용자가 허용해야 할 수 있다(README에 안내). 전역 설정이라 에이전트가 바꾸지 않는다.

@@ -38,3 +38,13 @@
   - preflight 포트 범위를 18090~18097로 넓혔다(재실행해서 전부 OK).
   - .gitignore에 .tmp/를 추가했다.
   - loop_setup/LOOP.md를 작성했다.
+
+## 2026-11-02 19:18~ phase-01-task-01 통합
+- **워커**: ctx_7e1ae0c73bdc, worker_done(outcome=succeeded), 커밋 1d06619·625ad4d. 워커 쪽 게이트: lint PASS, unit 23건, e2e 3건.
+- **main 병합**: 1b905f1(--no-ff). main에서 `npm ci` 후 게이트를 다시 실행했다.
+  - lint PASS: tsc-server 18, tsc-web 1, eslint 24, headers 24
+  - unit PASS: 23건
+  - e2e PASS: 3건(E2E_PORT 18094)
+- **워커 변경 요청 반영**: `cmd /c start.bat` → `cmd /c .\start.bat`(TRD TD-019, HARNESS, 01-01·05-05 기준 문구). 실행 방법만 정정한 것이고 기준을 완화하지 않았다. YAML 이스케이프도 확인했다(계획 구조 검사 통과).
+- **결정 반영**: 워커 결정 7건을 DECISIONS.md에 옮겼다.
+- **다음**: task_validation 검증 워커(새 작업 사본, 병합 커밋 기준)
