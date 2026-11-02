@@ -9,10 +9,10 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git 저장소는 01-01에서 만든다)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-  - phase-01-task-01(in_progress)
-    - 워커 dispatch `ctx_7e1ae0c73bdc`, Orca task `task_ae351e368d95`, 슬롯 0
-    - 작업 사본 `C:/Users/main/orca/workspaces/DentalAX_with_Skills/phase-01-task-01-worker`(브랜치 phase-01-task-01-worker)
-    - 기준 main@e5798e1, 시작 2026-11-02 19:0x
+  - phase-01-task-01(in_progress, task_validation 대기)
+    - 구현: 병합 1b905f1, main 게이트 재확인 PASS. 구현 워커는 해제했고 작업 사본도 삭제했다.
+    - 검증 워커: dispatch `ctx_641dd1b22d58`, 작업 사본 `.../phase-01-task-01-validation-worker`, 대상 main@dff7b0a, 검증 슬롯 0
+- elapsed: 약 0.5h(19:25 기준)
 - **미반영 결과**: 없음
 - **마지막 검증**: 계획 구조 자동 검사 통과(PLAN.md §4). 제품 게이트는 아직 실행하지 않았다.
 
