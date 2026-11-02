@@ -114,3 +114,12 @@
 - 견고성 참고: 검증자가 새로 만든 관련 질문 13개 중 상위 3개 적중이 12/13이었다. 판정과는 무관하다.
 - 증거: harness_setup/evidence/phase-01-task-06/
 - completed는 선행 01-02가 completed가 된 뒤에 처리한다(체인: 01-01 → 01-02).
+
+## 2026-11-02 20:08 phase-02-task-01 task_validation → PASS(4/4)
+- 검증 워커 ctx_64d40da03f5a(대상 97df047). 게이트: lint PASS, unit 227건, e2e 3건
+- 독립 예시 실행과 수동 서버 health도 확인했다.
+- 증거: harness_setup/evidence/phase-02-task-01/
+- completed 판정은 01-02가 completed가 된 뒤에 한다.
+- 하네스 관찰(판정 영향 없음): e2e 로그 끝, 테스트 통과 뒤에 "[WebServer] 포트 18096 사용 중"이 찍힌다. e2e-server가 서버를 두 번 띄우는 것으로 보인다.
+  - 기록: STATE "하네스 점검" 항목
+  - 처리: 01-04 병합 뒤 harness-update 범위에서 원인을 조사한다.
