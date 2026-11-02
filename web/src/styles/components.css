@@ -25,7 +25,7 @@
 
 .iconbtn { position: relative; width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: var(--r-md); border: 0; background: transparent; color: var(--muted); cursor: pointer; text-decoration: none; }
 .iconbtn:hover { background: var(--surface-2); color: var(--fg); }
-.iconbtn .dot { position: absolute; top: 3px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 700; display: grid; place-items: center; line-height: 1; }
+.iconbtn .dot { position: absolute; top: 3px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--danger); color: var(--on-danger); font-size: 10.5px; font-weight: 700; display: grid; place-items: center; line-height: 1; }
 
 /* ── 카드 ── */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); min-width: 0; display: flex; flex-direction: column; }
@@ -155,7 +155,7 @@ dialog.drawer .dialog-body { overflow-y: auto; }
 .toasts { position: fixed; z-index: 70; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; width: min(360px, calc(100vw - 32px)); }
 @media (max-width: 720px) { .toasts { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); } }
 .toast { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r-md); background: var(--fg); color: var(--bg); box-shadow: var(--shadow-pop); font-size: 13.5px; font-weight: 600; }
-.toast.error { background: var(--danger); color: #fff; }
+.toast.error { background: var(--danger); color: var(--on-danger); }
 .toast button { margin-left: auto; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0 2px; font-size: 13px; }
 
 /* ── 마크다운·A4 미리보기 ── */
