@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-03
-status: pending
+status: in_progress
 phase: "03"
 title: "CSV 가져오기·내보내기"
 depends_on: [phase-03-task-01]

@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-05
-status: pending
+status: in_progress
 phase: "03"
 title: "데스크 AI: 응대 스크립트·리뷰 답글·문자/안내문 템플릿"
 depends_on: [phase-02-task-03, phase-03-task-04]
