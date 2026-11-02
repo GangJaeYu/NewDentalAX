@@ -11,10 +11,12 @@
 
 ## 대상 코드
 - 저장소: C:\Users\main\Desktop\DentalAX_with_Skills
-- HEAD: 2bb65b8
+- HEAD: e431b64
 - 변경 범위(기준 9d6f2ff~1):
 ```
-docs/DECISIONS.md                                  |   4 +
+PROGRESS.md                                        |  11 +-
+ docs/DECISIONS.md                                  |   7 +
+ docs/PRD.md                                        |   2 +-
  .../phase-03-task-10/ac1-dashboard-1440x900.png    | Bin 0 -> 228629 bytes
  .../phase-03-task-10/dashboard-1440-light.png      | Bin 0 -> 154017 bytes
  .../phase-03-task-10/dashboard-demo-1024-light.png | Bin 0 -> 117810 bytes
@@ -26,90 +28,117 @@ docs/DECISIONS.md                                  |   4 +
  .../dashboard-quickout-1440-light.png              | Bin 0 -> 213066 bytes
  .../evidence/phase-03-task-10/perf-dashboard.txt   |   2 +
  .../validation-2026-11-03T0155-partial.md          |  16 +
- loop_setup/specs/phase-04-task-05.md               |  76 ++++
- loop_setup/specs/phase-04-task-08.md               |  76 ++++
- plan_setup/LOG.md                                  |  22 +
- plan_setup/STATE.md                                |  12 +-
+ .../validation-2026-11-03T0232-pass.md             |  14 +
+ loop_setup/specs/phase-03-task-10-validation.md    | 176 +++++++
+ loop_setup/specs/phase-04-task-02-validation.md    | 191 ++++++++
+ loop_setup/specs/phase-04-task-04-validation.md    | 146 ++++++
+ loop_setup/specs/phase-04-task-05.md               |  76 +++
+ loop_setup/specs/phase-04-task-08.md               |  76 +++
+ loop_setup/specs/phase-05-task-01.md               |  74 +++
+ plan_setup/LOG.md                                  |  58 +++
+ plan_setup/STATE.md                                |  50 +-
+ .../phase-04/phase-04-tasks/phase-04-task-04.md    |   2 +-
  .../phase-04/phase-04-tasks/phase-04-task-05.md    |   2 +-
  .../phase-04/phase-04-tasks/phase-04-task-08.md    |   2 +-
+ .../phase-05/phase-05-tasks/phase-05-task-01.md    |   2 +-
  scripts/perf-dashboard.ts                          |  20 +
- scripts/screens/phase-03-task-10.ts                |  76 ++++
+ scripts/screens/phase-03-task-10.ts                |  76 +++
  scripts/screens/phase-04-task-02.ts                |  69 +++
  scripts/screens/phase-04-task-04.ts                |  86 ++++
+ scripts/screens/phase-04-task-05.ts                |  70 +++
  scripts/screens/phase-04-task-07.ts                |  65 +++
- scripts/screenshots.ts                             |   4 +-
- server/ai/features/hiring.ts                       |  78 +++-
+ scripts/screens/phase-04-task-08.ts                |  58 +++
+ scripts/screenshots.ts                             |   3 +-
+ server/ai/features/hiring.ts                       |  78 ++-
  server/ai/features/monthly_summary.ts              |  41 +-
  server/ai/features/onboarding.ts                   |  71 ++-
+ server/ai/features/receipt.ts                      |  55 ++-
  server/ai/features/review_reply.ts                 |   4 +-
  server/ai/features/script.ts                       |   4 +-
  server/db/migrations/062_training.sql              |  66 +++
  server/db/migrations/070_finance.sql               |  44 ++
+ server/jobs/notify-job.ts                          |  29 ++
+ server/jobs/notify-sources.test.ts                 | 151 ++++++
  server/main.test.ts                                |   4 +-
  server/modules/admin/demo.test.ts                  |   6 +-
  server/modules/dashboard/dashboard.test.ts         | 202 ++++++++
  server/modules/dashboard/perf.ts                   |  91 ++++
  server/modules/dashboard/routes.ts                 |  15 +
  server/modules/dashboard/service.ts                | 251 ++++++++++
- server/modules/finance/finance.test.ts             | 388 ++++++++++++++++
+ server/modules/finance/finance.test.ts             | 388 +++++++++++++++
  server/modules/finance/routes.ts                   | 123 ++++-
  server/modules/finance/seed.ts                     |  87 +++-
- server/modules/finance/service.ts                  | 441 ++++++++++++++++++
+ server/modules/finance/service.ts                  | 441 +++++++++++++++++
  server/modules/hr/onboarding-routes.ts             |  94 ++++
- server/modules/hr/onboarding.test.ts               | 153 +++++++
- server/modules/hr/onboarding.ts                    | 236 ++++++++++
+ server/modules/hr/onboarding.test.ts               | 153 ++++++
+ server/modules/hr/onboarding.ts                    | 236 +++++++++
  server/modules/hr/routes.ts                        |   4 +
  server/modules/hr/seed.ts                          |   2 +
  server/modules/hr/training-notify.ts               |  58 +++
- server/modules/hr/training-routes.ts               | 102 +++++
- server/modules/hr/training-seed.ts                 | 189 ++++++++
- server/modules/hr/training.test.ts                 | 270 +++++++++++
- server/modules/hr/training.ts                      | 371 +++++++++++++++
+ server/modules/hr/training-routes.ts               | 102 ++++
+ server/modules/hr/training-seed.ts                 | 189 +++++++
+ server/modules/hr/training.test.ts                 | 270 ++++++++++
+ server/modules/hr/training.ts                      | 371 ++++++++++++++
  server/modules/inventory/orders.routes.ts          |   8 +-
  server/modules/inventory/orders.service.ts         |  21 +-
  server/modules/inventory/orders.test.ts            |   4 +-
- server/modules/marketing/hiring-rules.test.ts      | 180 ++++++++
+ server/modules/inventory/receipt-image.ts          |  81 +++
+ server/modules/inventory/receipt.routes.ts         |  42 ++
+ server/modules/inventory/receipt.schema.ts         |  58 +++
+ server/modules/inventory/receipt.service.ts        | 299 ++++++++++++
+ server/modules/inventory/receipt.test.ts           | 261 ++++++++++
+ server/modules/inventory/routes.ts                 |   3 +
+ server/modules/marketing/hiring-rules.test.ts      | 180 +++++++
  server/modules/marketing/hiring-rules.ts           | 219 +++++++++
  server/modules/marketing/routes.ts                 |  10 +-
  server/modules/notifications/routes.ts             |   4 +
  shared/josa.test.ts                                |  36 ++
  shared/josa.ts                                     |  59 +++
  shared/schemas/dashboard.ts                        | 194 ++++++++
- shared/schemas/finance.ts                          | 213 +++++++++
+ shared/schemas/finance.ts                          | 213 ++++++++
  shared/schemas/hiring.ts                           |  60 +++
- shared/schemas/onboarding.ts                       | 106 +++++
+ shared/schemas/onboarding.ts                       | 106 ++++
  shared/schemas/orders.ts                           |   7 +-
  shared/schemas/training.ts                         | 138 ++++++
- tests/e2e/app-shell.spec.ts                        |   6 +-
+ tests/e2e/app-shell.spec.ts                        |  11 +-
  tests/e2e/backup-reset.spec.ts                     |  13 +-
- tests/e2e/dashboard.spec.ts                        | 417 +++++++++++++++++
+ tests/e2e/dashboard.spec.ts                        | 417 ++++++++++++++++
  tests/e2e/desk-ai.spec.ts                          |  44 +-
  tests/e2e/finance.spec.ts                          | 301 ++++++++++++
  tests/e2e/hr-hiring.spec.ts                        | 223 +++++++++
- tests/e2e/hr-training.spec.ts                      | 267 +++++++++++
+ tests/e2e/hr-training.spec.ts                      | 267 ++++++++++
+ tests/e2e/inventory-receipt.spec.ts                | 281 +++++++++++
+ tests/e2e/notifications-pwa.spec.ts                | 165 +++++++
+ tests/e2e/notifications-sources.spec.ts            | 153 ++++++
+ tests/fixtures/receipt/images.ts                   |  51 ++
+ tests/fixtures/receipt/statement-4000x3000.jpg     | Bin 0 -> 225518 bytes
  web/src/layout/TopBar.tsx                          |  14 +-
- web/src/pages/DashboardPage.tsx                    | 157 +++++--
- web/src/pages/dashboard.css                        | 209 +++++++++
- web/src/pages/dashboardCards.tsx                   | 488 ++++++++++++++++++++
- web/src/pages/dashboardLib.test.ts                 | 104 +++++
+ web/src/pages/DashboardPage.tsx                    | 157 ++++--
+ web/src/pages/dashboard.css                        | 209 ++++++++
+ web/src/pages/dashboardCards.tsx                   | 488 ++++++++++++++++++
+ web/src/pages/dashboardLib.test.ts                 | 104 ++++
  web/src/pages/dashboardLib.ts                      | 114 +++++
  web/src/pages/desk/ReviewPage.tsx                  |   7 +-
- web/src/pages/finance/ExpensesPage.tsx             | 506 ++++++++++++++++++++-
+ web/src/pages/finance/ExpensesPage.tsx             | 506 ++++++++++++++++++-
  web/src/pages/finance/MonthlyPage.tsx              | 224 ++++++++-
- web/src/pages/finance/finance.css                  |  54 +++
+ web/src/pages/finance/finance.css                  |  54 ++
  web/src/pages/finance/financeLib.test.ts           |  42 ++
  web/src/pages/finance/financeLib.ts                |  96 ++++
- web/src/pages/hr/HiringPage.tsx                    | 382 +++++++++++++++-
- web/src/pages/hr/OnboardingPage.tsx                | 320 ++++++++++++-
- web/src/pages/hr/TrainingPage.tsx                  | 342 +++++++++++++-
+ web/src/pages/hr/HiringPage.tsx                    | 382 ++++++++++++++-
+ web/src/pages/hr/OnboardingPage.tsx                | 320 +++++++++++-
+ web/src/pages/hr/TrainingPage.tsx                  | 342 ++++++++++++-
  web/src/pages/hr/hiring.css                        |  35 ++
  web/src/pages/hr/hiringLib.test.ts                 |  65 +++
  web/src/pages/hr/hiringLib.ts                      | 120 +++++
- web/src/pages/hr/onboardingParts.tsx               | 340 ++++++++++++++
+ web/src/pages/hr/onboardingParts.tsx               | 340 +++++++++++++
  web/src/pages/hr/training.css                      |  62 +++
- web/src/pages/hr/trainingDialogs.tsx               | 311 +++++++++++++
+ web/src/pages/hr/trainingDialogs.tsx               | 311 ++++++++++++
  web/src/pages/inventory/OrderDetailPage.tsx        |  45 +-
- 95 files changed, 10341 insertions(+), 153 deletions(-)
+ web/src/pages/inventory/ReceiptPage.tsx            | 543 ++++++++++++++++++++-
+ web/src/pages/inventory/receipt.css                |  68 +++
+ web/src/pages/inventory/receiptLib.test.ts         |  87 ++++
+ web/src/pages/inventory/receiptLib.ts              | 196 ++++++++
+ 124 files changed, 13656 insertions(+), 188 deletions(-)
 ```
 
 ## 실행 방법 (harness_setup/HARNESS.md §2·§3)
@@ -171,9 +200,9 @@ verification: [lint, unit, e2e, task_validation]
 
 ## Orca 검증 워커 추가 지시
 - 너는 검증할 커밋으로 새로 만든 작업 사본에 있다. 먼저 `npm ci`를 실행한다(설치는 테스트 데이터 준비로 허용된다).
-- 슬롯 0
-  - 화면 테스트: `E2E_PORT=18094`
-  - 수동 서버: `PORT=18194`
+- 슬롯 2
+  - 화면 테스트: `E2E_PORT=18096`
+  - 수동 서버: `PORT=18196`
   - 데이터: `.tmp/` 아래
   - gate.mjs를 실행할 때 환경 변수 `E2E_PORT`를 지정한다.
 - 파일 수정 범위
@@ -188,4 +217,4 @@ verification: [lint, unit, e2e, task_validation]
   - 결과 원문(반환 형식 표 전체)을 `.tmp/validation-result.md`에 저장한다.
   - 같은 내용을 worker_done 본문으로 보고한다.
   - outcome: 모든 기준이 PASS면 succeeded, 하나라도 FAIL이나 판정 불가가 있으면 failed
-- 참고: 이 작업 사본은 커밋 c29faf9 기준이다(04-02·03-10·04-04 병합 뒤 main 게이트 PASS). 화면 태스크다. 기준일은 TEST_NOW=2026-11-02다.
+- 참고: 이 작업 사본은 커밋 6315aa6 기준이다. 화면 태스크이고 기준일은 TEST_NOW=2026-11-02다.
