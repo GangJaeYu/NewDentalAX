@@ -170,7 +170,12 @@ test.describe.serial('백업·복원·데모 초기화 화면', () => {
     await expect(page.getByRole('heading', { level: 1, name: '데모 데이터 초기화' })).toBeVisible();
     await expect(page.getByText('데모 데이터 사용 중')).toBeVisible();
     await expect(page.getByText('업무 데이터 있음')).toBeVisible();
-    await expect(page.getByRole('banner').getByText('데모 모드')).toBeVisible();
+    // 상단바 배지: 데모 데이터를 쓰는 중이고(가상 데이터), 이 시험 서버에는 AI 키가 없다(AI 키 미설정, phase-03-task-10에서 연결)
+    const badge = page.getByRole('banner').getByTestId('demo-badge');
+    await expect(badge).toBeVisible();
+    await expect(badge).toContainText('데모 모드');
+    await expect(badge).toContainText('가상 데이터');
+    await expect(badge).toContainText('AI 키 미설정');
 
     await page.getByRole('button', { name: '데모 데이터 지우기(초기화)' }).click();
     const dialog = page.getByRole('dialog', { name: '데모 데이터를 모두 지울까요?' });
@@ -190,7 +195,10 @@ test.describe.serial('백업·복원·데모 초기화 화면', () => {
     await expect(page.getByText('업무 데이터 비어 있음')).toBeVisible();
     await expect(page.getByText('데모 데이터 없음')).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: /지우기 직전 상태를 백업 "20261102-\d{6}-pre-reset/ })).toBeVisible();
-    await expect(page.getByRole('banner').getByText('데모 모드')).toHaveCount(0);
+    // 초기화 뒤에는 가상 데이터 표시가 사라진다. AI 키는 여전히 없으므로 배지는 "AI 키 미설정"만 남는다
+    await expect(badge).not.toContainText('가상 데이터');
+    await expect(badge).toContainText('AI 키 미설정');
+    await expect(page.getByRole('banner').getByText('가상 데이터')).toHaveCount(0);
 
     const after = withDb((db) => ({
       users: db.prepare('SELECT username, role FROM users').all() as Array<{ username: string; role: string }>,
@@ -213,6 +221,7 @@ test.describe.serial('백업·복원·데모 초기화 화면', () => {
     await page.getByRole('button', { name: '데모 데이터 넣기' }).click();
     await expect(page.getByText('하늘숲치과 데모 데이터를 넣었어요.')).toBeVisible();
     await expect(page.getByText('데모 데이터 사용 중')).toBeVisible();
+    await expect(badge).toContainText('가상 데이터');
     expect(errors).toEqual([]);
   });
 

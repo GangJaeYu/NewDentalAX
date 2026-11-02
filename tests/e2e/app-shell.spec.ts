@@ -311,8 +311,8 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
 
     await server.start();
     await expect(banner).toHaveCount(0, { timeout: 30000 });
-    // 다시 연결된 뒤에도 로그인 상태 그대로 화면을 쓸 수 있다
-    await page.getByRole('link', { name: '재고 현황' }).click();
+    // 다시 연결된 뒤에도 로그인 상태 그대로 화면을 쓸 수 있다(주 메뉴의 "재고 현황". 대시보드 빈 상태의 "재고 현황 보기" 버튼과 구분, phase-03-task-10)
+    await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '재고 현황', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: '재고 현황' })).toBeVisible();
     await ctx.close();
   });

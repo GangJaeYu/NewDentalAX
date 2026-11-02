@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { currentUser, requireCap } from '../../auth/guard.ts';
 import { parseInput } from '../../security/validate.ts';
 import { getSummary, listNotifications, markAllRead, markRead } from './service.ts';
+import { registerDashboardRoutes } from '../dashboard/routes.ts';
 
 /** 목록 조회 조건(쿼리 문자열) */
 const listQuery = z.object({
@@ -49,4 +50,7 @@ export default async function routes(app: FastifyInstance): Promise<void> {
     markRead(app.db, app.clock, currentUser(req).id, id);
     return reply.code(204).send();
   });
+
+  // 대시보드(GET /api/dashboard, phase-03-task-10)는 backend.md §3.3에서 알림과 같은 묶음이라 여기서 함께 등록한다
+  registerDashboardRoutes(app);
 }
