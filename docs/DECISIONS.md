@@ -55,3 +55,8 @@
 | 2026-11-02 | 에이전트의 start.bat 실행 확인은 `cmd /c .\start.bat`으로 한다 (01-01 발견) | 이 PC에서 `cmd /c start.bat`은 cmd 내장 명령 `start`와 이름이 겹쳐 실패한다. 탐색기 더블클릭은 전체 경로로 실행하므로 영향이 없다 |
 | 2026-11-02 | `/api/health`에 `now` 필드 추가, `test:unit`은 `vitest run --no-color` (01-01) | E2E에서 TEST_NOW 적용을 확인하려고. gate.mjs가 테스트 건수를 인식하게 하려고 |
 | 2026-11-02 | start.bat·stop.bat은 실행되는 1~4행을 ASCII로만 쓰고, 한국어 로직(scripts/windows/*-main.cmd)은 새 cmd(`cmd /d /s /c`)로 실행한다 (01-01 시도 2) | 코드 페이지 949로 시작한 cmd는 chcp 65001 뒤 같은 프로세스에서 읽는 여러 바이트 줄의 위치를 잘못 잡는다(독립 검증이 발견했고 실험으로 확인). 새 cmd는 65001에서 시작해서 정상이다 |
+| 2026-11-02 | DB 열기·마이그레이션이 실패하면 한국어 원인을 출력하고 종료 코드 3으로 끝낸다(재시작하지 않음) (01-02) | 다시 시작해도 같은 실패라서 재시작 반복을 막으려고 |
+| 2026-11-02 | health의 db 판정은 "DB 응답 + schema_version이 최신 번호" (01-02) | 실제 app.db 상태를 보여 주려고 |
+| 2026-11-02 | 공통 오류 처리기: AppError는 {error:{code,message,fields?}}로, 알 수 없는 오류는 500 INTERNAL로 바꾸고 내용은 숨긴다 (01-02) | 기술 오류 원문이 화면에 노출되지 않게 하려고(FR-037 원칙) |
+| 2026-11-02 | 감사 로그 detail의 password·secret·apiKey·*Token·keys 값은 저장하기 전에 [가림]으로 바꾼다 (01-02) | 키와 비밀번호가 기록에 남지 않게 하려고(TD-008) |
+| 2026-11-02 | 모듈 seed.ts 11개는 no-op 스텁(tables=[], seedDemo(){})으로 둔다 (01-02) | registry가 정적 import로 타입을 검사할 수 있게 하려고 |
