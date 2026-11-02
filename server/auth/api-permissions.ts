@@ -34,6 +34,7 @@ export const API_RULES: readonly ApiRule[] = [
   r('POST', '/backups/:name/restore', 'backup.manage'),
   r('POST', '/demo/reset', 'demo.manage'),
   r('POST', '/demo/load', 'demo.manage'),
+  r('GET', '/demo/status', 'demo.manage'),
   // §3.4 desk
   r('PUT', '/checklists/:kind/items', 'checklist.edit'),
   // §3.5 inventory
@@ -65,6 +66,12 @@ export const API_RULES: readonly ApiRule[] = [
   r('PUT', '/leave/allowances', 'leave.allowance.edit'),
   r('POST', '/onboarding/templates', 'onboarding.manage'),
   r('PATCH', '/onboarding/templates/:id', 'onboarding.manage'),
+  // 04-02 보고(05-02 반영): 아래는 주소만으로 권한이 정해지는데 모듈 assertCan으로만 막혀 있던 줄. 이중 방어로 표에도 둔다
+  r('GET', '/onboarding/templates', 'onboarding.manage'),
+  r('POST', '/onboarding/assignments', 'onboarding.manage'),
+  r('DELETE', '/onboarding/assignments/:id', 'onboarding.manage'),
+  r('POST', '/trainings', 'trainings.manage'),
+  r('PATCH', '/trainings/:id', 'trainings.manage'),
   // §3.8 facility
   r('POST', '/equipment', 'equipment.manage'),
   r('PATCH', '/equipment/:id', 'equipment.manage'),
@@ -76,6 +83,7 @@ export const API_RULES: readonly ApiRule[] = [
   r('GET|PATCH|DELETE', '/expenses/:id', 'expenses.manage'),
   r('GET|PUT', '/expense-categories', 'expenses.manage'),
   r('GET', '/finance/monthly', 'finance.monthly'),
+  r('POST', '/finance/monthly/summary', 'finance.monthly'),
   // §3.10 ai · 마케팅
   r('POST', '/adcheck', 'ai.adcheck'),
   r('GET|PUT', '/ai/settings', 'ai.settings'),
