@@ -1,7 +1,8 @@
 // 이 파일이 하는 일: 서버 진입점. 설정을 읽고 → 데이터 폴더를 준비하고 → app.db를 열어 마이그레이션을 적용하고 → buildApp으로 서버를 만들어 포트를 연 뒤,
-// 이 PC와 원내 다른 기기에서 접속할 주소를 한국어로 안내한다. PID 파일을 남기고, stop.bat이 만든 종료 표시 파일을 보면 스스로 꺼진다.
+// 이 PC와 원내 다른 기기에서 접속할 주소를 한국어로 안내한다. 포트를 열기 전에 모든 주소에서 그 포트가 비었는지 먼저 확인한다. PID 파일을 남기고, stop.bat이 만든 종료 표시 파일을 보면 스스로 꺼진다.
 // 종료 코드: 0 정상 종료, 1 예기치 못한 오류(start.bat이 다시 시작), 2 포트 문제, 3 설정·데이터 파일 오류(2·3은 다시 시작하지 않음).
 import fs from 'node:fs';
+import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -81,6 +82,60 @@ export function portProblemMessage(port: number, code: string | undefined): stri
   ].join('\n');
 }
 
+/** 포트 확인 결과: free(비어 있음), busy(다른 프로그램이 사용 중·권한 없음), unavailable(이 PC에 없는 주소·IPv6 꺼짐 등) */
+export type ProbeResult = { state: 'free' } | { state: 'busy'; code: string } | { state: 'unavailable'; code: string };
+
+/** 주소 하나에 포트를 잠깐 열어 보고 바로 닫는다. 서버를 실제로 열기 전에 충돌을 미리 찾는 데 쓴다 */
+export function probePort(port: number, host: string): Promise<ProbeResult> {
+  return new Promise((resolve) => {
+    const s = net.createServer();
+    s.once('error', (e: NodeJS.ErrnoException) => {
+      const code = e.code ?? 'UNKNOWN';
+      resolve(code === 'EADDRINUSE' || code === 'EACCES' ? { state: 'busy', code } : { state: 'unavailable', code });
+    });
+    s.listen({ port, host, exclusive: true }, () => s.close(() => resolve({ state: 'free' })));
+  });
+}
+
+/**
+ * 같은 포트를 확인할 주소 목록. Windows는 주소가 정확히 같을 때만 "이미 사용 중"을 알려 준다.
+ * 예: 다른 프로그램이 [::]:8090을 쓰고 있어도 0.0.0.0:8090은 따로 열려 버리고, localhost(::1) 접속은 그 프로그램으로 간다.
+ * 그래서 IPv6 전체(::)·IPv4 전체(0.0.0.0)·루프백(127.0.0.1, ::1)·이 PC의 원내 IP를 하나씩 모두 확인한다.
+ */
+export function probeHosts(listenHost: string, lan: string[]): string[] {
+  const hosts = [listenHost, '::', '0.0.0.0', '127.0.0.1', '::1', ...lan];
+  return hosts.filter((h, i) => hosts.indexOf(h) === i);
+}
+
+/** 포트 확인 결과를 보고 실제로 열 주소를 정한다. 결과가 conflict면 포트 문제로 멈춰야 한다 */
+export interface ListenPlan {
+  /** 실제로 열 주소('::'를 쓸 수 없으면 '0.0.0.0') */
+  host: string;
+  /** 이미 사용 중인 주소와 오류 코드(없으면 null) */
+  conflict: { host: string; code: string } | null;
+}
+
+/**
+ * 서버를 열기 전에 포트가 모든 주소에서 비었는지 확인하고 열 주소를 정한다.
+ * - 한 곳이라도 사용 중이면 conflict를 돌려준다(start.bat은 다시 시작하지 않는다).
+ * - 기본 주소 '::'가 이 PC에서 안 되면(IPv6 꺼짐) '0.0.0.0'으로 바꾼다. 이때도 위 확인으로 IPv6 쪽 충돌을 놓치지 않는다.
+ * probe를 바꿔 넣으면 테스트에서 IPv6가 꺼진 PC를 흉내 낼 수 있다.
+ */
+export async function planListen(
+  port: number,
+  host: string,
+  lan: string[] = lanAddresses(),
+  probe: (port: number, host: string) => Promise<ProbeResult> = probePort,
+): Promise<ListenPlan> {
+  let listenHost = host;
+  for (const h of probeHosts(host, lan)) {
+    const r = await probe(port, h);
+    if (r.state === 'busy') return { host: listenHost, conflict: { host: h, code: r.code } };
+    if (r.state === 'unavailable' && h === '::' && listenHost === '::') listenHost = '0.0.0.0';
+  }
+  return { host: listenHost, conflict: null };
+}
+
 /** 데이터 폴더 안의 실행 관련 파일 위치 */
 export function runtimePaths(dataDir: string) {
   return {
@@ -147,10 +202,20 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
     return EXIT_CONFIG;
   }
 
+  // 포트를 열기 전에 모든 주소(IPv4·IPv6·루프백·원내 IP)에서 비었는지 먼저 확인한다(Windows는 주소가 다르면 충돌을 알려 주지 않음)
+  const plan = await planListen(config.port, config.host);
+  if (plan.conflict) {
+    db.close();
+    console.error(portProblemMessage(config.port, plan.conflict.code));
+    writeLog(paths.logFile, `포트 사용 중 port=${config.port} host=${plan.conflict.host} code=${plan.conflict.code}`);
+    return EXIT_PORT;
+  }
+  if (plan.host !== config.host) writeLog(paths.logFile, `주소 ${config.host}을(를) 쓸 수 없어 ${plan.host}로 열어요(IPv6 꺼짐)`);
+
   const app = await buildApp({ dataDir: config.dataDir, clock, db, allowExternal: config.allowExternal });
 
   try {
-    await app.listen({ port: config.port, host: config.host });
+    await app.listen({ port: config.port, host: plan.host });
   } catch (e) {
     const code = (e as NodeJS.ErrnoException).code;
     await app.close().catch(() => {});
@@ -165,7 +230,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
 
   fs.writeFileSync(paths.pidFile, String(process.pid));
   console.log(startupMessage(config.port, lanAddresses(), readVersion()));
-  writeLog(paths.logFile, `서버 시작 pid=${process.pid} port=${config.port}`);
+  writeLog(paths.logFile, `서버 시작 pid=${process.pid} host=${plan.host} port=${config.port}`);
   if (env.OPEN_BROWSER === '1' && env.NO_BROWSER !== '1') openBrowser(`http://localhost:${config.port}`);
 
   // 끄기: stop.bat이 stop.flag를 만들거나, Ctrl+C·종료 신호를 받으면 정리하고 0으로 끝낸다

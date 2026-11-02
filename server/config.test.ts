@@ -1,8 +1,8 @@
-// 이 파일이 하는 일: 실행 설정(loadConfig)의 기본값(포트 8090)·환경 변수 우선순위·config.json·잘못된 값의 한국어 오류를 확인한다.
+// 이 파일이 하는 일: 실행 설정(loadConfig)의 기본값(포트 8090, 주소 ::)·환경 변수 우선순위·config.json·잘못된 값의 한국어 오류를 확인한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { ConfigError, DEFAULT_PORT, loadConfig } from './config.ts';
+import { ConfigError, DEFAULT_HOST, DEFAULT_PORT, loadConfig } from './config.ts';
 import { makeTmpDir } from '../tests/helpers/tmp-dir.ts';
 
 let tmp: string;
@@ -12,11 +12,12 @@ beforeEach(() => {
 afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
 describe('loadConfig', () => {
-  test('phase-01-task-01 AC2: 아무 설정이 없으면 포트 8090, ./data, ./backups, 0.0.0.0을 쓴다', () => {
+  test('phase-01-task-01 AC2: 아무 설정이 없으면 포트 8090, ./data, ./backups, 이중 스택 주소 ::을 쓴다', () => {
     const c = loadConfig({}, tmp);
     expect(DEFAULT_PORT).toBe(8090);
+    expect(DEFAULT_HOST).toBe('::');
     expect(c.port).toBe(8090);
-    expect(c.host).toBe('0.0.0.0');
+    expect(c.host).toBe('::');
     expect(c.dataDir).toBe(path.join(tmp, 'data'));
     expect(c.backupDir).toBe(path.join(tmp, 'backups'));
     expect(c.allowExternal).toBe(false);
@@ -40,6 +41,17 @@ describe('loadConfig', () => {
     fs.mkdirSync(dataDir);
     fs.writeFileSync(path.join(dataDir, 'config.json'), '{ port: 80');
     expect(() => loadConfig({}, tmp)).toThrow(/형식이 올바르지 않아요/);
+  });
+
+  test('phase-01-task-01 AC4: 기다리는 주소는 config.json의 host로 바꿀 수 있고 환경 변수 HOST가 우선하며, IP가 아니면 한국어 오류를 낸다', () => {
+    const dataDir = path.join(tmp, 'data');
+    fs.mkdirSync(dataDir);
+    fs.writeFileSync(path.join(dataDir, 'config.json'), '{"host": "0.0.0.0"}');
+    expect(loadConfig({}, tmp).host).toBe('0.0.0.0');
+    expect(loadConfig({ HOST: '127.0.0.1' }, tmp).host).toBe('127.0.0.1');
+    expect(() => loadConfig({ HOST: '우리병원' }, tmp)).toThrow(/주소 값 "우리병원"이\(가\) 올바르지 않아요/);
+    fs.writeFileSync(path.join(dataDir, 'config.json'), '{"host": 8090}');
+    expect(() => loadConfig({}, tmp)).toThrow(ConfigError);
   });
 
   test('phase-01-task-01: TEST_NOW는 테스트에서만 쓰고 production에서는 무시한다', () => {
