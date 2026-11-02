@@ -1,14 +1,15 @@
 // 이 파일이 하는 일: desk 모듈(공지·인수인계·오픈/마감 체크리스트)의 데모 데이터(database.md §11, TD-024). 가상 치과 "하늘숲치과" 기준이고 환자 정보는 없다.
 // 공지 6개(고정 1개), 인수인계 4개(처리 완료 1개), 오픈 체크리스트 7개·마감 7개 항목, 지난 7일 체크 기록을 넣는다. 오늘 기록은 비워 둔다(오늘은 새로 시작).
 // 작성자는 admin 모듈 seed가 먼저 넣은 데모 직원(윤가람 실장 등)이고, 없으면 첫 관리자를 쓴다. 이미 글이나 항목이 있으면 그 부분은 건너뛴다.
-// scale=10(성능 측정)이면 공지·인수인계를 더 많이 넣는다. 모양은 server/db/seed/types.ts의 ModuleSeed다.
+// 보관 문구(saved_texts)는 saved-texts-seed.ts가 넣는다(phase-03-task-05). scale=10(성능 측정)이면 공지·인수인계를 더 많이 넣는다. 모양은 server/db/seed/types.ts의 ModuleSeed다.
 import type { Db } from '../../db/index.ts';
 import type { SeedContext } from '../../db/seed/types.ts';
 import { addDays, kstDate, kstMidnight } from '../../lib/dates.ts';
 import type { JobType } from '../../../shared/enums.ts';
+import { seedSavedTexts } from './saved-texts-seed.ts';
 
 /** 이 모듈이 소유한 업무 테이블(초기화 때 비울 대상). 비우는 순서는 등록표가 뒤에서부터 정한다 */
-export const tables: readonly string[] = ['posts', 'post_reads', 'checklist_items', 'checklist_checks'];
+export const tables: readonly string[] = ['posts', 'post_reads', 'checklist_items', 'checklist_checks', 'saved_texts'];
 
 /** 데모 공지 6개(가상). daysAgo는 기준일로부터 며칠 전에 올렸는지 */
 export const DEMO_NOTICES: ReadonlyArray<{ category: string; title: string; body: string; pinned?: boolean; daysAgo: number; hour: number }> = [
@@ -132,5 +133,8 @@ export function seedDemo(db: Db, ctx: SeedContext): void {
         });
       }
     }
+
+    // 보관 문구(응대 스크립트·템플릿·리뷰 답글, phase-03-task-05)
+    seedSavedTexts(db, ctx);
   });
 }

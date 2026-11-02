@@ -18,6 +18,8 @@
 .ai-panel .ai-error b { font-weight: 700; display: flex; gap: 6px; align-items: flex-start; }
 .ai-panel .ai-error span { color: var(--fg); }
 .ai-out { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2); min-height: 48px; max-height: 420px; overflow-y: auto; }
+.ai-out:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ai-structured { display: grid; gap: 10px; min-width: 0; }
 .ai-result { display: grid; gap: 8px; min-width: 0; }
 .ai-result .ai-result-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .ai-result .ai-result-head b { font-size: 13.5px; }

@@ -2,6 +2,7 @@
 // 실행·중지 → 스트림으로 받는 결과 → 개인정보 처리 결과("전화번호 1건을 가리고 보냈습니다") → 비용 → "참고용·법률 자문 아님" 고지.
 // 오류(예산 초과·키 오류·시간 초과 등, backend.md §5)는 서버의 한국어 문구와 다음에 할 일을 함께 보여 준다(FR-037). 기술 오류 원문은 보이지 않는다.
 // 관리자가 끈 기능이면 입력 대신 비활성 안내를 보인다(GET /api/ai/status, FR-033 AC3). 각 AI 화면은 feature와 buildInput만 넘겨 쓴다.
+// JSON 기능(리뷰 답글 등)은 renderResult로 날 JSON 대신 화면별 구조를 보여 줄 수 있다(phase-03-task-05). 결과 상자는 키보드로 초점을 받아 스크롤할 수 있다.
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { AI_FEATURES, AI_TIER_LABELS, AI_TIERS, type AiFeatureId, type AiTier } from '../../../shared/ai-features.ts';
 import { ApiError } from '../lib/api.ts';
@@ -39,6 +40,13 @@ interface AiPanelProps {
   onResult?: (r: AiResultView) => void;
   /** 결과 아래 버튼(복사 옆에 붙는 저장·인쇄 등) */
   resultActions?: (r: AiResultView) => ReactNode;
+  /**
+   * 결과를 글 상자 대신 직접 그린다(JSON 기능용). 주면 받는 중에는 날 JSON 대신 "기다리는 중" 안내만 보이고,
+   * 결과가 오면 이 함수가 그린 내용이 결과 상자 자리에 들어간다. 이때 기본 "복사" 버튼은 빠진다(화면이 항목별 복사를 둔다).
+   */
+  renderResult?: (r: AiResultView) => ReactNode;
+  /** 입력창을 비워도 실행할 수 있는지(기본 false: 비우면 "적어 주세요" 안내) */
+  allowEmpty?: boolean;
 }
 
 /** 화면에 보여 줄 오류 */
@@ -59,6 +67,8 @@ export function AiPanel({
   primary = true,
   onResult,
   resultActions,
+  renderResult,
+  allowEmpty = false,
 }: AiPanelProps) {
   const status = useApi('ai:status', fetchAiStatus);
   const { info } = useSession();
@@ -87,7 +97,7 @@ export function AiPanel({
 
   /** 실행 */
   const run = async () => {
-    if (!text.trim()) {
+    if (!allowEmpty && !text.trim()) {
       setInputError(`${label}을 적어 주세요.`);
       return;
     }
@@ -140,6 +150,9 @@ export function AiPanel({
 
   const help = error ? aiErrorHelp(error.code, isAdmin) : null;
   const shown = result ? result.text : streamText;
+  // 구조로 보여 주는 기능은 받는 중인 날 JSON 조각을 보이지 않는다
+  const structured = !!renderResult && !!result;
+  const boxText = renderResult ? (running ? '답을 기다리는 중이에요…' : '') : shown || (running ? '답을 기다리는 중이에요…' : '');
 
   return (
     <div className="ai-panel" data-testid={`ai-panel-${feature}`}>
@@ -209,9 +222,16 @@ export function AiPanel({
             {running ? <Chip tone="info">받는 중</Chip> : null}
             {stopped ? <Chip tone="warn">중지함</Chip> : null}
           </div>
-          <div className="ai-out" aria-live="polite" aria-busy={running} data-testid="ai-output">
-            {shown || (running ? '답을 기다리는 중이에요…' : '')}
-          </div>
+          {structured && result ? (
+            <div className="ai-structured" data-testid="ai-output">
+              {renderResult?.(result)}
+            </div>
+          ) : (
+            // 높이 제한으로 스크롤이 생기므로 키보드로 초점을 받을 수 있게 한다(접근성 scrollable-region-focusable)
+            <div className="ai-out" role="region" tabIndex={0} aria-label="AI 결과 글" aria-live="polite" aria-busy={running} data-testid="ai-output">
+              {boxText}
+            </div>
+          )}
           {stopped ? <p className="ai-disclaimer">중지했어요. 지금까지 받은 글만 보여요.</p> : null}
           {result?.privacy.notice ? (
             <div className="ai-note" role="status" data-testid="ai-privacy-notice">
@@ -233,7 +253,7 @@ export function AiPanel({
                   : `${AI_TIER_LABELS[result.tier]} · 비용 ${formatSmallWon(result.usage.costKrw)}${result.usage.estimated ? '(추정)' : ''} · 입력 ${formatNumber(result.usage.inputTokens)} · 출력 ${formatNumber(result.usage.outputTokens)} 토큰`}
               </span>
               <span className="grow" />
-              <CopyButton text={result.text} />
+              {renderResult ? null : <CopyButton text={result.text} />}
               {resultActions?.(result)}
             </div>
           ) : null}
