@@ -35,8 +35,28 @@ function freePort(): Promise<number> {
   });
 }
 
-/** main.ts를 자식 프로세스로 켜서 health가 ok가 되면 stop.flag로 끄고, 출력·종료 코드·health 응답을 돌려준다 */
+/**
+ * main.ts를 자식 프로세스로 켜서 health가 ok가 되면 stop.flag로 끄고, 출력·종료 코드·health 응답을 돌려준다.
+ * 빈 포트를 고른 뒤 자식이 그 포트를 열기 전에 다른 프로세스(병렬 테스트 등)가 먼저 잡으면 자식은 포트 문제(종료 코드 2)로 끝난다.
+ * 이것은 시험 환경의 경쟁이라 새 포트로 최대 3번 다시 켠다(제품 판정 기준은 바꾸지 않음, 2026-11-02 조정자 — 03-09 보고의 간헐 실패).
+ */
 async function startAndStop(dataDir: string): Promise<{ code: number | null; output: string; health: { ok: boolean; db: string } }> {
+  let last: Error | undefined;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await startAndStopOnce(dataDir);
+    } catch (e) {
+      last = e as Error;
+      if (!(e instanceof PortRaceError)) throw e;
+    }
+  }
+  throw last;
+}
+
+/** 자식이 포트 문제(종료 코드 2)로 끝났다는 표시 */
+class PortRaceError extends Error {}
+
+async function startAndStopOnce(dataDir: string): Promise<{ code: number | null; output: string; health: { ok: boolean; db: string } }> {
   const port = await freePort();
   const child: ChildProcess = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', MAIN], {
     env: { ...process.env, NODE_ENV: 'test', PORT: String(port), HOST: '127.0.0.1', DATA_DIR: dataDir, BACKUP_DIR: path.join(dataDir, 'backups'), NO_BROWSER: '1', OPEN_BROWSER: '0' },
@@ -60,6 +80,8 @@ async function startAndStop(dataDir: string): Promise<{ code: number | null; out
       await new Promise((res) => setTimeout(res, 200));
     }
   }
+  if (!health && child.exitCode === 2) throw new PortRaceError(`포트 ${port}를 다른 프로세스가 먼저 잡음:
+${output}`);
   if (!health) throw new Error(`서버가 준비되지 않음:\n${output}`);
   fs.writeFileSync(path.join(dataDir, 'stop.flag'), '');
   const code = await exited;

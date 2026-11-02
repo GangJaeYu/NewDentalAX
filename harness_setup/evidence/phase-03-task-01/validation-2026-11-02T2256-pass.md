@@ -1,0 +1,16 @@
+# task_validation 결과 — phase-03-task-01 (검증 커밋 4341237 = ec629bf + 루프 문서 커밋)
+
+| # | 수용 기준 | 판정(PASS/FAIL/판정 불가) | 관찰 증거(명령·출력 요약·파일 경로) |
+|---|---|---|---|
+| 1 | staff가 품목 검색 → 수량 입력 → 저장(2단계)으로 출고하면 현재고가 줄고 기록에 남는다 | PASS | 수동 서버(18194, TEST_NOW 2026-11-02)에서 staff로 브라우저 조작: 출고 기록 → 검색 "장갑" → 품목 선택 → 수량 3 → 저장. 화면 "검증 장갑 3박스 출고를 기록했어요. 남은 재고 7박스", API stock 10→7, 목록 행 "7박스", `GET /api/inventory/moves` = [out 3 검직원, in 10 검실장]. 출력: `.tmp/val/verify.out` |
+| 2 | 재고보다 많이 출고하면 확인 대화상자가 뜨고 확인해야만 저장된다; 수량 0·음수는 거부 | PASS | API qty 0·-1 → 400 "수량은 0보다 크게 적어 주세요."; 초과(force 없음) → 409 needsConfirm, stock 10 유지. UI 0·-2 입력 시 같은 오류 문구, stock 유지. 9박스(재고 7) 저장 → "재고보다 많이 출고할까요?" 대화상자(취소/그래도 출고), 확인 전 stock 7, 취소 후 7, "그래도 출고" 후 -2. 스크린샷 `.tmp/val/shots/over-confirm.png`, `out-zero.png` |
+| 3 | 적정 6, 현재 5 → 부족 / 7 → 곧 부족 / 8 → 정상 | PASS | API status low / soon_low / ok, 목록 행 칩 "부족"·"곧 부족"·"정상" (`.tmp/val/verify.out`, `.tmp/val/shots/list-before.png`) |
+| 4 | 유효기간 2026-11-14 로트가 남아 있으면 기준일 2026-11-02에 "D-12", 출고로 해당 로트가 소진되면(FEFO) 다음 로트 기준으로 바뀐다 | PASS | 로트 L2(12-20, 5개)·L1(11-14, 3개) 입고 후 API nearest=2026-11-14 dday=12, 목록 "2026-11-14 … 임박 D-12". 2개 출고 후 여전히 11-14/D-12, 1개 더(L1 소진) → nearest=2026-12-20 dday=48, lots=[L2 5개 D-48], 목록 "2026-12-20 … 정상" |
+| 5 | 직전 단가 8,400 → 8,900 입고 시 ▲6% 표시, 품목 상세에 단가 추이 표·그래프 | PASS | `GET /api/prices` 8900 pct 5.95 up=true. 단가 변동 화면 행 "8,900원 8,400원 ▲6%". 품목 상세: ▲6% 표시, 표 2개, 그래프 role=img aria-label "검증 장갑 입고 단가 추이(원): 8,400, 8,900". `.tmp/val/shots/item-detail.png`, `prices.png`, `artifacts/screens/inventory-item-1440-dark.png` |
+| 6 | 입출고 기록이 있는 품목 삭제 시 "사용 안 함"으로 바뀌고 목록 기본 필터에서 빠진다 | PASS | 기록 있는 품목 DELETE → 200 {deleted:false, deactivated:true}; 기록 없는 품목 → {deleted:true}. 기본 목록 API·화면에 없음(행 0), `active=inactive` 목록에 [검증 사용품, active=false]. staff 삭제 → 403. `.tmp/val/shots/list-after.png` |
+| 7 | 부족 품목이 생기면 manager에게 알림 1건(같은 날 중복 없음) | PASS | 장갑 초과 출고로 부족 → manager 알림 "검증 장갑 재고가 부족해요"(link /inventory/items/1) 1건. "검증 일곱" 7→5(부족)→4 두 번 출고 후 manager 알림에 "검증 일곱" 1건만(중복 없음). staff 알림 목록의 stock_low 0건 |
+
+- 게이트 결과: lint=PASS (tsc-server 183, tsc-web 114, eslint 291, headers 306), unit=PASS (506건), e2e=PASS (115건, inventory.spec 포함, skip·flaky 0). 로그: `harness_setup/evidence/runs/2026-11-02T13-40-42-716Z-phase-03-task-01-lint.log`, `…13-41-15-420Z-…-unit.log`, `…13-41-53-966Z-…-e2e.log` (E2E_PORT=18094)
+- 화면(DESIGN §5): `npm run screenshots -- inventory inventory-item inventory-moves inventory-vendors inventory-prices inventory-quick-out` → 6화면 × 4너비 × 2테마 48장 OK(`artifacts/screens/inventory-*`). 직접 연 파일: inventory-1440-light, inventory-item-1440-dark, inventory-quick-out-390-light, inventory-390-dark, inventory-prices-768-light, inventory-moves-1024-dark를 기준선 preview-dashboard-1440-light와 대조 — 청록 A 색·카드·글꼴 일치, 화면당 채워진 주 버튼 1개(출고 기록), 칩에 글자 있음, 페이지 가로 스크롤 없음. 390px 재고 표는 페이지가 아니라 표 감싸개(div.tablewrap, aria-label "품목 목록", tabindex 0, 320→776px) 안에서 가로로 넘긴다(측정 `.tmp/val/m390.mjs`) — 문제로 보지 않음. 데모 seed 품목 83·거래처 5 확인.
+- 환경 문제·판정 불가 사유: 없음. 검증 스크립트 첫 실행에서 내 선택자 오류(수량 입력란과 form 라벨이 겹침)로 멈춰 데이터 폴더를 새로 만들어 다시 실행함(제품 문제 아님). 수동 서버는 scripts/e2e-server.ts(E2E_PORT=18194, E2E_DATA_DIR=.tmp/val-data, AI 주소 차단)로 띄우고 직접 종료함.
+- 재현 방법(실패 시): 해당 없음. 재실행: 서버 기동 후 `node .tmp/val/verify.mjs`.
