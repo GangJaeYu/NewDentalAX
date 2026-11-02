@@ -1,13 +1,17 @@
 // 이 파일이 하는 일: 서버 진입점. 설정을 읽고 → 데이터 폴더를 준비하고 → app.db를 열어 마이그레이션을 적용하고 → buildApp으로 서버를 만들어 포트를 연 뒤,
-// 이 PC와 원내 다른 기기에서 접속할 주소를 한국어로 안내한다. 포트를 열기 전에 모든 주소에서 그 포트가 비었는지 먼저 확인한다. PID 파일을 남기고, stop.bat이 만든 종료 표시 파일을 보면 스스로 꺼진다.
-// 종료 코드: 0 정상 종료, 1 예기치 못한 오류(start.bat이 다시 시작), 2 포트 문제, 3 설정·데이터 파일 오류(2·3은 다시 시작하지 않음).
+// 이 PC와 원내 다른 기기에서 접속할 주소를 한국어로 안내한다. 포트 충돌은 두 단계로 찾는다: ① 열기 전 주소별로 미리 열어 보는 빠른 확인,
+// ② 연 뒤 안내할 모든 주소(localhost·127.0.0.1·[::1]·원내 IP)로 직접 물어 이번 실행의 무작위 표식이 돌아오는지 보는 자기 확인(최종 판정).
+// PID 파일을 남기고, stop.bat이 만든 종료 표시 파일을 보면 스스로 꺼진다. 종료 코드: 0 정상, 1 예기치 못한 오류(start.bat이 다시 시작), 2 포트 문제, 3 설정·데이터 파일 오류(2·3은 다시 시작 안 함).
+import crypto from 'node:crypto';
+import dns from 'node:dns';
 import fs from 'node:fs';
+import http from 'node:http';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { ConfigError, loadConfig, type AppConfig } from './config.ts';
-import { buildApp, readVersion } from './app.ts';
+import { buildApp, HEALTH_PATH, INSTANCE_HEADER, readVersion } from './app.ts';
 import { fixedClock, systemClock } from './lib/clock.ts';
 import { appDbPath, type Db } from './db/index.ts';
 import { openAppDb } from './db/migrate.ts';
@@ -85,26 +89,46 @@ export function portProblemMessage(port: number, code: string | undefined): stri
 /** 포트 확인 결과: free(비어 있음), busy(다른 프로그램이 사용 중·권한 없음), unavailable(이 PC에 없는 주소·IPv6 꺼짐 등) */
 export type ProbeResult = { state: 'free' } | { state: 'busy'; code: string } | { state: 'unavailable'; code: string };
 
-/** 주소 하나에 포트를 잠깐 열어 보고 바로 닫는다. 서버를 실제로 열기 전에 충돌을 미리 찾는 데 쓴다 */
-export function probePort(port: number, host: string): Promise<ProbeResult> {
+/**
+ * 주소 하나에 포트를 잠깐 열어 보고 바로 닫는다. 서버를 실제로 열기 전에 충돌을 미리 찾는 데 쓴다.
+ * ipv6Only가 true면 '::'를 IPv6 전용으로 연다(다른 프로그램이 [::]를 IPv6 전용으로 쓰는 경우를 찾기 위해).
+ */
+export function probePort(port: number, host: string, ipv6Only = false): Promise<ProbeResult> {
   return new Promise((resolve) => {
     const s = net.createServer();
     s.once('error', (e: NodeJS.ErrnoException) => {
       const code = e.code ?? 'UNKNOWN';
       resolve(code === 'EADDRINUSE' || code === 'EACCES' ? { state: 'busy', code } : { state: 'unavailable', code });
     });
-    s.listen({ port, host, exclusive: true }, () => s.close(() => resolve({ state: 'free' })));
+    s.listen({ port, host, exclusive: true, ipv6Only }, () => s.close(() => resolve({ state: 'free' })));
   });
 }
 
+/** 미리 열어 볼 주소 하나. ipv6Only는 '::'를 IPv6 전용으로 열어 볼 때 true */
+export interface ProbeTarget {
+  host: string;
+  ipv6Only: boolean;
+}
+
 /**
- * 같은 포트를 확인할 주소 목록. Windows는 주소가 정확히 같을 때만 "이미 사용 중"을 알려 준다.
+ * 같은 포트를 미리 열어 볼 주소 목록(빠른 1차 확인). Windows는 주소가 정확히 같을 때만 "이미 사용 중"을 알려 준다.
  * 예: 다른 프로그램이 [::]:8090을 쓰고 있어도 0.0.0.0:8090은 따로 열려 버리고, localhost(::1) 접속은 그 프로그램으로 간다.
- * 그래서 IPv6 전체(::)·IPv4 전체(0.0.0.0)·루프백(127.0.0.1, ::1)·이 PC의 원내 IP를 하나씩 모두 확인한다.
+ * 그래서 IPv6 전체(::, 이중 스택과 IPv6 전용 둘 다)·IPv4 전체(0.0.0.0)·루프백(127.0.0.1, ::1)·이 PC의 원내 IP를 하나씩 확인한다.
+ * 이것으로도 놓치는 경우가 있을 수 있어서, 최종 판정은 연 뒤의 자기 확인(selfCheck)이 한다.
  */
-export function probeHosts(listenHost: string, lan: string[]): string[] {
+export function probeTargets(listenHost: string, lan: string[]): ProbeTarget[] {
   const hosts = [listenHost, '::', '0.0.0.0', '127.0.0.1', '::1', ...lan];
-  return hosts.filter((h, i) => hosts.indexOf(h) === i);
+  const list: ProbeTarget[] = [];
+  for (const h of hosts.filter((x, i) => hosts.indexOf(x) === i)) {
+    list.push({ host: h, ipv6Only: false });
+    if (h === '::') list.push({ host: '::', ipv6Only: true });
+  }
+  return list;
+}
+
+/** 로그에 남길 주소 이름(IPv6 전용 확인은 표시를 붙인다) */
+function targetLabel(t: ProbeTarget): string {
+  return t.ipv6Only ? `${t.host}(IPv6 전용)` : t.host;
 }
 
 /** 포트 확인 결과를 보고 실제로 열 주소를 정한다. 결과가 conflict면 포트 문제로 멈춰야 한다 */
@@ -125,15 +149,141 @@ export async function planListen(
   port: number,
   host: string,
   lan: string[] = lanAddresses(),
-  probe: (port: number, host: string) => Promise<ProbeResult> = probePort,
+  probe: (port: number, host: string, ipv6Only: boolean) => Promise<ProbeResult> = probePort,
 ): Promise<ListenPlan> {
   let listenHost = host;
-  for (const h of probeHosts(host, lan)) {
-    const r = await probe(port, h);
-    if (r.state === 'busy') return { host: listenHost, conflict: { host: h, code: r.code } };
-    if (r.state === 'unavailable' && h === '::' && listenHost === '::') listenHost = '0.0.0.0';
+  for (const t of probeTargets(host, lan)) {
+    const r = await probe(port, t.host, t.ipv6Only);
+    if (r.state === 'busy') return { host: listenHost, conflict: { host: targetLabel(t), code: r.code } };
+    if (r.state === 'unavailable' && t.host === '::' && !t.ipv6Only && listenHost === '::') listenHost = '0.0.0.0';
   }
   return { host: listenHost, conflict: null };
+}
+
+// ---------------------------------------------------------------------------
+// 자기 확인: 서버를 연 뒤, 안내할 모든 주소로 직접 물어서 "이번 실행의 표식"이 돌아오는지 본다.
+// 다른 프로그램이 같은 포트를 다른 방식(IPv6 전용 등)으로 쓰고 있으면, 그 주소로 간 요청은 그 프로그램이 받으므로 표식이 다르거나 답이 없다.
+// ---------------------------------------------------------------------------
+
+/** 이번 실행만의 무작위 표식을 만든다(키·개인정보 아님) */
+export function makeInstanceId(): string {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+/** 자기 확인 대상 주소 하나 */
+export interface SelfCheckTarget {
+  /** 접속할 IP 주소 */
+  address: string;
+  /** 사람이 읽을 이름(예: "localhost(::1)") */
+  label: string;
+  /** loopback: 이 PC 안 주소(답이 없어도 충돌), lan: 원내 IP(방화벽 때문에 답이 없을 수 있음) */
+  kind: 'loopback' | 'lan';
+  /** 이 서버가 연 주소로 받아야 하는 곳인지(예: 0.0.0.0으로 열었으면 ::1은 받지 않음) */
+  covered: boolean;
+}
+
+/** 주소 하나에 물어본 결과: self(이 서버), other(다른 프로그램이 답함), none(답 없음·연결 거부·시간 초과) */
+export type SelfCheckOutcome = { state: 'self' } | { state: 'other'; detail: string } | { state: 'none'; detail: string };
+
+/** 열린 주소(listenHost)가 이 주소로 오는 접속을 받는지 */
+export function listenCovers(listenHost: string, address: string): boolean {
+  if (listenHost === '::') return true; // 이중 스택: IPv4·IPv6 모두
+  if (listenHost === '0.0.0.0') return net.isIPv4(address);
+  return listenHost === address;
+}
+
+/** 이 PC에서 localhost가 실제로 가리키는 주소들(보통 ::1과 127.0.0.1). 못 찾으면 빈 목록 */
+export async function localhostAddresses(): Promise<string[]> {
+  try {
+    const found = await dns.promises.lookup('localhost', { all: true, order: 'verbatim' });
+    return found.map((a) => a.address);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 자기 확인 대상 목록을 만든다: localhost가 가리키는 주소, 127.0.0.1, ::1(루프백)과 원내 IP.
+ * 같은 주소는 한 번만 묻고, localhost가 가리키는 주소면 이름에 그 사실을 적는다.
+ */
+export function selfCheckTargets(listenHost: string, lan: string[], localhostAddrs: string[]): SelfCheckTarget[] {
+  const list: SelfCheckTarget[] = [];
+  const add = (address: string, kind: SelfCheckTarget['kind']) => {
+    if (list.some((t) => t.address === address)) return;
+    const label = localhostAddrs.includes(address) ? `localhost(${address})` : address;
+    list.push({ address, label, kind, covered: listenCovers(listenHost, address) });
+  };
+  for (const a of localhostAddrs) add(a, 'loopback');
+  add('127.0.0.1', 'loopback');
+  add('::1', 'loopback');
+  for (const a of lan) add(a, 'lan');
+  return list;
+}
+
+/** 연결 자체가 안 된 오류(답 없음으로 본다). 그 밖의 오류(HTTP 형식이 아닌 답 등)는 다른 프로그램의 답으로 본다 */
+const NO_ANSWER_CODES = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'EADDRNOTAVAIL', 'EAFNOSUPPORT', 'ECONNRESET', 'EPIPE']);
+
+/**
+ * 주소 하나에 GET /api/health를 보내고, 응답의 X-Instance 헤더가 이번 표식과 같은지 본다.
+ * timeoutMs 안에 답이 없으면 none(시간 초과)으로 본다.
+ */
+export function askInstance(address: string, port: number, instanceId: string, timeoutMs: number): Promise<SelfCheckOutcome> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const hostHeader = net.isIPv6(address) ? `[${address}]:${port}` : `${address}:${port}`;
+    const req = http.request({ host: address, port, path: HEALTH_PATH, method: 'GET', agent: false, headers: { host: hostHeader, connection: 'close' } }, (res) => {
+      const got = res.headers[INSTANCE_HEADER];
+      res.resume();
+      if (got === instanceId) finish({ state: 'self' });
+      else finish({ state: 'other', detail: `HTTP ${res.statusCode ?? '?'} 응답, 표식 ${got ? '다름' : '없음'}` });
+    });
+    const timer = setTimeout(() => finish({ state: 'none', detail: `${timeoutMs}ms 안에 답 없음` }), timeoutMs);
+    function finish(o: SelfCheckOutcome) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      req.destroy();
+      resolve(o);
+    }
+    req.on('error', (e: NodeJS.ErrnoException) => {
+      const code = e.code ?? 'UNKNOWN';
+      if (NO_ANSWER_CODES.has(code)) finish({ state: 'none', detail: code });
+      else finish({ state: 'other', detail: `HTTP가 아닌 답(${code})` });
+    });
+    req.end();
+  });
+}
+
+/** 자기 확인 판정 결과 */
+export interface SelfCheckVerdict {
+  /** 다른 프로그램이 가로챈 주소(첫 번째). 없으면 null */
+  conflict: { label: string; detail: string } | null;
+  /** 충돌은 아니지만 로그에 남길 경고(원내 IP 답 없음 등) */
+  warnings: string[];
+}
+
+/**
+ * 주소별 결과로 충돌 여부를 정한다.
+ * - 어느 주소든 다른 표식(또는 HTTP가 아닌 답)이 오면 충돌.
+ * - 이 서버가 받아야 하는 루프백(localhost·127.0.0.1·::1)에서 답이 없으면 충돌(다른 프로그램이 받고 답하지 않는 경우).
+ * - 원내 IP의 답 없음은 방화벽 때문일 수 있어 경고만 남긴다. 이 서버가 받지 않는 주소(0.0.0.0으로 열었을 때 ::1)의 답 없음도 경고.
+ */
+export function judgeSelfCheck(results: Array<{ target: SelfCheckTarget; outcome: SelfCheckOutcome }>): SelfCheckVerdict {
+  const warnings: string[] = [];
+  let conflict: SelfCheckVerdict['conflict'] = null;
+  for (const { target, outcome } of results) {
+    if (outcome.state === 'self') continue;
+    const isConflict = outcome.state === 'other' || (target.kind === 'loopback' && target.covered);
+    if (isConflict) conflict ??= { label: target.label, detail: outcome.detail };
+    else warnings.push(`${target.label}: ${outcome.detail}`);
+  }
+  return { conflict, warnings };
+}
+
+/** 안내할 모든 주소에 동시에 물어보고 판정한다 */
+export async function selfCheck(port: number, targets: SelfCheckTarget[], instanceId: string, timeoutMs = 2000): Promise<SelfCheckVerdict> {
+  const results = await Promise.all(targets.map(async (target) => ({ target, outcome: await askInstance(target.address, port, instanceId, timeoutMs) })));
+  return judgeSelfCheck(results);
 }
 
 /** 데이터 폴더 안의 실행 관련 파일 위치 */
@@ -202,8 +352,10 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
     return EXIT_CONFIG;
   }
 
-  // 포트를 열기 전에 모든 주소(IPv4·IPv6·루프백·원내 IP)에서 비었는지 먼저 확인한다(Windows는 주소가 다르면 충돌을 알려 주지 않음)
-  const plan = await planListen(config.port, config.host);
+  // ① 포트를 열기 전에 모든 주소(IPv4·IPv6·루프백·원내 IP)에서 비었는지 먼저 확인한다(빠른 1차 확인).
+  // TEST_SKIP_PORT_PRECHECK=1(테스트 전용, production에서는 무시)이면 건너뛰어 ② 자기 확인만으로 찾는지 시험할 수 있다.
+  const skipPrecheck = env.TEST_SKIP_PORT_PRECHECK === '1' && env.NODE_ENV !== 'production';
+  const plan: ListenPlan = skipPrecheck ? { host: config.host, conflict: null } : await planListen(config.port, config.host);
   if (plan.conflict) {
     db.close();
     console.error(portProblemMessage(config.port, plan.conflict.code));
@@ -212,7 +364,8 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
   }
   if (plan.host !== config.host) writeLog(paths.logFile, `주소 ${config.host}을(를) 쓸 수 없어 ${plan.host}로 열어요(IPv6 꺼짐)`);
 
-  const app = await buildApp({ dataDir: config.dataDir, clock, db, allowExternal: config.allowExternal });
+  const instanceId = makeInstanceId();
+  const app = await buildApp({ dataDir: config.dataDir, clock, db, allowExternal: config.allowExternal, instanceId });
 
   try {
     await app.listen({ port: config.port, host: plan.host });
@@ -228,8 +381,20 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
     throw e;
   }
 
+  // ② 자기 확인: 안내할 모든 주소로 직접 물어 이번 표식이 돌아오는지 본다. 다른 프로그램이 가로챈 주소가 있으면 서버를 닫고 포트 문제로 끝낸다.
+  const lan = lanAddresses();
+  const verdict = await selfCheck(config.port, selfCheckTargets(plan.host, lan, await localhostAddresses()), instanceId);
+  for (const w of verdict.warnings) writeLog(paths.logFile, `자기 확인 경고(충돌 아님) ${w}`);
+  if (verdict.conflict) {
+    await app.close().catch(() => {});
+    db.close();
+    console.error(portProblemMessage(config.port, 'EADDRINUSE'));
+    writeLog(paths.logFile, `포트 사용 중(자기 확인) port=${config.port} host=${verdict.conflict.label} ${verdict.conflict.detail}`);
+    return EXIT_PORT;
+  }
+
   fs.writeFileSync(paths.pidFile, String(process.pid));
-  console.log(startupMessage(config.port, lanAddresses(), readVersion()));
+  console.log(startupMessage(config.port, lan, readVersion()));
   writeLog(paths.logFile, `서버 시작 pid=${process.pid} host=${plan.host} port=${config.port}`);
   if (env.OPEN_BROWSER === '1' && env.NO_BROWSER !== '1') openBrowser(`http://localhost:${config.port}`);
 
