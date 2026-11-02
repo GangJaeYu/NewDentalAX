@@ -123,3 +123,12 @@
 - 하네스 관찰(판정 영향 없음): e2e 로그 끝, 테스트 통과 뒤에 "[WebServer] 포트 18096 사용 중"이 찍힌다. e2e-server가 서버를 두 번 띄우는 것으로 보인다.
   - 기록: STATE "하네스 점검" 항목
   - 처리: 01-04 병합 뒤 harness-update 범위에서 원인을 조사한다.
+
+## 2026-11-02 20:11 phase-01-task-03 task_validation → PASS(8/8)
+- 검증 워커 ctx_5478f9653b7a(대상 b0433da). 게이트: lint PASS, unit 266건, e2e 8건
+- 확인 방법: 실제 서버를 TEST_NOW를 바꿔 가며 다시 시작하는 방식과 inject 방식을 함께 썼다. 비밀번호 평문 검사는 DB·WAL·로그를 모두 검색했다.
+- 참고(기준 밖)
+  - 로그아웃 때 지우는 쿠키가 SameSite=Lax로 나간다. 발급할 때는 Strict다. 다음 auth를 건드리는 태스크(01-05)에서 맞춘다.
+  - admin의 GET /api/audit는 아직 404다. 01-05 범위다.
+- 증거: harness_setup/evidence/phase-01-task-03/
+- completed는 01-02가 completed가 된 뒤에 한다.
