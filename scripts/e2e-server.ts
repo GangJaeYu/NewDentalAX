@@ -1,6 +1,7 @@
 // 이 파일이 하는 일: Playwright가 띄우는 E2E 테스트 서버. 작업 사본 안 .tmp/e2e/에 매번 새 임시 데이터 폴더를 만들고,
 // 포트 E2E_PORT(기본 18090)·고정 시각 TEST_NOW(기본 2026-11-02T09:00:00+09:00)로 server/main.ts를 실행한다.
 // 실제 data/ 폴더와 8090 포트는 쓰지 않는다. 브라우저 자동 열기는 끈다. SEED_DEMO=1이면 켜기 전에 데모 데이터를 넣는다(SEED_SCALE 배율).
+// E2E_DATA_DIR을 주면(tests/e2e/fixtures.ts) 그 폴더를 그대로 쓰고, 다른 실행의 폴더를 지우거나 끝날 때 폴더를 지우지 않는다(정리는 부른 쪽이 한다).
 import fs from 'node:fs';
 import path from 'node:path';
 import { main } from '../server/main.ts';
@@ -24,8 +25,9 @@ function cleanOld(): void {
   }
 }
 
-cleanOld();
-const dataDir = path.join(BASE, `run-${Date.now()}-${process.pid}`);
+const givenDir = process.env.E2E_DATA_DIR ? path.resolve(process.env.E2E_DATA_DIR) : null;
+if (!givenDir) cleanOld();
+const dataDir = givenDir ?? path.join(BASE, `run-${Date.now()}-${process.pid}`);
 fs.mkdirSync(dataDir, { recursive: true });
 
 const env: NodeJS.ProcessEnv = {
@@ -42,7 +44,7 @@ const env: NodeJS.ProcessEnv = {
 console.log(`[e2e-server] DATA_DIR=${dataDir} PORT=${env.PORT} TEST_NOW=${env.TEST_NOW}`);
 
 // SEED_DEMO=1이면 서버를 켜기 전에 데모 데이터를 넣는다(등록된 모든 모듈의 seedDemo, server/db/seed/registry.ts)
-if (process.env.SEED_DEMO === '1') {
+if (process.env.SEED_DEMO === '1' && !fs.existsSync(path.join(dataDir, 'app.db'))) {
   const { db } = openAppDb(dataDir, { clock: fixedClock(env.TEST_NOW as string) });
   try {
     const done = await seedDemoAll(db, { clock: fixedClock(env.TEST_NOW as string), scale: Number(process.env.SEED_SCALE || 1) });
@@ -53,5 +55,5 @@ if (process.env.SEED_DEMO === '1') {
 }
 
 const code = await main(env);
-fs.rmSync(dataDir, { recursive: true, force: true });
+if (!givenDir) fs.rmSync(dataDir, { recursive: true, force: true });
 process.exit(code);

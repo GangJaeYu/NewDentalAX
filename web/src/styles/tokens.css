@@ -1,0 +1,83 @@
+/* 이 파일이 하는 일: 화면 디자인 토큰(색·간격·반지름·글자 크기). docs/DESIGN.md §2 값을 그대로 옮겼다(승인: 청록 A + 기본 밀도).
+   라이트는 :root, 다크는 [data-theme="dark"]와 시스템 다크 설정(prefers-color-scheme)에 둔다. 테마 선택은 lib/theme.ts가 <html data-theme>로 반영한다.
+   색을 새로 정하지 말고 이 변수만 쓴다. */
+:root {
+  color-scheme: light;
+  --bg: #F4F7F7;
+  --surface: #FFFFFF;
+  --surface-2: #EDF2F2;
+  --line: #DCE4E3;
+  --fg: #142120;
+  --muted: #586968;
+  --accent: #0C7C76;
+  --accent-strong: #09625D;
+  --accent-weak: #E1F2F0;
+  --on-accent: #FFFFFF;
+  --warn: #9A5B06;
+  --warn-weak: #FCF0DA;
+  --danger: #B3362F;
+  --danger-weak: #FBE6E4;
+  --ok: #23774B;
+  --ok-weak: #E0F2E8;
+  --shadow: 0 1px 2px rgba(20, 40, 38, .06), 0 2px 8px rgba(20, 40, 38, .04);
+  --shadow-pop: 0 8px 30px rgba(20, 40, 38, .18);
+  --scrim: rgba(10, 20, 20, .45);
+
+  --font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+
+  /* 반지름: 작게 6 / 보통 10 / 카드 12 */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 12px;
+
+  /* 간격(기본 밀도): 카드 안쪽 18, 목록 줄 40, 카드 사이 16 */
+  --pad: 18px;
+  --row: 40px;
+  --gap: 16px;
+
+  /* 골격 크기 */
+  --top-h: 56px;
+  --side: 232px;
+  --side-rail: 64px;
+  --content-max: 1720px;
+
+  /* 글자 크기 */
+  --fs-body: 14px;
+  --fs-small: 12.5px;
+  --fs-xs: 12px;
+  --fs-card-title: 14.5px;
+  --fs-page-title: 22px;
+  --fs-kpi: 22px;
+
+  /* 움직임: 150~300ms 짧은 전환만 */
+  --t-fast: 150ms;
+  --t-mid: 220ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0E1414; --surface: #151D1C; --surface-2: #1B2625; --line: #273432;
+    --fg: #E3EBEA; --muted: #92A3A1; --accent: #45BDB3; --accent-strong: #6CD0C7;
+    --accent-weak: #153230; --on-accent: #062321; --warn: #E3AA4E; --warn-weak: #33281A;
+    --danger: #EE7D74; --danger-weak: #3A1F1D; --ok: #62C38F; --ok-weak: #163020;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    --shadow-pop: 0 8px 30px rgba(0, 0, 0, .5);
+    --scrim: rgba(0, 0, 0, .6);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0E1414; --surface: #151D1C; --surface-2: #1B2625; --line: #273432;
+  --fg: #E3EBEA; --muted: #92A3A1; --accent: #45BDB3; --accent-strong: #6CD0C7;
+  --accent-weak: #153230; --on-accent: #062321; --warn: #E3AA4E; --warn-weak: #33281A;
+  --danger: #EE7D74; --danger-weak: #3A1F1D; --ok: #62C38F; --ok-weak: #163020;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-pop: 0 8px 30px rgba(0, 0, 0, .5);
+  --scrim: rgba(0, 0, 0, .6);
+}
+
+@media (max-width: 1100px) {
+  :root { --side: var(--side-rail); }
+}
