@@ -7,7 +7,13 @@
 - **Orca**: 시험 Run `run_de4176c8b3c0`(시험 워커 2개 모두 회수·해제했고, 작업 사본과 브랜치도 삭제함). 실제 Loop는 새 Run으로 시작한다.
 - **하네스 상태**: 게이트 4종 정의 완료. lint·unit·e2e는 미활성이고 01-01에서 활성화한다. task_validation 절차와 인계서 스크립트는 활성이다. 사전 점검은 통과했다.
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git 저장소는 01-01에서 만든다)
-- **진행 중 태스크**: 없음(37개 모두 pending)
+- **Orca Run**: `run_ec777ac46742`
+- **진행 중 태스크**
+  - phase-01-task-01(in_progress)
+    - 워커 dispatch `ctx_7e1ae0c73bdc`, Orca task `task_ae351e368d95`, 슬롯 0
+    - 작업 사본 `C:/Users/main/orca/workspaces/DentalAX_with_Skills/phase-01-task-01-worker`(브랜치 phase-01-task-01-worker)
+    - 기준 main@e5798e1, 시작 2026-11-02 19:0x
+- **미반영 결과**: 없음
 - **마지막 검증**: 계획 구조 자동 검사 통과(PLAN.md §4). 제품 게이트는 아직 실행하지 않았다.
 
 ## 합의 참조
