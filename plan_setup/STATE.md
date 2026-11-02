@@ -8,11 +8,12 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git main)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-- phase-01-task-01(failed → 시도 4, 전략 전환: 자기 확인): 수정 워커 `ctx_398bc053b3b6`, 슬롯 1
+- phase-01-task-01(failed → 시도 4, 자기 확인 전략): 수정 워커 `ctx_398bc053b3b6`, 슬롯 1
   - 검증 PASS, completed 보류(01-01 대기): 01-02, 01-03, 01-06, 02-01
-  - phase-01-task-04(in_progress): 구현 `ctx_64fb05731874`, 슬롯 0
-  - phase-02-task-02(in_progress): 구현 `ctx_5410ef89381a`, 슬롯 2
-  - 대기: 02-04, 01-05, 02-05(01-04 병합 후)
+  - phase-01-task-04(in_progress): 구현 `ctx_64fb05731874`, 슬롯 0. e2e 격리 요청을 보냈다(msg_85ab1872d07c)
+  - phase-02-task-02(구현 병합 ac?): 검증 워커 `ctx_822c541c2daf`, 검증 슬롯 0
+  - phase-02-task-04(in_progress, 서버 우선): 구현 워커 슬롯 3. 화면 연결은 01-04 병합 뒤 조정자가 한다
+  - 대기: 01-05, 02-05, 02-03(01-04 병합 후)
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
@@ -31,7 +32,7 @@
   - `loop_started_at: 2026-11-02T18:55:20+09:00`
   - `deadline: 2026-11-03T18:55:20+09:00`
   - 신규 대형 태스크 시작 마감: 2026-11-03T17:55+09:00
-- elapsed: 1.5h (20시 23분 15초 기준)
+- elapsed: 1.6h (20시 32분 3초 기준)
 - 누적 재시도: 01-01 3회(AC3 1회, AC4 2회). 시도 4는 전략 전환
 
 ## 미결·차단
