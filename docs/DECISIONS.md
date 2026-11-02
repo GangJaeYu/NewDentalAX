@@ -54,3 +54,4 @@
 | 2026-11-02 | start.bat 설치 판단은 잠금 파일 해시(`node_modules\.install-stamp`)로. 개발 폴더면 `npm ci`, 아니면 `npm ci --omit=dev` (01-01) | 개발 도구가 지워지지 않게 하려고 |
 | 2026-11-02 | 에이전트의 start.bat 실행 확인은 `cmd /c .\start.bat`으로 한다 (01-01 발견) | 이 PC에서 `cmd /c start.bat`은 cmd 내장 명령 `start`와 이름이 겹쳐 실패한다. 탐색기 더블클릭은 전체 경로로 실행하므로 영향이 없다 |
 | 2026-11-02 | `/api/health`에 `now` 필드 추가, `test:unit`은 `vitest run --no-color` (01-01) | E2E에서 TEST_NOW 적용을 확인하려고. gate.mjs가 테스트 건수를 인식하게 하려고 |
+| 2026-11-02 | start.bat·stop.bat은 실행되는 1~4행을 ASCII로만 쓰고, 한국어 로직(scripts/windows/*-main.cmd)은 새 cmd(`cmd /d /s /c`)로 실행한다 (01-01 시도 2) | 코드 페이지 949로 시작한 cmd는 chcp 65001 뒤 같은 프로세스에서 읽는 여러 바이트 줄의 위치를 잘못 잡는다(독립 검증이 발견했고 실험으로 확인). 새 cmd는 65001에서 시작해서 정상이다 |

@@ -11,17 +11,25 @@
 
 ## 대상 코드
 - 저장소: C:\Users\main\Desktop\DentalAX_with_Skills
-- HEAD: de2e72a
+- HEAD: 042e7b6
 - 변경 범위(기준 765d116):
 ```
-docs/DECISIONS.md                                  |    7 +
+.gitattributes                                     |    3 +-
+ docs/DECISIONS.md                                  |    7 +
  docs/TRD.md                                        |    2 +-
  eslint.config.js                                   |   59 +
  harness_setup/HARNESS.md                           |    6 +-
+ .../validation-2026-11-02T1930-fail.md             |   15 +
+ ...hase-01-task-01.md => phase-01-task-01-fix2.md} |   39 +-
+ loop_setup/specs/phase-01-task-01-validation.md    |  150 +
+ loop_setup/specs/phase-01-task-02.md               |   58 +
+ loop_setup/validation-appendix.md                  |   17 +
  package-lock.json                                  | 5061 ++++++++++++++++++++
  package.json                                       |   53 +
- plan_setup/LOG.md                                  |   10 +
- .../phase-01/phase-01-tasks/phase-01-task-01.md    |    2 +-
+ plan_setup/LOG.md                                  |   17 +
+ plan_setup/STATE.md                                |   23 +-
+ .../phase-01/phase-01-tasks/phase-01-task-01.md    |    4 +-
+ .../phase-01/phase-01-tasks/phase-01-task-02.md    |    2 +-
  .../phase-05/phase-05-tasks/phase-05-task-05.md    |    2 +-
  playwright.config.ts                               |   38 +
  scripts/check-file-headers.test.ts                 |   74 +
@@ -31,14 +39,17 @@ docs/DECISIONS.md                                  |    7 +
  scripts/lint.ts                                    |   98 +
  scripts/perf.ts                                    |   31 +
  scripts/screenshots.ts                             |   62 +
+ scripts/windows/batch-scripts.test.ts              |  224 +
+ scripts/windows/start-main.cmd                     |   99 +
+ scripts/windows/stop-main.cmd                      |   48 +
  server/app.test.ts                                 |   91 +
  server/app.ts                                      |  137 +
  server/config.test.ts                              |   50 +
  server/config.ts                                   |   98 +
  server/main.test.ts                                |  139 +
  server/main.ts                                     |  180 +
- start.bat                                          |   97 +
- stop.bat                                           |   46 +
+ start.bat                                          |    6 +
+ stop.bat                                           |    6 +
  tests/e2e/smoke.spec.ts                            |   32 +
  tests/helpers/tmp-dir.ts                           |   10 +
  tsconfig.base.json                                 |   16 +
@@ -50,7 +61,7 @@ docs/DECISIONS.md                                  |    7 +
  web/src/boot.css                                   |   43 +
  web/src/main.tsx                                   |   24 +
  web/tsconfig.json                                  |   11 +
- 36 files changed, 6674 insertions(+), 6 deletions(-)
+ 47 files changed, 7200 insertions(+), 36 deletions(-)
 ```
 
 ## 실행 방법 (harness_setup/HARNESS.md §2·§3)
@@ -61,7 +72,7 @@ docs/DECISIONS.md                                  |    7 +
 ## 태스크 정의 (원문)
 ---
 id: phase-01-task-01
-status: in_progress
+status: failed
 phase: "01"
 title: "프로젝트 골격·도구·실행 스크립트"
 depends_on: []
@@ -148,3 +159,4 @@ verification: [lint, unit, e2e, task_validation]
   - 결과 원문(반환 형식 표 전체)을 `.tmp/validation-result.md`에 저장한다.
   - 같은 내용을 worker_done 본문으로 보고한다.
   - outcome: 모든 기준이 PASS면 succeeded, 하나라도 FAIL이나 판정 불가가 있으면 failed
+- 참고: 이 태스크는 두 번째 검증이다. 첫 검증에서는 AC3(새 콘솔 949에서 start.bat 첫 줄 오류)이 FAIL이었고, 그 뒤 수정이 병합됐다. 7개 기준을 모두 처음부터 다시 판정하고, AC3·AC4는 반드시 새 콘솔 조건(기본 코드 페이지 949)에서 확인한다.

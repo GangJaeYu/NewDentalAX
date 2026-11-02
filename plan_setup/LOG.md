@@ -55,3 +55,11 @@
 - 증거: harness_setup/evidence/phase-01-task-01/validation-2026-11-02T1930-fail.md
 - 분류: 코드 결함. status=failed로 바꾸고 수정 워커를 배정한다(시도 2). 수정 뒤에는 다른 검증 워커가 lint부터 다시 판정한다.
 - 19:35 phase-01-task-02 구현을 먼저 시작했다(슬롯 1). 01-01의 FAIL 범위(start.bat)와 01-02의 파일이 겹치지 않아서다. 01-02의 completed 판정은 01-01이 completed가 된 뒤에만 한다.
+
+## 2026-11-02 19:42 phase-01-task-01 시도 2 통합
+- 수정 워커 ctx_cea84a1662b8, 커밋 357c902
+- start.bat·stop.bat을 ASCII 래퍼로 바꾸고, 한국어 로직은 새 cmd에서 실행되는 scripts/windows/*.cmd로 옮겼다.
+- 새 콘솔(949) 재현 vitest를 추가했다. 수정 전 코드에서 실패하는 것도 워커가 확인했다.
+- main 병합 후 게이트: lint PASS(19/1/25/27), unit 26건, e2e 3건
+- DECISIONS·overview 폴더 지도 반영
+- 다음: 새 검증 워커(시도 2 검증, 이전 검증자와 다른 세션)

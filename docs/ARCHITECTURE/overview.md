@@ -42,7 +42,7 @@ flowchart LR
 ### 폴더 지도
 
 ```
-start.bat / stop.bat           매일 켜고 끄기 (TD-019)
+start.bat / stop.bat           매일 켜고 끄기 (TD-019) — ASCII 래퍼, 실제 로직은 scripts/windows/start-main.cmd·stop-main.cmd
 package.json                   루트 한 개(workspace 없음). scripts가 Loop 게이트 명령
 shared/                        서버·화면 공용: roles.ts(권한 표), ai-features.ts, enums.ts, schemas/*.ts(zod), privacy-rules.ts
 server/
