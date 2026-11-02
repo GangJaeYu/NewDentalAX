@@ -53,7 +53,7 @@ export function registerAuthGuard(app: FastifyInstance): void {
     // ① 세션 확인(살아 있으면 만료를 8시간 뒤로 미룬다). 쿠키가 있는데 세션이 없으면 쿠키를 지우게 한다
     const token = req.cookies?.[SESSION_COOKIE];
     req.auth = token ? touchSession(app.db, app.clock, token) : null;
-    if (token && !req.auth) reply.clearCookie(SESSION_COOKIE, { path: '/' });
+    if (token && !req.auth) reply.clearCookie(SESSION_COOKIE, SESSION_COOKIE_OPTIONS);
 
     const unsafe = isUnsafeMethod(req.method);
     // ② 공개 API: 로그인 없이 통과. 상태 변경(첫 설정·로그인)은 출처만 확인한다

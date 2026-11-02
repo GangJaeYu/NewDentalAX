@@ -152,7 +152,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     const user = currentUser(req);
     if (req.auth) deleteSession(app.db, req.auth.sessionId);
     audit(auditCtx(req), 'auth.logout', 'user', user.id, null);
-    reply.clearCookie(SESSION_COOKIE, { path: '/' });
+    reply.clearCookie(SESSION_COOKIE, SESSION_COOKIE_OPTIONS);
     return reply.code(204).send();
   });
 
