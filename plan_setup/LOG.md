@@ -382,3 +382,10 @@
 - 배정
   - 03-02 검증(검증 슬롯 0)
   - phase-04 시작: 04-01 근무표(슬롯 0, 선행 03-09 completed), 04-06 광고 점검(슬롯 3, 선행 02-03 completed)
+- 23:45 03-03 커밋 4ca95bf(워커 ctx_03f6e7d3f4cb) 병합
+  - 충돌: inventory/routes.ts import 1건(orders·csv 둘 다 살림)
+  - 같은 병합 커밋 e76708e에 03-03 변경 요청 2건을 조정자가 반영했다.
+    - 재고 화면 "CSV 가져오기·내보내기" 진입 버튼(실장 이상)
+    - .filedrop position:relative
+  - main 게이트: lint PASS, unit 578건, e2e 159건
+  - 03-03 검증(검증 슬롯 1)에서 조정자 반영분도 함께 판정한다.
