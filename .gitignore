@@ -9,3 +9,4 @@ harness_setup/evidence/runs/
 *.log
 .env
 .tmp/
+web/dist/

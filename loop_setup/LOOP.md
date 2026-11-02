@@ -1,6 +1,6 @@
 # LOOP — 개발 루프 운영
 
-> 상태: **준비 완료, 시작 승인 대기(2026-11-02)**. 시작 시각은 `plan_setup/STATE.md`의 `loop_started_at`에 기록한다.
+> 상태: **실행 중(2026-11-02T18:55:20+09:00 시작, 사용자 승인)**. 시작 시각은 `plan_setup/STATE.md`의 `loop_started_at`에 기록한다.
 > 합의 정본: `docs/PRD.md` `## 자율운영 합의`. 이 문서는 그 합의를 실행하는 방법만 정하고, 합의 내용을 바꾸지 않는다.
 
 ## 1. 경계와 예산
@@ -12,7 +12,7 @@
 | 예산 추적 | `plan_setup/STATE.md`의 `loop_started_at`, `elapsed`(각 전환 때 갱신). 토큰과 비용은 측정할 수 없어서 "미확인"으로 둔다 | — |
 | 허용 | 이 저장소 안의 코드·문서·테스트·하네스 수정, npm 패키지 설치, 로컬 서버·브라우저 테스트, 공식 문서 웹 조회, 로컬 git 커밋·브랜치·병합 | 사용자 |
 | 금지 | git push, 유료 결제, 실제 LLM API 호출, 외부 배포, 시스템 전역 설정 변경, 이 폴더(와 승인된 Orca 작업 사본) 밖 수정, 다른 프로세스 종료 | 사용자 |
-| 작업 사본 위치 | Orca가 관리하는 `C:\Users\main\orca\workspaces\DentalAX_with_Skills\<이름>`. 이 저장소의 git worktree이고, 병합한 뒤 삭제한다 | **시작 승인 때 사용자 확인 필요**(§8) |
+| 작업 사본 위치 | Orca가 관리하는 `C:\Users\main\orca\workspaces\DentalAX_with_Skills\<이름>`. 이 저장소의 git worktree이고, 병합한 뒤 삭제한다 | 사용자 허용(2026-11-02) |
 | 디자인 | `docs/DESIGN.md` 승인 v2 기준선. 승인 범위 밖의 새 시각 결정이 필요하면 해당 UI만 차단하고 최종 보고에 남긴다 | 사용자 |
 
 ## 2. 실행 주체와 모델 (정본)
