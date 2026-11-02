@@ -15,3 +15,5 @@ export { PaperPreview } from './PaperPreview.tsx';
 export { MiniBar, Sparkline, BarChart, DonutChart } from './Charts.tsx';
 export { CopyButton } from './CopyButton.tsx';
 export { FileDrop } from './FileDrop.tsx';
+export { AiPanel, AI_DISCLAIMER } from './AiPanel.tsx';
+export { PrivacyGuard, PrivacyWarning } from './PrivacyGuard.tsx';

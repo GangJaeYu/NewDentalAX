@@ -41,6 +41,14 @@ const env: NodeJS.ProcessEnv = {
   OPEN_BROWSER: '0',
   NO_BROWSER: '1',
 };
+// 실제 AI 공급자로는 절대 나가지 않게 한다: AI_BASE_URL_*를 주지 않았으면 닫힌 로컬 주소로 막는다(연결 거부 → AI_NETWORK).
+// 가짜 LLM 서버(tests/fake-llm)를 쓰는 spec은 isoServer.extraEnv로 주소를 넘긴다(phase-02-task-03 추가).
+for (const k of ['AI_BASE_URL_ANTHROPIC', 'AI_BASE_URL_OPENAI', 'AI_BASE_URL_GEMINI']) {
+  if (!env[k]) env[k] = 'http://127.0.0.1:9';
+}
+process.env.AI_BASE_URL_ANTHROPIC = env.AI_BASE_URL_ANTHROPIC;
+process.env.AI_BASE_URL_OPENAI = env.AI_BASE_URL_OPENAI;
+process.env.AI_BASE_URL_GEMINI = env.AI_BASE_URL_GEMINI;
 console.log(`[e2e-server] DATA_DIR=${dataDir} PORT=${env.PORT} TEST_NOW=${env.TEST_NOW}`);
 
 // SEED_DEMO=1이면 서버를 켜기 전에 데모 데이터를 넣는다(등록된 모든 모듈의 seedDemo, server/db/seed/registry.ts)

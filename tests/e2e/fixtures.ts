@@ -36,6 +36,8 @@ async function pickPort(workerIndex: number): Promise<number> {
 export class IsoServer {
   readonly dataDir: string;
   port = 0;
+  /** 테스트 서버에 더 넘길 환경 변수(예: 가짜 LLM 주소 AI_BASE_URL_*). 바꾼 뒤에는 stop()·start()로 다시 켠다(phase-02-task-03 추가) */
+  extraEnv: Record<string, string> = {};
   private child: ChildProcess | null = null;
   private readonly workerIndex: number;
 
@@ -54,7 +56,7 @@ export class IsoServer {
   async start(): Promise<void> {
     if (this.child) return;
     if (!this.port) this.port = await pickPort(this.workerIndex);
-    const env: NodeJS.ProcessEnv = { ...process.env, E2E_PORT: String(this.port), E2E_DATA_DIR: this.dataDir, TEST_NOW: process.env.TEST_NOW || TEST_NOW };
+    const env: NodeJS.ProcessEnv = { ...process.env, ...this.extraEnv, E2E_PORT: String(this.port), E2E_DATA_DIR: this.dataDir, TEST_NOW: process.env.TEST_NOW || TEST_NOW };
     const child = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', 'scripts/e2e-server.ts'], { cwd: ROOT, env, stdio: 'ignore' });
     this.child = child;
     const until = Date.now() + 60000;

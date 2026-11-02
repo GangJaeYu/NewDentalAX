@@ -36,6 +36,8 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
       await page.getByRole('dialog', { name: '알림' }).getByText('거즈 재고가 부족해요').waitFor();
     },
   },
+  { name: 'admin-ai', url: '/admin/ai', state: 'user', ready: 'AI 시험해 보기' },
+  { name: 'admin-ai-usage', url: '/admin/ai-usage', state: 'user', ready: 'AI 사용 기록이 없어요' },
 ];
 
 /** 스크린샷용 예시 알림(관리자가 받는 것): 읽지 않음 4건 + 읽음 1건 */
