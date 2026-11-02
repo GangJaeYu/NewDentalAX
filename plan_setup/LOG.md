@@ -132,3 +132,12 @@
   - admin의 GET /api/audit는 아직 404다. 01-05 범위다.
 - 증거: harness_setup/evidence/phase-01-task-03/
 - completed는 01-02가 completed가 된 뒤에 한다.
+
+## 2026-11-02 20:16 phase-01-task-01 시도 3 통합
+- 수정 워커 ctx_53a7fb87dbbf, 커밋 0c307a9
+- 수정 내용: listen 전에 5개 주소에서 포트 사용 여부를 먼저 확인하고, 기본 host를 '::'로 바꿨다.
+  - Windows는 주소가 정확히 같을 때만 충돌을 감지한다. 그래서 권장안('::'만 쓰기)으로는 부족하다는 것을 워커가 실험으로 확인했다.
+- 병합: server/main.ts에서 충돌 1건이 났다. 사전 확인 코드와 01-03의 allowExternal 인자를 함께 살려서 해결했다.
+- main 게이트: lint PASS, unit 276건, e2e 8건
+- TRD TD-007의 listen 문구를 고치고, DECISIONS에 기록했다.
+- 다음: 3차 검증 워커(검증 슬롯 1, 이전 두 검증자와 다른 세션)

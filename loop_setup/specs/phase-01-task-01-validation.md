@@ -11,47 +11,142 @@
 
 ## 대상 코드
 - 저장소: C:\Users\main\Desktop\DentalAX_with_Skills
-- HEAD: 042e7b6
+- HEAD: cba48c7
 - 변경 범위(기준 765d116):
 ```
 .gitattributes                                     |    3 +-
- docs/DECISIONS.md                                  |    7 +
- docs/TRD.md                                        |    2 +-
+ docs/ARCHITECTURE/database.md                      |    2 +-
+ docs/ARCHITECTURE/overview.md                      |    4 +-
+ docs/DECISIONS.md                                  |   22 +
+ docs/PRD.md                                        |    2 +-
+ docs/TRD.md                                        |   14 +-
  eslint.config.js                                   |   59 +
  harness_setup/HARNESS.md                           |    6 +-
  .../validation-2026-11-02T1930-fail.md             |   15 +
- ...hase-01-task-01.md => phase-01-task-01-fix2.md} |   39 +-
- loop_setup/specs/phase-01-task-01-validation.md    |  150 +
+ .../validation-2026-11-02T2000-fail2.md            |   15 +
+ .../validation-2026-11-02T1953-pass.md             |   12 +
+ .../validation-2026-11-02T2011-pass.md             |   20 +
+ .../validation-2026-11-02T2007-pass.md             |   21 +
+ .../validation-2026-11-02T2008-pass.md             |   16 +
+ loop_setup/specs/phase-01-task-01-fix2.md          |   74 +
+ loop_setup/specs/phase-01-task-01-fix3.md          |   75 +
+ loop_setup/specs/phase-01-task-01-validation.md    |  162 +
+ loop_setup/specs/phase-01-task-02-validation.md    |  127 +
  loop_setup/specs/phase-01-task-02.md               |   58 +
+ loop_setup/specs/phase-01-task-03-validation.md    |  136 +
+ loop_setup/specs/phase-01-task-03.md               |   65 +
+ loop_setup/specs/phase-01-task-04.md               |   68 +
+ loop_setup/specs/phase-01-task-06-validation.md    |  110 +
+ loop_setup/specs/phase-01-task-06.md               |   63 +
+ loop_setup/specs/phase-02-task-01-validation.md    |  113 +
+ .../{phase-01-task-01.md => phase-02-task-01.md}   |   39 +-
+ loop_setup/specs/phase-02-task-02.md               |   64 +
  loop_setup/validation-appendix.md                  |   17 +
  package-lock.json                                  | 5061 ++++++++++++++++++++
- package.json                                       |   53 +
- plan_setup/LOG.md                                  |   17 +
- plan_setup/STATE.md                                |   23 +-
+ package.json                                       |   54 +
+ plan_setup/LOG.md                                  |   94 +
+ plan_setup/STATE.md                                |   27 +-
  .../phase-01/phase-01-tasks/phase-01-task-01.md    |    4 +-
  .../phase-01/phase-01-tasks/phase-01-task-02.md    |    2 +-
+ .../phase-01/phase-01-tasks/phase-01-task-03.md    |    2 +-
+ .../phase-01/phase-01-tasks/phase-01-task-04.md    |    2 +-
+ .../phase-01/phase-01-tasks/phase-01-task-06.md    |    2 +-
+ .../phase-02/phase-02-tasks/phase-02-task-01.md    |    2 +-
+ .../phase-02/phase-02-tasks/phase-02-task-02.md    |    2 +-
  .../phase-05/phase-05-tasks/phase-05-task-05.md    |    2 +-
  playwright.config.ts                               |   38 +
  scripts/check-file-headers.test.ts                 |   74 +
  scripts/check-file-headers.ts                      |   69 +
  scripts/dev.ts                                     |   26 +
- scripts/e2e-server.ts                              |   43 +
+ scripts/e2e-server.ts                              |   57 +
+ scripts/kb-eval.ts                                 |  246 +
  scripts/lint.ts                                    |   98 +
  scripts/perf.ts                                    |   31 +
  scripts/screenshots.ts                             |   62 +
- scripts/windows/batch-scripts.test.ts              |  224 +
+ scripts/windows/batch-scripts.test.ts              |  246 +
  scripts/windows/start-main.cmd                     |   99 +
  scripts/windows/stop-main.cmd                      |   48 +
  server/app.test.ts                                 |   91 +
- server/app.ts                                      |  137 +
- server/config.test.ts                              |   50 +
- server/config.ts                                   |   98 +
- server/main.test.ts                                |  139 +
- server/main.ts                                     |  180 +
+ server/app.ts                                      |  159 +
+ server/auth/api-permissions.ts                     |  104 +
+ server/auth/auth.test.ts                           |  355 ++
+ server/auth/csrf.ts                                |   51 +
+ server/auth/guard.ts                               |  119 +
+ server/auth/login-limit.ts                         |   93 +
+ server/auth/password.test.ts                       |   26 +
+ server/auth/password.ts                            |   52 +
+ server/auth/permissions.test.ts                    |  151 +
+ server/auth/routes.ts                              |  178 +
+ server/auth/sessions.ts                            |  138 +
+ server/config.test.ts                              |   62 +
+ server/config.ts                                   |  118 +
+ server/db/audit-log.test.ts                        |   89 +
+ server/db/index.test.ts                            |  136 +
+ server/db/index.ts                                 |  160 +
+ server/db/migrate.test.ts                          |  174 +
+ server/db/migrate.ts                               |  127 +
+ server/db/migrations/001_core.sql                  |   98 +
+ server/db/seed/registry.test.ts                    |   38 +
+ server/db/seed/registry.ts                         |   61 +
+ server/db/seed/types.ts                            |   21 +
+ server/lib/audit.ts                                |   72 +
+ server/lib/clock.ts                                |   45 +
+ server/lib/dates.test.ts                           |  111 +
+ server/lib/dates.ts                                |  202 +
+ server/lib/errors.test.ts                          |   82 +
+ server/lib/errors.ts                               |  102 +
+ server/main.test.ts                                |  197 +
+ server/main.ts                                     |  267 ++
+ server/modules/admin/routes.ts                     |    7 +
+ server/modules/admin/seed.ts                       |   11 +
+ server/modules/ai/routes.ts                        |    7 +
+ server/modules/ai/seed.ts                          |   11 +
+ server/modules/assistant/routes.ts                 |    7 +
+ server/modules/assistant/search.test.ts            |  284 ++
+ server/modules/assistant/search.ts                 |  520 ++
+ server/modules/assistant/seed.ts                   |   11 +
+ server/modules/desk/routes.ts                      |    7 +
+ server/modules/desk/seed.ts                        |   11 +
+ server/modules/docs/routes.ts                      |    7 +
+ server/modules/docs/seed.ts                        |   11 +
+ server/modules/facility/routes.ts                  |    7 +
+ server/modules/facility/seed.ts                    |   11 +
+ server/modules/finance/routes.ts                   |    7 +
+ server/modules/finance/seed.ts                     |   11 +
+ server/modules/hr/routes.ts                        |    7 +
+ server/modules/hr/seed.ts                          |   11 +
+ server/modules/index.test.ts                       |   32 +
+ server/modules/index.ts                            |   41 +
+ server/modules/inventory/routes.ts                 |    7 +
+ server/modules/inventory/seed.ts                   |   11 +
+ server/modules/marketing/routes.ts                 |    7 +
+ server/modules/marketing/seed.ts                   |   11 +
+ server/modules/notifications/routes.ts             |    7 +
+ server/modules/notifications/seed.ts               |   11 +
+ server/privacy/filter.test.ts                      |  396 ++
+ server/privacy/filter.ts                           |  158 +
+ server/security/headers.ts                         |   35 +
+ server/security/network.ts                         |   82 +
+ server/security/security.test.ts                   |  153 +
+ server/security/validate.ts                        |   30 +
+ shared/enums.ts                                    |   39 +
+ shared/privacy-rules.ts                            |  347 ++
+ shared/roles.test.ts                               |   71 +
+ shared/roles.ts                                    |  198 +
+ shared/schemas/auth.ts                             |   88 +
  start.bat                                          |    6 +
  stop.bat                                           |    6 +
+ tests/e2e/auth-api.spec.ts                         |   95 +
  tests/e2e/smoke.spec.ts                            |   32 +
+ tests/fixtures/kb/eval-set.json                    |   46 +
+ tests/fixtures/kb/front-desk.md                    |   52 +
+ tests/fixtures/kb/infection-control.md             |   57 +
+ tests/fixtures/kb/inventory.md                     |   52 +
+ tests/fixtures/kb/leave-and-work.md                |   55 +
+ tests/fixtures/kb/sterilization.md                 |   52 +
+ tests/helpers/auth.ts                              |   42 +
  tests/helpers/tmp-dir.ts                           |   10 +
+ tests/schema-privacy.test.ts                       |  106 +
  tsconfig.base.json                                 |   16 +
  tsconfig.json                                      |    3 +
  tsconfig.server.json                               |   11 +
@@ -59,9 +154,11 @@
  vitest.config.ts                                   |   14 +
  web/index.html                                     |   16 +
  web/src/boot.css                                   |   43 +
+ web/src/lib/privacy.test.ts                        |   53 +
+ web/src/lib/privacy.ts                             |   57 +
  web/src/main.tsx                                   |   24 +
  web/tsconfig.json                                  |   11 +
- 47 files changed, 7200 insertions(+), 36 deletions(-)
+ 144 files changed, 14906 insertions(+), 53 deletions(-)
 ```
 
 ## 실행 방법 (harness_setup/HARNESS.md §2·§3)
@@ -145,9 +242,9 @@ verification: [lint, unit, e2e, task_validation]
 
 ## Orca 검증 워커 추가 지시
 - 너는 검증할 커밋으로 새로 만든 작업 사본에 있다. 먼저 `npm ci`를 실행한다(설치는 테스트 데이터 준비로 허용된다).
-- 슬롯 0
-  - 화면 테스트: `E2E_PORT=18094`
-  - 수동 서버: `PORT=18194`
+- 슬롯 1
+  - 화면 테스트: `E2E_PORT=18095`
+  - 수동 서버: `PORT=18195`
   - 데이터: `.tmp/` 아래
   - gate.mjs를 실행할 때 환경 변수 `E2E_PORT`를 지정한다.
 - 파일 수정 범위
@@ -159,4 +256,11 @@ verification: [lint, unit, e2e, task_validation]
   - 결과 원문(반환 형식 표 전체)을 `.tmp/validation-result.md`에 저장한다.
   - 같은 내용을 worker_done 본문으로 보고한다.
   - outcome: 모든 기준이 PASS면 succeeded, 하나라도 FAIL이나 판정 불가가 있으면 failed
-- 참고: 이 태스크는 두 번째 검증이다. 첫 검증에서는 AC3(새 콘솔 949에서 start.bat 첫 줄 오류)이 FAIL이었고, 그 뒤 수정이 병합됐다. 7개 기준을 모두 처음부터 다시 판정하고, AC3·AC4는 반드시 새 콘솔 조건(기본 코드 페이지 949)에서 확인한다.
+- 참고: 이번이 세 번째 검증이다.
+  - 1차 FAIL은 AC3(새 콘솔 949에서 start.bat 첫 줄 오류)이었다.
+  - 2차 FAIL은 AC4(다른 프로그램이 `[::]:PORT`를 점유했을 때 충돌 미감지)였다.
+  - 두 수정 모두 병합됐다.
+- 7개 기준을 처음부터 다시 판정한다.
+  - AC3·AC4는 새 콘솔(기본 코드 페이지 949) 조건에서 확인한다.
+  - AC4는 `[::]`, `0.0.0.0`, `127.0.0.1` 세 가지 점유 경우를 모두 확인한다.
+  - 점유가 없을 때는 localhost·127.0.0.1·원내 IP 모두로 health가 응답하는지 확인한다.
