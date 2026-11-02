@@ -139,7 +139,7 @@
     - SDK 없이 `fetch`로 호출한다. 의존성을 최소화하고, 테스트용 가짜 서버로 base URL을 바꾸기 쉽게 하기 위해서다.
   - 공급자별 호출 방식
     - Anthropic: Messages API(`POST /v1/messages`, `x-api-key`, `anthropic-version` 헤더)
-    - OpenAI: 공식 문서에서 현재 권장하는 텍스트 생성 엔드포인트
+    - OpenAI: Responses API(`POST /v1/responses`, `store:false`). 2026-11-02 공식 문서로 확인했다(OQ-009, 02-02).
     - Gemini: `generateContent`/`streamGenerateContent`
     - 구현할 때 각 공식 API 문서로 요청·응답·사용량 필드를 다시 확인하고 DECISIONS.md에 기록한다.
   - 모든 AI 호출은 `server/ai/gateway.ts` 한 곳을 지나간다. 이 게이트웨이가 차례로 처리하는 일:

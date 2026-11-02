@@ -158,7 +158,8 @@ type PiiType = 'rrn' | 'phone' | 'email' | 'card' | 'account' | 'passport'
 | POST `/ai/run` | S + 기능 권한 | `{feature, input, tier?}` → `AiResult` (+ 기능별 `extra`) | 030~ |
 | POST `/ai/stream` | S + 기능 권한 | 같은 요청. 응답은 `text/event-stream`, 이벤트 `delta{text}` · `done{AiResult 메타}` · `error{code,message}` | 060 AC4 |
 | POST `/adcheck` | S + cap:ai.adcheck | `{text, useAi}` → `{ruleHits:[{start,end,phrase,severity,reason,suggestion}], ai?: AiResult(JSON 결과)}` | 120 |
-| GET/PUT `/ai/settings` | A | 키는 `maskedKey`만 응답. PUT `{provider, keys?:{anthropic?:string|null...}, budget, fx, features}` | 030·031·033·035 |
+| GET/PUT `/ai/settings` | A | 키는 `maskedKey`만 응답. PUT `{provider, keys?:{anthropic?:string|null...}, monthlyBudgetKrw, fxKrwPerUsd, warnPct, features:{<id>:{enabled,roles,tier}}}`(budget·fx도 별칭으로 받음, 02-02) | 030·031·033·035 |
+| GET `/ai/status` | S | `{demo, provider, features[{id,label,enabled,allowed,tier,userTier}], budget:{exceeded, (ai.usage 권한이면 monthKrw·budgetKrw·pct·warnPct)}}`. AiPanel의 데모 표시와 비활성 안내에 쓴다(02-02 추가) | 030·033 |
 | POST `/ai/test` | A | `{provider}` → `{ok, message}` | 030 AC3 |
 | GET/PUT `/ai/models` | A | 모델·단가 표 | 036 |
 | GET `/ai/usage?month=` | A | `{monthKrw, budgetKrw, pct, byFeature, byUser, byDay, recent}` | 034 |
