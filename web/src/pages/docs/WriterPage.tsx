@@ -4,6 +4,7 @@
 // 화면의 주 행동(채워진 청록)은 하나만: 초안이 없을 때는 "초안 만들기", 초안이 생기면 "저장"이다.
 import { useId, useState } from 'react';
 import { AiPanel } from '../../components/AiPanel.tsx';
+import { AdCheckButton } from '../../components/AdCheckResult.tsx';
 import { Button } from '../../components/Button.tsx';
 import { Card, PageHeader } from '../../components/Card.tsx';
 import { Chip } from '../../components/Chip.tsx';
@@ -213,6 +214,8 @@ export default function WriterPage() {
                   {reviseError.help ? <span>{reviseError.help}</span> : null}
                 </div>
               ) : null}
+              {/* 광고 문구 점검(FR-120 AC1 "다른 기능의 결과에서", phase-04-task-06) */}
+              <AdCheckButton text={body} />
               <div className="doc-form-row two">
                 <Field label="폴더" help="예: 환자 안내, 공문">
                   <TextInput value={folder} maxLength={50} onChange={(e) => setFolder(e.target.value)} />

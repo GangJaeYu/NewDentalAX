@@ -1,0 +1,26 @@
+/* 이 파일이 하는 일: 의료광고 문구 점검(/docs/adcheck)·홍보 글(/docs/promo) 화면의 배치 스타일.
+   넓은 화면은 입력(왼쪽)·결과(오른쪽) 두 칸, 1100px 이하는 한 칸으로 쌓는다. 규칙 사전 표의 긴 글은 줄을 바꾼다. 색·간격은 tokens.css 변수만 쓴다. */
+.adc-cols { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; min-width: 0; margin-bottom: var(--gap); }
+@media (max-width: 1100px) { .adc-cols { grid-template-columns: minmax(0, 1fr); } }
+.adc-cols > * { min-width: 0; }
+
+.adc-form { display: grid; gap: 14px; min-width: 0; }
+.adc-form-row { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.adc-form-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 720px) { .adc-form-row, .adc-form-row.three { grid-template-columns: minmax(0, 1fr); } }
+.adc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.adc-actions .grow { flex: 1; }
+.adc-alert { display: grid; gap: 8px; justify-items: start; padding: 10px 12px; border-radius: var(--r-md); background: var(--danger-weak); color: var(--danger); font-size: var(--fs-small); }
+
+.adc-rule-note { margin-bottom: 10px; }
+.adc-rule-pattern { display: grid; gap: 2px; min-width: 120px; }
+.adc-rule-pattern code { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; overflow-wrap: anywhere; white-space: normal; }
+.adc-rule-pattern small { color: var(--muted); font-size: 11.5px; }
+.adc-rule-text { display: block; min-width: 180px; max-width: 360px; white-space: normal; overflow-wrap: anywhere; font-size: 12.5px; line-height: 1.5; }
+.adc-rule-state { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.adc-rule-actions { display: inline-flex; flex-wrap: nowrap; gap: 4px; }
+
+/* AI 결과 상자(.ai-out)는 높이 제한이 있어 키보드로 닿지 않는 스크롤 영역이 될 수 있다(axe scrollable-region-focusable). 이 화면에서는 높이 제한을 푼다 */
+.promo-ai .ai-out { max-height: none; overflow-y: visible; }
+/* 홍보 글: 다 받은 초안은 오른쪽 편집 칸으로 옮기므로 왼쪽의 AI 원문 상자는 숨긴다(받는 동안에는 보임). 비용·복사 줄은 남는다 */
+.promo-done .ai-out { display: none; }
