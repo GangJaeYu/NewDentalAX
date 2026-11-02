@@ -6,9 +6,10 @@
 import type { Db } from '../../db/index.ts';
 import type { SeedContext } from '../../db/seed/types.ts';
 import { addDays, kstMidnight, todayKst } from '../../lib/dates.ts';
+import { orderTables, seedOrdersDemo } from './orders.seed.ts';
 
 /** 이 모듈이 소유한 업무 테이블(초기화 때 비울 대상, 가리키는 쪽부터) */
-export const tables: readonly string[] = ['vendors', 'items', 'stock_moves'];
+export const tables: readonly string[] = ['vendors', 'items', 'stock_moves', ...orderTables];
 
 /** 데모 거래처 5곳(가상) */
 export const DEMO_VENDORS = [
@@ -247,4 +248,6 @@ export function seedDemo(db: Db, ctx: SeedContext): void {
       });
     }
   });
+  // 발주서 데모(phase-03-task-02, orders.seed.ts)
+  seedOrdersDemo(db, ctx);
 }
