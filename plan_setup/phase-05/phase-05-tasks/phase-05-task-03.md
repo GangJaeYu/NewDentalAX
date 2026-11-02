@@ -1,6 +1,6 @@
 ---
 id: phase-05-task-03
-status: pending
+status: in_progress
 phase: "05"
 title: "전체 E2E·스크린샷 전수 점검·접근성"
 depends_on: [phase-04-task-01, phase-04-task-02, phase-04-task-03, phase-04-task-05, phase-04-task-06, phase-04-task-07, phase-04-task-08]
