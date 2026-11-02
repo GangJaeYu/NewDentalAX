@@ -4,9 +4,13 @@
 import type { FastifyInstance } from 'fastify';
 import { registerLeaveRoutes } from './leave-routes.ts';
 import { registerRosterRoutes } from './roster-routes.ts';
+import { registerTrainingRoutes } from './training-routes.ts';
+import { registerOnboardingRoutes } from './onboarding-routes.ts';
 
 /** hr 모듈 API를 등록한다 */
 export default async function routes(app: FastifyInstance): Promise<void> {
   registerLeaveRoutes(app);
   registerRosterRoutes(app);
+  await registerTrainingRoutes(app);
+  registerOnboardingRoutes(app);
 }

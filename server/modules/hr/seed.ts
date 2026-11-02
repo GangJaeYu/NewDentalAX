@@ -6,6 +6,7 @@ import type { Db } from '../../db/index.ts';
 import type { SeedContext } from '../../db/seed/types.ts';
 import { addDays, kstDate, kstMidnight } from '../../lib/dates.ts';
 import { readClinic } from '../admin/clinic.ts';
+import { seedTrainingDemo } from './training-seed.ts';
 import { countLeaveDays, isClinicOpen, type LeaveStatus, type LeaveType } from '../../../shared/schemas/leave.ts';
 import { seedRosterDemo } from './roster-seed.ts';
 
@@ -59,6 +60,7 @@ function atKst(day: string, hour: number): string {
 export function seedDemo(db: Db, ctx: SeedContext): void {
   // 근무표 4주(phase-04-task-01, roster-seed.ts). 근무 유형은 061 마이그레이션이 넣는다
   seedRosterDemo(db, ctx);
+  seedTrainingDemo(db, ctx); // 교육·온보딩(phase-04-task-02, training-seed.ts)
   if (db.get('SELECT 1 AS x FROM leave_requests LIMIT 1')) return;
   const today = kstDate(ctx.clock.now());
   const year = Number(today.slice(0, 4));
