@@ -18,6 +18,7 @@ import { registerSecurityHeaders } from './security/headers.ts';
 import { registerAuthGuard } from './auth/guard.ts';
 import { authRoutes } from './auth/routes.ts';
 import { registerModules } from './modules/index.ts';
+import type { AiOptions } from './ai/types.ts';
 
 // 시계는 server/lib/clock.ts에 있다. 예전 import 경로(./app.ts)도 계속 쓸 수 있게 다시 내보낸다.
 export { fixedClock, systemClock, type Clock } from './lib/clock.ts';
@@ -28,6 +29,10 @@ declare module 'fastify' {
     db: Db;
     /** 이 서버가 쓰는 시계 */
     clock: Clock;
+    /** 업무 데이터 폴더(secret.key·로그 위치) */
+    dataDir: string;
+    /** AI 실행 옵션(테스트가 넣은 가짜 공급자 주소 등). 없으면 null이고 ai 모듈이 환경 변수를 본다 */
+    aiOptions: AiOptions | null;
   }
 }
 
@@ -52,6 +57,8 @@ export interface AppDeps {
   logger?: boolean;
   /** true면 원내망 밖 접속도 허용한다(config.json의 allowExternal, 기본 false) */
   allowExternal?: boolean;
+  /** AI 실행 옵션(테스트 전용: 가짜 LLM 서버 주소·시간 초과). 없으면 환경 변수 AI_BASE_URL_*와 기본값 */
+  ai?: AiOptions;
 }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -94,6 +101,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({ logger: deps.logger ?? false });
   app.decorate('db', db);
   app.decorate('clock', clock);
+  app.decorate('dataDir', deps.dataDir);
+  app.decorate('aiOptions', deps.ai ?? null);
   if (ownDb) app.addHook('onClose', async () => db.close());
 
   // 보안 헤더(모든 응답) → 원내망 검사(가장 먼저) → 쿠키 → 세션·CSRF·권한 검사
