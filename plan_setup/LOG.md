@@ -372,3 +372,13 @@
 - 수정 뒤 main 게이트: lint PASS, e2e 145건 PASS
 - 조정자가 바꾼 제품 코드는 03-07 검증 워커가 화면 대조에서 함께 판정한다.
 - 스트리밍 지연 원인 후보(03-07 보고): gateway StreamRedactor.HOLD=48과 경계 출력 방식. 원내 도우미는 스트림을 쓰지 않는다. STATE 개선 항목을 유지한다.
+
+## 2026-11-02 23:30 03-09·03-08 PASS → completed. 03-02 통합
+- 03-09 검증 워커 ctx_98c317902593: 4/4 PASS(API와 Edge 화면, 경고 승인, 403)
+- 03-08 검증 워커 ctx_dbf67633af52: 5/5 PASS
+- 증거: evidence/phase-03-task-09/, evidence/phase-03-task-08/
+- completed: 03-09(선행 01-05·02-04), 03-08(선행 01-05·02-04)
+- 03-02 커밋 2bf6aed(워커 ctx_b4daec176a0d)를 충돌 없이 병합했다. main 게이트: lint PASS, unit 567건, e2e 151건
+- 배정
+  - 03-02 검증(검증 슬롯 0)
+  - phase-04 시작: 04-01 근무표(슬롯 0, 선행 03-09 completed), 04-06 광고 점검(슬롯 3, 선행 02-03 completed)

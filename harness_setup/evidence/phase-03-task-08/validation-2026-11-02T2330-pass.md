@@ -1,0 +1,19 @@
+# task_validation 결과 — phase-03-task-08 (법정 의무 일정)
+
+- 검증 커밋: 020b81c(작업 사본 HEAD; 9f04ada 병합 커밋 위에 plan/loop 문서만 바뀐 커밋) · 기준일 TEST_NOW=2026-11-02T09:00:00+09:00
+- 수동 서버: PORT=18195, DATA_DIR=.tmp\data(임시) · E2E_PORT=18095 · 실제 LLM 키 사용 없음
+- 검증자는 제품·테스트·문서를 고치지 않았고, 검증 뒤 `git status`는 깨끗하다(.tmp·artifacts는 git 무시 대상)
+
+| # | 수용 기준 | 판정(PASS/FAIL/판정 불가) | 관찰 증거(명령·출력 요약·파일 경로) |
+|---|---|---|---|
+| 1 | 목록에 TD-022의 모든 항목이 근거·출처 링크·상태 칩(확인됨/권장값/확인 필요)과 함께 보인다 | PASS | `GET /api/legal-tasks`(staff) → 200, items=22. docs/TRD.md TD-022 표 22행과 하나씩 대조해 모두 있음(이름만 조금 다름: "방사선 안전관리책임자 보수교육", "직장 내 성희롱 예방교육", "직장 내 장애인 인식개선 교육"). 22개 모두 basis 있음·sourceUrl `https://www.law.go.kr/…`·checkedOn 2026-11-02. 상태: verified 18, recommended 3(방사선 자체 교육·개인정보취급자 교육·감염병 예방 교육), needs_check 1(간호조무사) — TD-022와 같음. 화면: `artifacts/screens/facility-legal-1440-light.png`에서 줄마다 근거·"법령 보기" 링크·칩(확인됨/권장값) 보임. e2e AC1(22줄, 줄마다 law.go.kr 새 창 링크·칩 1개) 통과. 로그: `.tmp/verify-api.log` |
+| 2 | "파노라마 정기검사" 최근 수행일 2023-11-23 입력 → 다음 예정일 2026-11-23, 기준일 2026-11-02에서 D-21 | PASS | admin `POST /api/legal-tasks`(파노라마 정기검사, 36개월) → 201. manager `POST /api/legal-tasks/23/done {doneOn:'2023-11-23'}` → 200, lastDoneOn=2023-11-23, nextDueOn=2026-11-23, daysLeft=21. (staff 수행 기록 403, 미래 날짜 2026-11-05 → 400 "앞으로의 날짜는 수행일로 적을 수 없어요.") 화면: `artifacts/screens/facility-legal-drawer-1440-dark.png`에 "다음 예정일 2026-11-23 (D-21)", 목록에 "2026-11-23 D-21 · 최근 수행 2023-11-23". e2e AC2 통과 |
+| 3 | "해당 없음"으로 끈 항목은 대시보드·알림에서 빠진다 | PASS | TLD 수행 2026-08-10 → next 2026-11-10, D-8. admin `PATCH enabled:false` → 200, dueState=off, nextDueOn=null(manager PATCH는 403). 서버 재시작 뒤 legal_due 알림: admin·manager 각 1건 "파노라마 정기검사 기한이 21일 남았어요"만, TLD 없음, staff 0건(`.tmp/verify-notif.log`). 대조 실험: TLD를 다시 켜고 재시작하면 "개인 피폭선량 측정(TLD) 기한이 8일 남았어요"가 생김(`.tmp/verify-control.log`) → 빠진 이유가 "해당 없음" 때문임을 확인. 대시보드 쪽: 대시보드 카드 자체는 phase-03-task-10 범위라 아직 빈 셸이고, 그 데이터 원천 `listLegalDue`가 꺼진 항목을 빼는 것은 unit(legal.test.ts:181)과 e2e AC3("다가오는 일정" 보기에서 TLD 0줄, "해당 없음" 보기에 칩 표시)로 확인. 화면 KPI "해당 없음 1개 · 대시보드·알림에서 빠져요" |
+| 4 | admin이 주기를 바꾸면 다음 예정일이 다시 계산되고 감사 로그에 남는다; manager는 주기 수정 불가 | PASS | manager `PATCH /api/legal-tasks/23 {cycleMonths:12}` → 403 FORBIDDEN "이 기능을 사용할 권한이 없습니다.", 이후 cycleMonths=36 그대로. staff도 403. admin `PATCH {cycleMonths:24}` → 200, nextDueOn 2026-11-23→2025-11-23, daysLeft=-344, dueState=overdue, cycleText "2년마다". `GET /api/audit?action=legal.update`(admin) → `legal.update by=검증원장 legal_task:23 changes.cycle_months {from:36,to:24}, nextDueOn {from:'2026-11-23',to:'2025-11-23'}`(manager의 audit 조회는 403). 화면: 관리자 서랍에만 "관리자 설정 · 주기·상태 수정" 버튼, e2e AC4(실장 화면에 버튼 없음·API 403, 관리자 저장 후 "기한 지남 344일") 통과 |
+| 5 | 화면에 "법령은 바뀔 수 있습니다(확인일 2026-11-02)" 고지가 보인다 | PASS | `artifacts/screens/facility-legal-1440-light.png`·`facility-legal-390-light.png` 상단 경고 띠: "법령은 바뀔 수 있습니다(확인일 2026-11-02). 법정 주기는 법령 개정으로 바뀔 수 있으니 관할 기관 안내를 확인하세요." e2e AC5(legal-notice testid 문구) 통과 |
+| 화면 | DESIGN §5·기준선 대조 | PASS | `npm run screenshots`(E2E_PORT=18095) → facility-legal / -drawer / -add 각 4너비×2테마 48장 OK(가로 스크롤·글꼴 경고 없음). 기준선 `harness_setup/evidence/design-baseline/preview-dashboard-1440-light.png`와 같은 셸·청록 강조·카드 테두리·KPI 줄 위계·칩 글자. 칩은 모두 글자 있음(색만으로 구분 안 함), 페이지 주 행동(채운 청록)은 "항목 추가" 하나. 390 너비는 표 대신 카드형, 하단 탭. axe 위반 0건·4너비×2테마 가로 스크롤 없음은 e2e로 확인. 빌드 뒤 web/dist 변경 없음(git status 깨끗) |
+
+- 게이트 결과: lint=PASS(tsc-server 197, tsc-web 117, eslint 306, headers 325), unit=PASS(532건), e2e=PASS(126건, 이 태스크 spec 5건 포함)
+  - 로그: harness_setup/evidence/runs/2026-11-02T14-05-25-444Z-phase-03-task-08-lint.log, …14-05-57-245Z-…-unit.log, …14-06-56-092Z-…-e2e.log
+- 환경 문제·판정 불가 사유: 없음. 참고: 대시보드 카드(phase-03-task-10)는 아직 구현 전이라 "대시보드에서 빠짐"은 대시보드 데이터 원천(listLegalDue)과 화면의 "다가오는 일정" 보기로 판정했다. 사용자 정의 항목(파노라마)의 서랍 "법령 확인일"은 "확인 전"으로 나온다(직접 추가 항목이라 checkedOn 없음, 결함 아님).
+- 재현 방법(실패 시): 해당 없음(모두 PASS). 수동 재현 스크립트: `.tmp/verify.ts` → 서버 재시작 → `.tmp/verify-notif.ts`, 대조 `.tmp/verify-reenable.ts`.

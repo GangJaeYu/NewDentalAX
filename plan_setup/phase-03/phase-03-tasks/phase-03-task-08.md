@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-08
-status: in_progress
+status: completed
 phase: "03"
 title: "법정 의무 일정"
 depends_on: [phase-01-task-05, phase-02-task-04]
