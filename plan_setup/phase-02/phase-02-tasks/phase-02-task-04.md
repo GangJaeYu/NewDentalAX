@@ -1,6 +1,6 @@
 ---
 id: phase-02-task-04
-status: in_progress
+status: completed
 phase: "02"
 title: "알림 서비스·스케줄러"
 depends_on: [phase-01-task-03]
