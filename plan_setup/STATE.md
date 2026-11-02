@@ -8,14 +8,10 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git main)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-- completed: 01-01~06(phase-01 완료), 02-01, 02-02, 02-03, 02-04
-  - phase-02-task-05: AC1~6 PASS. 화면 행만 재판정 대기(03-04 검증 워커가 함께 판정)
-  - phase-03-task-04(병합): 검증 워커 `ctx_5e5866b8affc`, 검증 슬롯 2(02-05 화면 행 포함)
-  - phase-03-task-01(in_progress): `ctx_95780d0bc401`, 슬롯 0
-  - phase-03-task-06(in_progress): `ctx_317565207ae1`, 슬롯 3
-  - phase-03-task-08(in_progress): `ctx_f19eddabd894`, 슬롯 1
-  - phase-03-task-09(in_progress): `ctx_3f41fd045418`, 슬롯 2
-  - 다음: 03-05(03-04 뒤), 03-02·03-03(03-01 뒤), 03-07(03-06 뒤), 03-10(마지막)
+- completed: phase-01 전부, phase-02 전부, 03-04
+  - 검증 중: 03-06 `ctx_14fc113743a6`(검증 슬롯 3), 03-01 `ctx_9505b74cef59`(검증 슬롯 0)
+  - 구현 중: 03-07 `ctx_8782521d469d`(슬롯 0), 03-02 `ctx_b4daec176a0d`(슬롯 3), 03-08 `ctx_f19eddabd894`(슬롯 1), 03-09 `ctx_3f41fd045418`(슬롯 2)
+  - 다음: 03-05(AiPanel 보완 포함), 03-03, 03-10(마지막, DemoBadge 연결 포함)
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
@@ -34,7 +30,7 @@
   - `loop_started_at: 2026-11-02T18:55:20+09:00`
   - `deadline: 2026-11-03T18:55:20+09:00`
   - 신규 대형 태스크 시작 마감: 2026-11-03T17:55+09:00
-- elapsed: 3.4h (22시 19분 22초 기준)
+- elapsed: 3.8h (22시 40분 45초 기준)
 - 누적 재시도: 01-01 3회(AC3 1회, AC4 2회). 시도 4는 전략 전환
 
 ## 미결·차단
