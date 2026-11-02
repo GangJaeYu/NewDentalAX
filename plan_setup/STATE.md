@@ -9,9 +9,11 @@
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
 - completed: 01-01, 01-02, 01-03, 01-06, 02-01, 02-02
-  - phase-01-task-04: main 병합 cadb5d6 뒤 e2e 통합 FAIL → 통합 수정 워커 `ctx_880d57f10e6f`(슬롯 0)
-  - phase-02-task-04: 서버 구현 완료(브랜치 1fbbd2b, 미병합). 01-04 통합 수정 뒤 같은 워커(`ctx_bc71f40fc2cc`)에게 send로 연결 작업을 맡긴다
-  - 대기: 01-05, 02-05, 02-03(01-04 통합 수정 뒤)
+  - phase-01-task-04(통합 수정 병합): 검증 워커 `ctx_cbeea8c2fbb6`, 검증 슬롯 0
+  - phase-01-task-05(in_progress): `ctx_2851fc797d8f`, 슬롯 0
+  - phase-02-task-05(in_progress): `ctx_4b13f5013150`, 슬롯 1
+  - phase-02-task-03(in_progress): `ctx_639308e3eaea`, 슬롯 2
+  - phase-02-task-04(in_progress, 연결 follow-up): `ctx_f8574d0415d4`(같은 워커, 작업 사본 phase-02-task-04-worker), 슬롯 3
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
@@ -30,7 +32,7 @@
   - `loop_started_at: 2026-11-02T18:55:20+09:00`
   - `deadline: 2026-11-03T18:55:20+09:00`
   - 신규 대형 태스크 시작 마감: 2026-11-03T17:55+09:00
-- elapsed: 2.0h (20시 55분 0초 기준)
+- elapsed: 2.1h (21시 0분 38초 기준)
 - 누적 재시도: 01-01 3회(AC3 1회, AC4 2회). 시도 4는 전략 전환
 
 ## 미결·차단
