@@ -1,5 +1,6 @@
-# 이 파일이 하는 일: 줄바꿈 규칙 고정(기본 LF, 배치 파일은 CRLF)
+# 이 파일이 하는 일: 줄바꿈 규칙 고정(기본 LF, 배치 파일 .bat·.cmd는 CRLF)
 * text=auto eol=lf
 *.bat text eol=crlf
+*.cmd text eol=crlf
 *.png binary
 *.woff2 binary
