@@ -2,8 +2,10 @@
 // 입력 {review, tones[2~3]} → 응답 JSON {replies:[{tone, text}]}(말투마다 하나). 리뷰 속 전화번호 등은 게이트웨이가 가린 뒤 보낸다(FR-043 AC1).
 // 답글에는 리뷰 쓴 분이 환자였다는 사실이나 치료 내용을 확인해 주는 표현을 쓰지 않게 안내하고(FR-043 AC2), 화면이 shared/desk-texts.ts 규칙으로 한 번 더 점검한다.
 // 데모 응답은 리뷰 글을 그대로 옮기지 않고, 좋은 리뷰/아쉬운 리뷰와 주제 단어(친절·설명·대기·주차·청결)만 읽어 말투별로 다른 답글을 만든다.
+// 바뀌는 낱말 뒤 조사는 받침에 맞춰 고른다(shared/josa.ts: "직원 응대를", "하늘숲치과가 되도록").
 import { z } from 'zod';
 import { REVIEW_TONES } from '../../../shared/desk-texts.ts';
+import { withJosa } from '../../../shared/josa.ts';
 import { baseSystem, demoJson, jsonOnly, textField, type AiFeatureModule, type PromptContext } from './types.ts';
 
 const inputSchema = z.object({
@@ -62,7 +64,7 @@ function demoReply(tone: string, review: string, ctx: PromptContext): string {
     return `[데모 응답] 안녕하세요, ${clinic}입니다. ${praise}${about}불편을 드린 점 정중히 사과드립니다. 남겨 주신 의견은 원내에서 꼼꼼히 검토해 더 나은 모습으로 보답하겠습니다. 소중한 의견 감사합니다.`;
   }
   if (/따뜻|다정/.test(tone)) {
-    return `[데모 응답] 따뜻한 리뷰 남겨 주셔서 정말 감사합니다! ${topic ? `${topic}을(를) 좋게 봐 주셔서 ` : ''}모든 직원이 큰 힘을 얻었어요. 앞으로도 편안한 ${clinic}이 되도록 늘 노력하겠습니다.`;
+    return `[데모 응답] 따뜻한 리뷰 남겨 주셔서 정말 감사합니다! ${topic ? `${withJosa(topic, '을/를')} 좋게 봐 주셔서 ` : ''}모든 직원이 큰 힘을 얻었어요. 앞으로도 편안한 ${withJosa(clinic, '이/가')} 되도록 늘 노력하겠습니다.`;
   }
   if (/간결|짧/.test(tone)) {
     return `[데모 응답] 좋은 리뷰 감사합니다. ${topic ? `${topic}에 만족하셨다니 기쁩니다. ` : ''}늘 같은 마음으로 노력하겠습니다.`;

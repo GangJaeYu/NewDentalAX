@@ -1,0 +1,35 @@
+/* 이 파일이 하는 일: "채용 공고·면접 질문" 화면(/hr/hiring)의 배치와 차별 소지 표현 경고·면접 질문 목록 모양.
+   넓은 화면은 입력(왼쪽)·공고 초안(오른쪽) 두 칸, 1100px 이하는 한 칸으로 쌓는다. 경고 하이라이트는 빼야 해요=빨강, 살펴보세요=노랑 바탕에
+   번호를 붙여 색만으로 구분하지 않는다(DESIGN §5). 색·간격은 tokens.css 변수만 쓴다. */
+.hire-cols { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; min-width: 0; margin-bottom: var(--gap); }
+@media (max-width: 1100px) { .hire-cols { grid-template-columns: minmax(0, 1fr); } }
+.hire-cols > * { min-width: 0; }
+.hire-panel { min-width: 0; }
+/* AI 결과 상자에는 짧은 안내만 들어가므로 높이 제한을 푼다(스크롤 영역이 생기지 않게) */
+.hire-input .ai-out { max-height: none; overflow-y: visible; }
+.hire-tag { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+
+.hire-ok { display: inline-flex; gap: 4px; align-items: center; margin: 0; color: var(--ok); font-size: var(--fs-xs); font-weight: 600; }
+
+.hire-risk { display: grid; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-left: 3px solid var(--danger); border-radius: var(--r-md); background: var(--surface); min-width: 0; }
+.hire-risk-head { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; color: var(--danger); }
+.hire-risk-head b { font-size: 13.5px; }
+.hire-risk-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; padding: 8px 10px; border-radius: var(--r-md); background: var(--surface-2); color: var(--fg); font-size: var(--fs-small); }
+.hire-mark { color: var(--fg); padding: 1px 2px; border-radius: 3px; border-bottom: 2px solid; }
+.hire-mark.high { background: var(--danger-weak); border-color: var(--danger); }
+.hire-mark.medium { background: var(--warn-weak); border-color: var(--warn); }
+.hire-no { font-size: 10.5px; font-weight: 800; margin-left: 2px; color: var(--fg); }
+.hire-risk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.hire-risk-list li { display: grid; gap: 3px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); overflow-wrap: anywhere; }
+.hire-risk-list p { margin: 0; font-size: 13px; line-height: 1.55; }
+.hire-risk-hit-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.hire-no-badge { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--surface-2); border: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+.hire-label { display: inline-block; margin-right: 6px; color: var(--muted); font-size: 12px; font-weight: 700; }
+
+.hire-questions { display: grid; gap: 10px; min-width: 0; }
+.hire-questions-title { font-size: var(--fs-small); font-weight: 600; }
+.hire-qgroup { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); min-width: 0; }
+.hire-qhead { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.hire-qhead b { font-size: 13.5px; }
+.hire-count { color: var(--muted); font-size: var(--fs-xs); }
+.hire-qgroup ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: var(--fs-small); line-height: 1.6; overflow-wrap: anywhere; }
