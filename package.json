@@ -16,7 +16,8 @@
     "test:e2e": "npm run build:web && playwright test",
     "screenshots": "npm run build:web && node scripts/screenshots.ts",
     "perf": "node scripts/perf.ts",
-    "validate": "node harness_setup/scripts/task-brief.mjs"
+    "validate": "node harness_setup/scripts/task-brief.mjs",
+    "kb-eval": "node --disable-warning=ExperimentalWarning scripts/kb-eval.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.5",

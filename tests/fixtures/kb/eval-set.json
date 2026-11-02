@@ -1,0 +1,46 @@
+{
+  "description": "원내 도우미 검색 품질 평가 세트(OQ-008, phase-01-task-06). docs는 데모 매뉴얼 5종, questions는 직원이 실제로 칠 법한 질문 20개와 정답 문서·정답 소제목(보조 지표), unrelated는 매뉴얼과 관계없는 질문(찾지 못함이 정답)이다. 질문은 매뉴얼 문장을 그대로 베끼지 않고 구어체·띄어쓰기 생략·다른 표현을 섞었다.",
+  "docs": [
+    { "id": "infection", "file": "infection-control.md", "visibility": "all" },
+    { "id": "sterilization", "file": "sterilization.md", "visibility": "all" },
+    { "id": "inventory", "file": "inventory.md", "visibility": "all" },
+    { "id": "leave", "file": "leave-and-work.md", "visibility": "all" },
+    { "id": "desk", "file": "front-desk.md", "visibility": "all" }
+  ],
+  "questions": [
+    { "id": "Q01", "q": "손소독제로 손 닦을 때 몇 초 정도 문질러야 해요?", "answer": "infection", "section": "2.2 손 위생 방법" },
+    { "id": "Q02", "q": "환자 바뀔 때마다 장갑 새로 껴야 하나요?", "answer": "infection", "section": "3.1 착용 기준" },
+    { "id": "Q03", "q": "주사바늘에 찔렸을 때 어떻게 해야 돼요?", "answer": "infection", "section": "7. 주사바늘 찔림 사고 대응" },
+    { "id": "Q04", "q": "아침에 유니트 물은 몇 분 동안 빼나요", "answer": "infection", "section": "5. 유니트 수관 관리" },
+    { "id": "Q05", "q": "의료폐기물은 며칠까지 보관할 수 있어요?", "answer": "infection", "section": "6. 의료폐기물 관리" },
+    { "id": "Q06", "q": "오토클레이브 온도랑 시간은 어떻게 맞춰요?", "answer": "sterilization", "section": "4.1 운전 조건" },
+    { "id": "Q07", "q": "생물학적 테스트는 언제 해요?", "answer": "sterilization", "section": "5. 멸균 확인 방법" },
+    { "id": "Q08", "q": "멸균 테스트에서 불합격 나오면 어떻게 하나요", "answer": "sterilization", "section": "6. 불합격이 나왔을 때" },
+    { "id": "Q09", "q": "멸균파우치겉면에뭐적어야돼요", "answer": "sterilization", "section": "3. 포장" },
+    { "id": "Q10", "q": "멸균한 기구는 얼마 동안 보관 가능해요?", "answer": "sterilization", "section": "7. 멸균된 기구 보관" },
+    { "id": "Q11", "q": "부족한 재료 발주는 무슨 요일에 해요?", "answer": "inventory", "section": "4. 발주" },
+    { "id": "Q12", "q": "유통기한 지난 재료는 어떻게 처리하나요?", "answer": "inventory", "section": "7. 유효기간 관리" },
+    { "id": "Q13", "q": "재고실사는언제하나요", "answer": "inventory", "section": "8. 정기 재고 실사" },
+    { "id": "Q14", "q": "냉장고에 넣는 재료 보관 온도가 몇 도예요?", "answer": "inventory", "section": "9. 보관 장소와 온도" },
+    { "id": "Q15", "q": "연차신청은며칠전까지해야돼요", "answer": "leave", "section": "4. 연차 신청과 승인" },
+    { "id": "Q16", "q": "반차도 쓸 수 있나요?", "answer": "leave", "section": "4. 연차 신청과 승인" },
+    { "id": "Q17", "q": "아파서 갑자기 출근 못 하면 누구한테 연락해요?", "answer": "leave", "section": "5. 갑자기 쉬어야 할 때" },
+    { "id": "Q18", "q": "결혼하면 휴가 며칠 줘요?", "answer": "leave", "section": "8. 경조사 휴가" },
+    { "id": "Q19", "q": "예약 확인 문자는 언제 보내요?", "answer": "desk", "section": "3. 예약 관리" },
+    { "id": "Q20", "q": "어제 결제한 카드 취소해 달라는데 어떻게 해요?", "answer": "desk", "section": "5. 수납" }
+  ],
+  "unrelated": [
+    "주식 시세",
+    "오늘 주식 시세 알려줘",
+    "비트코인 가격이 얼마야?",
+    "이번 주말 날씨 어때요?",
+    "점심 메뉴 추천해 줘",
+    "서울에서 부산까지 KTX 몇 시간 걸려?",
+    "축구 경기 결과 알려줘",
+    "파이썬으로 웹 크롤러 만드는 법",
+    "환율이 얼마예요?",
+    "로또 당첨 번호 알려줘",
+    "넷플릭스 볼만한 드라마 추천",
+    "자동차 보험 갱신 방법"
+  ]
+}
