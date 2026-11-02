@@ -6,6 +6,7 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, describe, expect, test } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { unzipSync } from 'fflate';
 import { buildApp } from '../../app.ts';
 import { manualClock, MINUTE_MS, type ManualClock } from '../../lib/clock.ts';
@@ -74,6 +75,37 @@ function clinicNameInBackup(backupDir: string, name: string): string {
   } finally {
     db.close();
   }
+}
+
+/**
+ * 다른 프로세스가 파일을 잠깐 열어 두는 상황(백신 실시간 검사·검색 색인)을 흉내 낸다.
+ * files를 읽기로 열고 holdMs 뒤에 닫는다. 열었다는 신호를 받은 뒤에 돌아온다.
+ */
+async function holdOpen(files: string[], holdMs: number): Promise<ChildProcess> {
+  const code = `const fs=require('fs');const fds=${JSON.stringify(files)}.map((f)=>fs.openSync(f,'r'));console.log('held');setTimeout(()=>{fds.forEach((d)=>fs.closeSync(d));process.exit(0)},${holdMs})`;
+  const child = spawn(process.execPath, ['-e', code], { stdio: ['ignore', 'pipe', 'inherit'] });
+  cleanups.push(() => {
+    if (child.exitCode === null) child.kill();
+  });
+  await new Promise<void>((resolve, reject) => {
+    child.stdout?.once('data', () => resolve());
+    child.once('exit', (c) => reject(new Error(`잠금 흉내 프로세스가 먼저 끝났어요(${c})`)));
+  });
+  return child;
+}
+
+/**
+ * 백신처럼 폴더를 지켜보다가 새로 생긴 파일을 바로 열어 holdMs 동안 쥐고 있는 프로세스를 띄운다.
+ * 감시를 시작했다는 신호를 받은 뒤에 돌아온다.
+ */
+async function startScanner(dir: string, holdMs: number): Promise<ChildProcess> {
+  const code = `const fs=require('fs'),p=require('path');const d=${JSON.stringify(dir)};fs.watch(d,{recursive:true},(e,f)=>{if(!f)return;try{const full=p.join(d,f);if(fs.statSync(full).isFile()){const fd=fs.openSync(full,'r');setTimeout(()=>{try{fs.closeSync(fd)}catch{}},${holdMs})}}catch{}});console.log('watching');setTimeout(()=>process.exit(0),20000)`;
+  const child = spawn(process.execPath, ['-e', code], { stdio: ['ignore', 'pipe', 'inherit'] });
+  cleanups.push(() => {
+    if (child.exitCode === null) child.kill();
+  });
+  await new Promise<void>((resolve) => child.stdout?.once('data', () => resolve()));
+  return child;
 }
 
 describe('백업·복원', () => {
@@ -259,7 +291,8 @@ describe('백업·복원', () => {
       const r = await env.app.inject({ method: 'GET', url: '/api/session' });
       saw503 = r.statusCode === 503;
     }
-    expect((await restoring).statusCode).toBe(204);
+    const done = await restoring;
+    expect(done.statusCode, done.body).toBe(204);
     expect(saw503).toBe(true);
     expect((await env.app.inject({ method: 'GET', url: '/api/session' })).statusCode).toBe(200);
   });
@@ -285,5 +318,42 @@ describe('백업·복원', () => {
     cleanups.push(() => app.close());
     const item = createBackup({ db: app.db, dataDir, backupDir: path.join(dataDir, 'backups'), clock }, 'auto');
     expect(item.name).toBe('20261102-233005-auto');
+  });
+
+  test('phase-02-task-05 범위(통합 간헐 실패 수정): 다른 프로그램이 app.db를 잠깐 열어 두고 있어도 복원이 끝까지 된다', async () => {
+    const env = await makeEnv();
+    const a = await backupNow(env);
+    setClinicName(env.app, '값B치과');
+    // 백신이 데이터 파일을 0.6초 동안 열어 둔 상태(Windows 설정에 따라 지우기·같은 이름 복사가 잠깐 EPERM이 될 수 있어 다시 시도한다)
+    await holdOpen([path.join(env.dataDir, 'app.db')], 600);
+    const r = await env.app.inject({ method: 'POST', url: `/api/backups/${a.name}/restore`, headers: env.admin.writeHeaders, payload: { confirm: '복원합니다' } });
+    expect(r.statusCode, r.body).toBe(204);
+    expect(await clinicName(env.app)).toBe('값A치과');
+  });
+
+  test('phase-02-task-05 범위(통합 간헐 실패 수정): 백신처럼 새 파일을 바로 여는 프로그램이 있어도 백업 만들기·목록·복원이 된다', async () => {
+    const env = await makeEnv();
+    fs.mkdirSync(env.backupDir, { recursive: true });
+    await startScanner(env.backupDir, 400);
+    const made: BackupItem[] = [];
+    for (let i = 0; i < 4; i++) {
+      made.push(await backupNow(env));
+      env.clock.advance(MINUTE_MS);
+    }
+    expect(listBackups(env.backupDir).map((b) => b.name)).toEqual(made.map((b) => b.name).reverse());
+    setClinicName(env.app, '값B치과');
+    const r = await env.app.inject({ method: 'POST', url: `/api/backups/${made[0]?.name}/restore`, headers: env.admin.writeHeaders, payload: { confirm: '복원합니다' } });
+    expect(r.statusCode, r.body).toBe(204);
+    expect(await clinicName(env.app)).toBe('값A치과');
+  });
+
+  test('phase-02-task-05 범위: 만드는 도중이거나 반쯤 남은 폴더(manifest 없음)는 목록에 나오지 않고 같은 이름 자리도 피한다', async () => {
+    const env = await makeEnv();
+    fs.mkdirSync(path.join(env.backupDir, '20261102-090000-manual'), { recursive: true });
+    fs.writeFileSync(path.join(env.backupDir, '20261102-090000-manual', 'app.db'), 'half');
+    expect(listBackups(env.backupDir)).toEqual([]);
+    const b = await backupNow(env);
+    expect(b.name).not.toBe('20261102-090000-manual');
+    expect(listBackups(env.backupDir).map((x) => x.name)).toEqual([b.name]);
   });
 });
