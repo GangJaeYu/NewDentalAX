@@ -253,3 +253,13 @@
 - 변경 요청(01-05) 처리
   - api.page()(total 받기)와 DataTable 가로 스크롤 영역 포커스(axe scrollable-region-focusable)는 03-01에 맡긴다(DataTable을 가장 많이 쓰는 태스크).
   - 상단바 DemoBadge의 "AI 키 미설정" 연결(02-03 요청)은 조정자가 03-10 전에 반영한다(STATE 점검 항목).
+
+## 2026-11-02 21:35 02-05 병합 → main unit FAIL 2건(통합)
+- 02-05 커밋 fcbfd61(워커 ctx_4b13f5013150). 병합 충돌 3파일을 조정자가 해결했다.
+  - main.ts: 백업 타이머와 scheduler를 둘 다 쓰고, scheduler에는 app.db(교체되는 래퍼)를 넘긴다.
+  - admin/routes.ts: 5개를 등록한다.
+  - screenshots.ts
+- main 게이트: lint PASS, **unit FAIL 2건**(backup-job AC3, backup 503 범위), e2e 63건 PASS
+  - 두 파일만 따로 돌리면 18건 PASS → 전체 실행 때 간섭이나 시간 의존으로 보인다.
+- 조치: 같은 워커에게 follow-up을 보냈다(원인 수정, 전체 unit 3회 연속 PASS 확인).
+- 02-03·01-05 검증은 02-05 병합 전 커밋 ddd48a0를 기준으로 진행한다(그 커밋은 main 게이트 PASS).
