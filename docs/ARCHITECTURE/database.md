@@ -89,7 +89,7 @@
 | `document_versions` | `document_id`, `body_md`, `created_by`, `created_at` | 저장할 때마다 한 줄씩 쌓인다 |
 | `kb_docs` | `title`, `file_id NULL`, `document_id NULL`, `visibility CHECK(all/manager)`, `status CHECK(processing/needs_review/ready/failed)`, `error`, `chunk_count`, `created_by`, `created_at`, `deleted_at` | |
 | `kb_chunks` | `kb_doc_id→kb_docs`, `seq`, `heading`, `text` | |
-| `kb_fts` | FTS5 `(grams, tokenize='unicode61')`, `rowid = kb_chunks.id` | TD-011 2-gram |
+| `kb_fts` | FTS5 `(heading, grams, cross, tokenize='unicode61')`, `rowid = kb_chunks.id` | TD-011 2-gram. 제목 가중 2, 띄어쓰기를 건너는 2-gram은 `cross` 열(가중 0.5). DDL은 `server/modules/assistant/search.ts`의 `KB_FTS_DDL`이 정본이다(01-06 결정) |
 | `assistant_messages` | `user_id`, `role CHECK(user/assistant)`, `text`, `sources TEXT(JSON)`, `created_at` | 사용자별로 최근 200개를 남긴다 |
 
 ## 7. 인사·근무 (FR-080~084)
