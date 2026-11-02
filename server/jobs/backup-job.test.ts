@@ -1,16 +1,18 @@
 // 이 파일이 하는 일: 하루 한 번 자동 백업 작업을 확인한다(phase-02-task-05 AC3, FR-006 AC1).
-// 주입 시계로 "어제 백업만 있는 상태"를 만든 뒤 서버 시작(startBackupJob)을 흉내 내 오늘 백업이 바로 생기는지,
-// 같은 날 다시 확인해도 겹쳐 만들지 않는지, 정각 타이머가 다음 날 백업을 만드는지, 복원 중에는 건너뛰는지 본다.
+// 서버 시작은 main.ts와 같은 순서로 흉내 낸다: 포트를 열기 전 startupBackupCheck → scheduler(startScheduler)에 backupScheduledJob을 넣어 매시 정각 확인.
+// 주입 시계로 "어제 백업만 있는 상태에서 시작"을 만들고, 같은 날 겹쳐 만들지 않는지, 날짜가 바뀐 뒤 정각 확인이 그날 백업을 만드는지,
+// 복원 중에는 건너뛰는지, 실패해도 서버 시작을 막지 않는지 본다. 타이머는 가짜(직접 울림)라 실제 시간이 흐르지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
-import { DAY_MS, HOUR_MS, manualClock, MINUTE_MS, type ManualClock } from '../lib/clock.ts';
+import { HOUR_MS, manualClock, MINUTE_MS, type ManualClock } from '../lib/clock.ts';
 import { kstDate } from '../lib/dates.ts';
 import { makeTmpDir } from '../../tests/helpers/tmp-dir.ts';
 import { createBackup, listBackups } from '../modules/admin/backup-service.ts';
-import { backupEnvOf, backupScheduledJob, msToNextHour, startBackupJob, type JobTimers } from './backup-job.ts';
+import { backupEnvOf, backupScheduledJob, startupBackupCheck } from './backup-job.ts';
+import { startScheduler, type Scheduler, type TimerApi } from './scheduler.ts';
 
 const cleanups: Array<() => Promise<void> | void> = [];
 afterEach(async () => {
@@ -21,7 +23,7 @@ afterEach(async () => {
 function fakeTimers() {
   const pending: Array<{ fn: () => void; ms: number; id: number }> = [];
   let next = 1;
-  const timers: JobTimers = {
+  const timers: TimerApi = {
     setTimeout(fn, ms) {
       const id = next++;
       pending.push({ fn, ms, id });
@@ -37,7 +39,6 @@ function fakeTimers() {
     const t = pending.shift();
     if (!t) throw new Error('걸린 타이머가 없어요');
     t.fn();
-    return t.ms;
   };
   return { timers, pending, fire };
 }
@@ -51,6 +52,18 @@ async function makeApp(startIso: string): Promise<{ app: FastifyInstance; clock:
   return { app, clock };
 }
 
+/** main.ts와 같은 순서로 "서버 시작"을 흉내 낸다: 포트 열기 전 확인 → scheduler 시작(백업 작업 포함) */
+async function startLikeMain(app: FastifyInstance, clock: ManualClock, timers: TimerApi) {
+  const logs: string[] = [];
+  const log = (m: string) => logs.push(m);
+  const first = startupBackupCheck(app, log);
+  const scheduler: Scheduler = startScheduler({ db: app.db, clock, timers, log, jobs: [backupScheduledJob(app, log)] });
+  cleanups.push(() => scheduler.stop());
+  // scheduler는 켜자마자 한 번 돈다(오늘 백업이 이미 있으니 새로 만들지 않아야 한다)
+  const firstCycle = await scheduler.runNow();
+  return { first, scheduler, logs, firstCycle };
+}
+
 describe('자동 백업 작업', () => {
   test('phase-02-task-05 AC3: 주입 시계로 어제 백업만 있는 상태에서 서버를 시작하면 오늘 백업이 즉시 생긴다', async () => {
     const { app, clock } = await makeApp('2026-11-01T12:00:00+09:00');
@@ -60,15 +73,13 @@ describe('자동 백업 작업', () => {
     clock.set('2026-11-02T09:00:00+09:00');
 
     const t = fakeTimers();
-    const job = startBackupJob(app, { timers: t.timers });
-    cleanups.push(() => job.stop());
-
-    expect(job.first).not.toBeNull();
-    expect(job.first?.reason).toBe('auto');
-    expect(job.first?.name).toBe('20261102-090000-auto');
+    const { first, logs, firstCycle } = await startLikeMain(app, clock, t.timers);
+    expect(first?.name, logs.join(' / ')).toBe('20261102-090000-auto');
     const list = listBackups(app.backupDir);
     expect(list.map((b) => b.name)).toEqual(['20261102-090000-auto', '20261101-120000-auto']);
     expect(kstDate(new Date(list[0]?.createdAt ?? ''))).toBe('2026-11-02');
+    // scheduler의 첫 실행은 겹쳐 만들지 않는다
+    expect(firstCycle).toEqual([{ name: 'backup.daily', ok: true, value: null }]);
     // 다음 확인은 정각(10:00)에 걸린다
     expect(t.pending).toHaveLength(1);
     expect(t.pending[0]?.ms).toBe(HOUR_MS);
@@ -79,43 +90,53 @@ describe('자동 백업 작업', () => {
     createBackup(backupEnvOf(app), 'manual');
     clock.advance(40 * MINUTE_MS);
     const t = fakeTimers();
-    const job = startBackupJob(app, { timers: t.timers });
-    cleanups.push(() => job.stop());
-    expect(job.first).toBeNull();
+    const { first, scheduler } = await startLikeMain(app, clock, t.timers);
+    expect(first).toBeNull();
     clock.advance(10 * MINUTE_MS);
     t.fire();
+    await scheduler.runNow();
     expect(listBackups(app.backupDir)).toHaveLength(1);
   });
 
   test('phase-02-task-05 AC3: 서버가 켜진 채 날짜가 바뀌면 다음 정각 확인 때 그날 백업이 생긴다', async () => {
     const { app, clock } = await makeApp('2026-11-02T23:20:00+09:00');
     const t = fakeTimers();
-    const job = startBackupJob(app, { timers: t.timers });
-    cleanups.push(() => job.stop());
-    expect(job.first?.name).toBe('20261102-232000-auto');
+    const { first, scheduler, logs } = await startLikeMain(app, clock, t.timers);
+    expect(first?.name, logs.join(' / ')).toBe('20261102-232000-auto');
     expect(t.pending[0]?.ms).toBe(40 * MINUTE_MS);
     clock.set('2026-11-03T00:00:00+09:00');
     t.fire();
+    const cycle = await scheduler.runNow();
+    expect(cycle[0]?.ok, logs.join(' / ')).toBe(true);
     expect(listBackups(app.backupDir).map((b) => b.name)).toEqual(['20261103-000000-auto', '20261102-232000-auto']);
+    expect(logs).toContain('자동 백업을 만들었어요: 20261103-000000-auto');
     // 같은 날 다음 정각에는 만들지 않는다
     clock.advance(HOUR_MS);
     t.fire();
+    await scheduler.runNow();
     expect(listBackups(app.backupDir)).toHaveLength(2);
   });
 
-  test('phase-02-task-05 범위: 복원 중(점검 모드)에는 자동 백업을 건너뛰고, scheduler용 작업도 같은 확인을 한다', async () => {
-    const { app, clock } = await makeApp('2026-11-02T09:00:00+09:00');
+  test('phase-02-task-05 범위: 복원 중(점검 모드)에는 자동 백업을 건너뛴다', async () => {
+    const { app } = await makeApp('2026-11-02T09:00:00+09:00');
     app.maintenance.on = true;
+    expect(startupBackupCheck(app)).toBeNull();
     expect(backupScheduledJob(app).run()).toBeNull();
     expect(listBackups(app.backupDir)).toHaveLength(0);
     app.maintenance.on = false;
     expect(backupScheduledJob(app).run()?.reason).toBe('auto');
-    clock.advance(DAY_MS);
     expect(backupScheduledJob(app).name).toBe('backup.daily');
   });
 
-  test('phase-02-task-05 범위: 다음 정각까지 남은 시간', () => {
-    expect(msToNextHour(new Date('2026-11-02T09:00:00+09:00'))).toBe(HOUR_MS);
-    expect(msToNextHour(new Date('2026-11-02T09:59:30+09:00'))).toBe(30_000);
+  test('phase-02-task-05 범위: 시작 때 백업이 실패해도 서버 시작을 막지 않고 이유를 남기며, 정각 확인 실패는 scheduler가 기록한다', async () => {
+    const { app, clock } = await makeApp('2026-11-02T09:00:00+09:00');
+    // 백업 폴더 자리에 파일을 두어 폴더를 만들 수 없게 한다
+    fs.writeFileSync(app.backupDir, 'not a folder');
+    const t = fakeTimers();
+    const { first, logs, firstCycle } = await startLikeMain(app, clock, t.timers);
+    expect(first).toBeNull();
+    expect(logs.some((m) => m.startsWith('자동 백업 실패:'))).toBe(true);
+    expect(firstCycle[0]).toMatchObject({ name: 'backup.daily', ok: false });
+    expect(logs.some((m) => m.startsWith('예약 작업 실패 backup.daily:'))).toBe(true);
   });
 });
