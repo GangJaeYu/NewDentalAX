@@ -32,14 +32,15 @@ export default function DashboardPage() {
   const manager = can(role, 'leave.approve');
   const loadingHint = state.error && !d ? '불러오지 못했어요' : '불러오는 중';
 
-  const summary = [d ? formatDateLong(d.today.date) : formatDateLong(new Date()), d ? todaySummary(d.today) : '', ROLE_LABELS[role]].filter(Boolean).join(' · ');
-  const month = d ? Number(d.ai.month.slice(5)) : new Date().getMonth() + 1;
+  // 날짜·인사말은 서버 시계(d.now·d.today)를 따른다. 불러오기 전에는 날짜 없이 인사만 한다
+  const summary = [d ? formatDateLong(d.today.date) : '', d ? todaySummary(d.today) : '', ROLE_LABELS[role]].filter(Boolean).join(' · ');
+  const month = d ? Number(d.ai.month.slice(5)) : null;
   const k = d?.kpis;
 
   return (
     <>
       <PageHeader
-        title={`${greeting(new Date())}, ${user.name}님`}
+        title={`${d ? greeting(d.now) : '안녕하세요'}, ${user.name}님`}
         summary={summary}
         actions={
           <>
@@ -106,7 +107,7 @@ export default function DashboardPage() {
           />
         )}
         <Kpi
-          label={`${month}월 AI 사용`}
+          label={month ? `${month}월 AI 사용` : '이번 달 AI 사용'}
           value={d ? d.ai.pct : null}
           unit="%"
           hint={

@@ -1,11 +1,10 @@
 // 이 파일이 하는 일: 대시보드 카드 10개(DESIGN §4 순서)의 본문을 그린다. 모든 카드는 불러오는 중(뼈대)·오류(다시 시도)·빈 상태(안내 + 바로가기)를 갖는다(FR-008 AC2).
 // 각 줄을 누르면 해당 화면·항목으로 간다(FR-008 AC3): 재고 품목 상세, 공지·인수인계 상세, 발주서 상세, 법정 일정, 연차·휴가 화면 등.
-// 체크리스트 줄은 대시보드에서 바로 체크한다(NFR-009). "오늘 근무" 카드는 근무표 태스크(phase-04-task-01)가 RosterTodayCard로 바꿔 끼운다.
+// 체크리스트 줄은 대시보드에서 바로 체크한다(NFR-009). "오늘 근무" 카드 본문은 근무표 태스크(phase-04-task-01)의 RosterTodayCard를 쓴다.
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { can, type Role } from '../../../shared/roles.ts';
 import type { DashboardData } from '../../../shared/schemas/dashboard.ts';
-import { LEAVE_TYPE_LABELS } from '../../../shared/schemas/leave.ts';
 import { LEGAL_CATEGORY_LABELS, LEGAL_VERIFY_HINTS, LEGAL_VERIFY_LABELS } from '../../../shared/schemas/legal.ts';
 import { ORDER_STATUS_LABELS } from '../../../shared/schemas/orders.ts';
 import type { OrderStatus } from '../../../shared/schemas/orders.ts';
@@ -17,8 +16,9 @@ import { EmptyState, ErrorState, Skeleton } from '../components/States.tsx';
 import type { IconName } from '../components/Icon.tsx';
 import { useToast } from '../components/Toast.tsx';
 import { api } from '../lib/api.ts';
-import { formatDateShort, formatDateTime, initials } from '../lib/format.ts';
+import { formatDateShort, formatDateTime } from '../lib/format.ts';
 import { invalidate } from '../lib/useApi.ts';
+import { RosterTodayCard } from './hr/RosterTodayCard.tsx';
 import { checklistWindow, dueLabel, leaveTitle, moveLine, shortDay, stockLine, weekCells, won } from './dashboardLib.ts';
 
 /** 대시보드 응답 상태(useApi 결과) */
@@ -245,46 +245,14 @@ export function DueCard({ state }: SlotProps) {
 }
 
 /**
- * 4. 오늘 근무. 근무표(phase-04-task-01)가 생기기 전에는 오늘 휴가자만 보여 주고, 없으면 빈 상태다.
- * [연결 지점] phase-04-task-01이 이 카드를 RosterTodayCard로 바꿔 끼운다(today.working·rosterReady).
+ * 4. 오늘 근무. 본문은 근무표 태스크(phase-04-task-01)의 RosterTodayCard가 GET /api/roster/today로 그린다(근무자·근무 유형·휴가, 빈 상태 포함).
+ * 이 카드는 틀(제목·날짜·"근무표" 링크)만 맡는다.
  */
 export function RosterSlotCard({ state }: SlotProps) {
   const d = state.data;
   return (
     <Card id="dash-roster" title="오늘 근무" sub={d ? formatDateShort(d.today.date) : undefined} action={{ label: '근무표', to: '/hr/roster' }}>
-      <Body
-        state={state}
-        isEmpty={(x) => x.today.working.length === 0 && x.today.onLeave.length === 0}
-        empty={<Empty icon="people" title="오늘 근무표가 아직 없어요" hint="근무표를 만들면 오늘 근무자와 휴가자가 여기에 보여요." to="/hr/roster" label="근무표 보기" />}
-      >
-        {(x) => (
-          <ul className="list dash-shift" aria-label="오늘 근무·휴가">
-            {x.today.working.map((w) => (
-              <li key={`w${w.userId}`}>
-                <span className="dash-mini-av" aria-hidden="true">
-                  {initials(w.name)}
-                </span>
-                <span className="t">
-                  <b>{w.name}</b>
-                  <small>{w.jobType}</small>
-                </span>
-                <Chip tone="info">{w.shift}</Chip>
-              </li>
-            ))}
-            {x.today.onLeave.map((p) => (
-              <RowLink key={`l${p.userId}`} to="/hr/leave">
-                <span className="dash-mini-av" aria-hidden="true">
-                  {initials(p.name)}
-                </span>
-                <span className="t">
-                  <b>{p.name}</b>
-                </span>
-                <Chip tone="warn">{LEAVE_TYPE_LABELS[p.type]}</Chip>
-              </RowLink>
-            ))}
-          </ul>
-        )}
-      </Body>
+      <RosterTodayCard />
     </Card>
   );
 }

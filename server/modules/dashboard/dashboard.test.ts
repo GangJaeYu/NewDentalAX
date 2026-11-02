@@ -47,6 +47,12 @@ describe('대시보드 API', () => {
     const a = await makeApp(true);
     const d = await dashboard(a, loginAs(a, 'admin'));
     expect(d.today.date).toBe('2026-11-02');
+    // 서버 시계 기준 지금(인사말용)과 근무표(phase-04-task-01)의 오늘 근무
+    expect(d.now).toBe(new Date(NOW).toISOString());
+    expect(d.today.rosterReady).toBe(true);
+    expect(d.kpis.working).toBeGreaterThan(0);
+    expect(d.today.working).toHaveLength(d.kpis.working ?? -1);
+    expect(d.today.working.every((w) => w.name && w.shift)).toBe(true);
     expect(d.checklist.open.total).toBeGreaterThan(0);
     // 오늘 항목 전체가 원래 순서(오픈 먼저)로 온다
     expect(d.checklist.items).toHaveLength(d.checklist.open.total + d.checklist.close.total);

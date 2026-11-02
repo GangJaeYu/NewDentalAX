@@ -158,6 +158,10 @@ test.describe.serial('대시보드', () => {
     const errors = watchErrors(page);
     await openDemoDashboard(page);
     await expect(card(page, '다가오는 점검·의무 일정').getByRole('listitem').first()).toBeVisible();
+    // 날짜는 브라우저 시계가 아니라 서버 시계(TEST_NOW 2026-11-02 월요일)를 따르고, 오늘 근무 인원은 근무표(phase-04-task-01)에서 온다
+    await expect(page.getByRole('heading', { level: 1 }).locator('xpath=following-sibling::p')).toContainText('2026년 11월 2일 월요일');
+    await expect(kpi(page, '오늘 근무').locator('b')).toHaveText(/^\d+명$/);
+    await expect(card(page, '오늘 근무').getByTestId('roster-today')).toBeVisible();
     await page.evaluate('document.fonts.ready');
 
     const box = async (l: Locator) => {

@@ -1,0 +1,76 @@
+/* 이 파일이 하는 일: 근무표 화면(/hr/roster)·근무표 인쇄(/print/roster)·대시보드 "오늘 근무" 카드의 모양. 직원 × 날짜 표, 휴진일 열, 오늘 열 강조, 인원 합계 줄,
+   칸 선택 대화상자의 유형 버튼, 근무 유형 관리 표. 색은 tokens.css 변수만 쓰고, 칸 상태는 칩 글자로도 알 수 있게 한다(색만으로 구분하지 않음, DESIGN §5-5).
+   표는 카드 안에서만 가로로 밀리고(.tablewrap), 화면 전체에는 가로 스크롤이 생기지 않는다. 인쇄는 A4 가로 한 장에 맞춘다. */
+
+.chip.accent { background: var(--surface); color: var(--accent-strong); box-shadow: inset 0 0 0 1px var(--accent); }
+
+/* 표가 카드 가장자리까지 쓰게 카드 안쪽 여백을 없앤다(도구줄·첫 열이 각자 여백을 가짐) */
+.roster-card.pad > .body { padding: 0 0 4px; gap: 0; }
+
+.roster-pad { padding: var(--pad); }
+.roster-hint { margin: 12px var(--pad) 0; }
+.roster-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.roster-bar .period { font-size: 15px; font-weight: 700; margin: 0 4px; white-space: nowrap; }
+.roster-legend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: var(--fs-xs); }
+
+.roster-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; }
+.roster-table th, .roster-table td { border-bottom: 1px solid var(--line); text-align: center; padding: 4px; white-space: nowrap; }
+.roster-table thead th { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; padding: 8px 4px; background: var(--surface); }
+.roster-table thead th b { display: block; color: var(--fg); font-size: 13px; }
+.roster-table th.who { position: sticky; left: 0; z-index: 1; background: var(--surface); text-align: left; padding: 6px 10px 6px var(--pad); min-width: 112px; border-right: 1px solid var(--line); }
+.roster-table th.who b { display: block; font-weight: 600; color: var(--fg); font-size: 13.5px; }
+.roster-table th.who small { color: var(--muted); font-size: var(--fs-xs); font-weight: 400; }
+.roster-table td { height: 44px; min-width: 84px; }
+.roster-table.month td { min-width: 64px; height: 40px; }
+.roster-table .closed { background: var(--surface-2); }
+.roster-table thead th.today { color: var(--accent-strong); box-shadow: inset 0 -2px 0 var(--accent); }
+.roster-table td.today { background: color-mix(in srgb, var(--accent-weak) 45%, transparent); }
+.roster-table tfoot th, .roster-table tfoot td { border-bottom: 0; border-top: 2px solid var(--line); font-weight: 700; height: 40px; }
+.roster-table tfoot td { font-variant-numeric: tabular-nums; }
+.roster-table tfoot td small { color: var(--muted); font-weight: 400; }
+.roster-table .weekstart { border-left: 2px solid var(--line); }
+
+.roster-cell { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 64px; min-height: 34px; padding: 2px 4px; border-radius: var(--r-sm); }
+.roster-table.month .roster-cell { min-width: 52px; }
+button.roster-cell { border: 1px dashed transparent; background: transparent; cursor: pointer; font: inherit; color: inherit; }
+button.roster-cell:hover { border-color: var(--line); background: var(--surface-2); }
+button.roster-cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.roster-cell .blank { color: var(--muted); font-size: var(--fs-xs); }
+.roster-cell .chip { height: 20px; padding: 0 6px; font-size: 11px; }
+
+.roster-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.roster-pick button { display: grid; gap: 2px; justify-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); color: var(--fg); cursor: pointer; font: inherit; text-align: left; min-height: 56px; }
+.roster-pick button:hover { background: var(--surface-2); }
+.roster-pick button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-weak); }
+.roster-pick button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.roster-pick small { color: var(--muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.roster-pick .clear { border-style: dashed; color: var(--muted); }
+
+.roster-types { display: grid; gap: 10px; }
+.roster-types .row { display: grid; grid-template-columns: minmax(90px, 1.2fr) minmax(96px, 1fr) minmax(96px, 1fr) minmax(96px, 1fr) auto auto; gap: 8px; align-items: end; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.roster-types .row:last-child { border-bottom: 0; }
+.roster-types .row .field { margin: 0; }
+.roster-types .checkline { white-space: nowrap; }
+@media (max-width: 720px) { .roster-types .row { grid-template-columns: 1fr 1fr; } }
+
+.roster-today { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+.roster-today li { display: flex; align-items: center; gap: 8px; min-height: 36px; min-width: 0; border-top: 1px solid var(--line); }
+.roster-today li:nth-child(-n + 2) { border-top: 0; }
+.roster-today .av { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); font-size: 11.5px; font-weight: 700; }
+.roster-today .t { flex: 1; min-width: 0; }
+.roster-today .t b { display: block; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roster-today .t small { color: var(--muted); font-size: var(--fs-xs); }
+@media (max-width: 420px) { .roster-today { grid-template-columns: 1fr; } .roster-today li:nth-child(2) { border-top: 1px solid var(--line); } }
+
+/* 인쇄 화면 */
+.roster-paper .roster-table { font-size: 10pt; }
+.roster-paper .roster-table td, .roster-paper .roster-table th { min-width: 0; height: 30px; }
+.roster-paper .roster-table th.who { position: static; min-width: 80px; }
+.roster-paper .roster-print-legend { margin: 10px 0 0; font-size: var(--fs-xs); }
+.roster-paper .sign { display: flex; justify-content: flex-end; gap: 28px; margin-top: 18px; font-size: 10pt; color: var(--muted); }
+
+@media print {
+  .roster-paper .roster-table .closed { background: #EDF2F2 !important; }
+  .roster-paper .roster-table td.today { background: transparent !important; }
+  .roster-paper .chip { border: 1px solid #DCE4E3; }
+}

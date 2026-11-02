@@ -2,7 +2,7 @@
 // 각 모듈이 내보낸 함수(재고 listItems·listMoves, 발주 listOrders, 게시판 listPosts, 체크리스트 getChecklistDay,
 // 법정 일정 listLegalDue, 휴가 pendingLeaveCount·listLeave·approvedLeaveDays, AI 예산 budgetStatus)를 부르고,
 // 역할에 따라 보이면 안 되는 영역(승인 대기·발주·지출)은 staff에게 null로 준다(FR-008 AC4).
-// 아직 없는 기능은 연결 지점만 남긴다: 근무표(phase-04-task-01) → today.working, 교육(04-02) → week 'training',
+// 오늘 근무는 근무표(phase-04-task-01)의 todayRoster로 채운다. 아직 없는 기능은 연결 지점만 남긴다: 교육(04-02) → week 'training',
 // 멸균기 경고(04-03) → 재고·점검 카드 옆 경고, 지출(04-04) → expenseMonth. 해당 태스크가 이 파일의 표시된 곳을 채운다.
 import type { Db } from '../../db/index.ts';
 import type { Clock } from '../../lib/clock.ts';
@@ -16,6 +16,7 @@ import { listPosts } from '../desk/posts.ts';
 import { getChecklistDay } from '../desk/checklists.ts';
 import { listLegalDue } from '../facility/legal.ts';
 import { approvedLeaveDays, listLeave, pendingLeaveCount } from '../hr/leave.ts';
+import { todayRoster } from '../hr/roster.ts';
 import { budgetStatus } from '../../ai/budget.ts';
 import { effectiveProvider, featureSettings, readAiSettings } from '../../ai/settings.ts';
 
@@ -107,6 +108,7 @@ export function getDashboard(db: Db, clock: Clock, dataDir: string, viewer: Dash
   const approvalsTotal = manager ? pendingLeaveCount(db) : null;
   const myPendingLeave = db.get<{ n: number }>("SELECT COUNT(*) AS n FROM leave_requests WHERE user_id = ? AND status = 'pending'", [viewer.id])?.n ?? 0;
 
+  const roster = todayRoster(db, today);
   const checklist = checklistPart(db, clock);
   const handovers = listPosts(db, viewer.id, { unresolved: true, page: 1, pageSize: CARD_ROWS });
   const notices = listPosts(db, viewer.id, { kind: 'notice', page: 1, pageSize: 3 });
@@ -115,15 +117,18 @@ export function getDashboard(db: Db, clock: Clock, dataDir: string, viewer: Dash
   const orders = ordersOk ? listOrders(db, { status: 'all', pageSize: CARD_ROWS }) : null;
 
   return {
+    now: clock.now().toISOString(),
     today: {
       date: today,
-      // [연결 지점] phase-04-task-01: 근무표가 생기면 오늘 근무자를 채우고 rosterReady를 true로 바꾼다
-      rosterReady: false,
-      working: [],
+      // 근무표에 오늘 근무 유형이 하나라도 정해져 있으면 rosterReady
+      rosterReady: roster.items.length > 0,
+      working: roster.items
+        .filter((w) => w.working)
+        .map((w) => ({ userId: w.userId, name: w.name, jobType: w.jobType, shift: w.shift?.label ?? w.leave?.label ?? '' })),
       onLeave,
     },
     kpis: {
-      working: null,
+      working: roster.items.length > 0 ? roster.working : null,
       checklistOpen: checklist.open,
       stock: { total: c.warning, low: c.low, expiring: c.expiring, soonLow: c.soon_low, expired: c.expired },
       due: {

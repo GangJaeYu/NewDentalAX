@@ -1,5 +1,5 @@
 /* 이 파일이 하는 일: 대시보드 카드 안쪽 모양(시안 v2 docs/design/preview.html의 대시보드 부분)을 dash- 이름으로 둔다.
-   체크 상자 줄, 누르면 이동하는 줄, D-day 칸, 공지 묶음, 이번 주 7일 칸, AI 사용 막대. 색은 모두 토큰(--accent 등)만 쓴다. */
+   체크 상자 줄, 누르면 이동하는 줄, D-day 칸, 공지 묶음, 이번 주 7일 칸, AI 사용 막대. 오늘 근무 카드 본문 모양은 hr/roster.css(04-01)에 있다. 색은 모두 토큰(--accent 등)만 쓴다. */
 
 /* 누르면 해당 화면으로 가는 줄 */
 .dash-row {
@@ -206,31 +206,4 @@
   flex-wrap: wrap;
   font-size: var(--fs-small);
   color: var(--muted);
-}
-
-/* 오늘 근무(휴가자 줄) */
-.dash-shift {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 12px;
-}
-.dash-shift li {
-  border-top: 0;
-}
-.dash-mini-av {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--surface-2);
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  flex: none;
-}
-@media (max-width: 720px) {
-  .dash-shift {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }

@@ -7,7 +7,7 @@ import type { LegalCategory, LegalDueState, LegalVerifyStatus } from './legal.ts
 import type { LeaveType } from './leave.ts';
 import type { OrderStatus } from './orders.ts';
 
-/** 오늘 근무하는 사람 한 명(근무표 phase-04-task-01이 채운다) */
+/** 오늘 근무하는 사람 한 명(근무표 phase-04-task-01 todayRoster) */
 export interface DashWorker {
   userId: number;
   name: string;
@@ -124,16 +124,18 @@ export interface DashMove {
 
 /** 대시보드 전체 응답(data) */
 export interface DashboardData {
+  /** 서버 기준 지금 시각(ISO). 인사말·날짜를 브라우저 시계가 아니라 서버 시계로 맞춘다 */
+  now: string;
   today: {
     /** 한국 날짜 YYYY-MM-DD */
     date: string;
-    /** 근무표가 생기면(phase-04-task-01) true. 그 전에는 working이 늘 빈 배열 */
+    /** 근무표에 오늘 근무가 정해져 있으면 true(phase-04-task-01 todayRoster) */
     rosterReady: boolean;
     working: DashWorker[];
     onLeave: DashOnLeave[];
   };
   kpis: {
-    /** 오늘 근무 인원(근무표가 없으면 null) */
+    /** 오늘 근무 인원(오늘 근무표가 비어 있으면 null) */
     working: number | null;
     checklistOpen: { done: number; total: number };
     stock: { total: number; low: number; expiring: number; soonLow: number; expired: number };
