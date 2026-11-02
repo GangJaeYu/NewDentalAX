@@ -3,8 +3,10 @@
 // 로그인·CSRF·주소별 권한은 server/auth/guard.ts가 먼저 확인하고, 본문·작성자에 따라 다른 권한은 각 파일이 확인한다.
 import type { FastifyInstance } from 'fastify';
 import { registerLeaveRoutes } from './leave-routes.ts';
+import { registerRosterRoutes } from './roster-routes.ts';
 
 /** hr 모듈 API를 등록한다 */
 export default async function routes(app: FastifyInstance): Promise<void> {
   registerLeaveRoutes(app);
+  registerRosterRoutes(app);
 }
