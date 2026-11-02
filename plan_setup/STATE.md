@@ -8,11 +8,14 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git main)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-- phase-01-task-01(failed → 시도 2 병합됨, 재검증 중): 검증 워커 `ctx_48337e443893`, 검증 슬롯 0, 대상 87ba834
-  - phase-01-task-02(in_progress, 구현 병합 cd40371, 검증 중): 검증 워커 `ctx_18e1112307d1`, 검증 슬롯 1, 대상 6f6c3f5. completed는 01-01 completed 이후에만
-  - phase-01-task-03(in_progress): 구현 `ctx_698b9246edd8`, 슬롯 2. 선행 01-02 검증 전에 시작
-  - phase-01-task-06(in_progress): 구현 `ctx_824184074eee`, 슬롯 3. 선행 01-02 검증 전에 시작
-  - phase-02-task-01(in_progress): 구현 `ctx_5ea908d2ce07`, 슬롯 0. 선행 01-02 검증 전에 시작
+- phase-01-task-01(failed → 시도 3 수정 중): 수정 워커 `ctx_53a7fb87dbbf`, 슬롯 1(IPv6 포트 충돌 감지)
+  - phase-01-task-02(검증 PASS, completed 보류: 01-01 대기)
+  - phase-01-task-03(구현 병합): 검증 워커 `ctx_5478f9653b7a`, 검증 슬롯 0
+  - phase-01-task-04(in_progress): 구현 `ctx_64fb05731874`, 슬롯 0
+  - phase-01-task-06(구현 병합): 검증 워커 `ctx_3db61f21b801`, 검증 슬롯 3
+  - phase-02-task-01(구현 병합): 검증 워커 `ctx_64d40da03f5a`, 검증 슬롯 2
+  - phase-02-task-02(in_progress): 구현 `ctx_5410ef89381a`, 슬롯 2
+  - 대기: 02-04(01-04 병합 후), 01-05(01-04 후), 02-05(01-04 후)
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
@@ -31,7 +34,7 @@
   - `loop_started_at: 2026-11-02T18:55:20+09:00`
   - `deadline: 2026-11-03T18:55:20+09:00`
   - 신규 대형 태스크 시작 마감: 2026-11-03T17:55+09:00
-- elapsed: 0.9h (19시 47분 33초 기준)
+- elapsed: 1.2h (20시 7분 11초 기준)
 - 누적 재시도: 01-01 1회(시도 2 진행 중)
 
 ## 미결·차단
