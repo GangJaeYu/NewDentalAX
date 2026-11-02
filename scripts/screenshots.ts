@@ -1,10 +1,11 @@
 // 이 파일이 하는 일: 화면 스크린샷 생성(`npm run screenshots`). 임시 서버를 띄워 지정한 화면을 4너비(1440·1024·768·390)×2테마(라이트·다크)로
 // Edge에서 찍어 artifacts/screens/<page>-<너비>-<테마>.png(화면 크기)와 -full.png(전체 길이)로 저장하고, 가로 스크롤이 생긴 화면과 Pretendard 글꼴이 안 걸린 화면을 알려 준다.
 // 순서: 첫 설정 전 화면(setup) → API로 첫 설정(관리자 생성) → 로그아웃 상태 화면(login) → 로그인 상태 화면(대시보드 셸·스텁 등).
-// 화면 목록은 각 화면 태스크(최종 phase-05-task-03)가 PAGES에 더한다. 특정 화면만: node scripts/screenshots.ts dashboard stub
+// 화면 목록: 새 화면은 scripts/screens/<태스크ID>.ts에 `export const pages`로 더한다(이 파일의 PAGES는 고치지 않는다). 특정 화면만: node scripts/screenshots.ts dashboard stub
 // 알림 화면·종 팝오버(phase-02-task-04)를 위해 첫 설정 뒤 서버 DB(임시 데이터 폴더)에 예시 알림을 notify.emit으로 넣는다. action이 있는 화면은 찍기 전에 그 동작(팝오버 열기)을 한다.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { chromium, type BrowserContext, type Page } from '@playwright/test';
 import { appDbPath, openDb } from '../server/db/index.ts';
@@ -157,6 +158,12 @@ async function login(ctx: BrowserContext): Promise<void> {
 }
 
 const only = process.argv.slice(2);
+// 각 태스크가 scripts/screens/<태스크ID>.ts에 내보낸 화면 목록도 더한다(types.ts 제외, 이름순)
+const screensDir = path.join(ROOT, 'scripts', 'screens');
+for (const f of fs.existsSync(screensDir) ? fs.readdirSync(screensDir).filter((n) => n.endsWith('.ts') && n !== 'types.ts').sort() : []) {
+  const mod = (await import(pathToFileURL(path.join(screensDir, f)).href)) as { pages?: typeof PAGES };
+  for (const pg of mod.pages ?? []) PAGES.push(pg);
+}
 const pages = only.length ? PAGES.filter((p) => only.includes(p.name)) : PAGES;
 fs.mkdirSync(OUT, { recursive: true });
 // 데이터 폴더를 직접 정해 예시 알림을 넣을 수 있게 한다(끝나면 지운다)
