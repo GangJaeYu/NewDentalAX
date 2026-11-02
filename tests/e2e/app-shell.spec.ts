@@ -234,7 +234,7 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
         await expect(p2.getByRole('region', { name: '오늘 현황' })).toBeVisible();
         const r2 = await new AxeBuilder({ page: p2 }).analyze();
         expect(axeList(r2.violations), `셸 ${width} ${theme}`).toEqual([]);
-        await p2.goto(url('/inventory/receipt')); // 아직 스텁인 화면(phase-04-task-08). 월간 요약은 phase-04-task-04에서 실제 화면이 됨
+        await p2.goto(url('/hr/hiring')); // 아직 스텁인 화면(phase-04-task-07). 명세서 입고는 phase-04-task-08에서 실제 화면이 됨
         await expect(p2.getByText('준비 중인 화면이에요')).toBeVisible();
         const r3 = await new AxeBuilder({ page: p2 }).analyze();
         expect(axeList(r3.violations), `스텁 ${width} ${theme}`).toEqual([]);

@@ -1,0 +1,68 @@
+/* 이 파일이 하는 일: "명세서 사진으로 입고" 화면(/inventory/receipt)의 모양. 빨간 업로드 경고, 사진 고르기 칸과 미리 보기, 읽은 품목 줄(후보 칩 + 입력 칸 격자),
+   합계 줄, 지출 묶음, 비활성·저장 완료 안내. 색은 tokens.css 변수만 쓰고, 상태는 색과 함께 글자·아이콘으로 보인다(DESIGN §5-5). 좁은 화면에서는 칸을 한 줄로 쌓는다. */
+
+.rc-stack { display: grid; gap: var(--gap); min-width: 0; }
+.rc-pad { display: grid; gap: 12px; min-width: 0; }
+/* 숨긴 파일 입력(.sr-only)이 화면 폭만큼 넘치지 않게 놓기 칸을 기준 상자로 둔다 */
+.rc-pad .filedrop { position: relative; overflow: hidden; }
+
+.rc-warn { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--danger-weak); color: var(--danger); font-size: 13px; font-weight: 600; line-height: 1.45; }
+.rc-mask { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--warn-weak); color: var(--warn); font-size: 13px; font-weight: 600; line-height: 1.45; }
+.rc-warn .i, .rc-mask .i { margin-top: 1px; flex: none; }
+
+.rc-pick { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: stretch; min-width: 0; }
+.rc-pick > .field { min-width: 0; }
+.rc-preview { margin: 0; display: grid; gap: 4px; justify-items: center; align-content: start; max-width: 180px; }
+.rc-preview img { max-width: 180px; max-height: 140px; border-radius: var(--r-md); border: 1px solid var(--line); object-fit: contain; background: var(--surface-2); }
+.rc-preview figcaption { font-size: var(--fs-xs); text-align: center; overflow-wrap: anywhere; }
+
+.rc-hint { margin: 0; color: var(--muted); font-size: var(--fs-small); }
+.rc-hint.end { text-align: right; }
+.rc-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.rc-actions.start { justify-content: flex-start; margin-top: 8px; }
+.rc-sub { display: inline-flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: var(--fs-small); }
+
+.rc-head { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+
+.rc-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; min-width: 0; }
+.rc-line { border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px 12px; display: grid; gap: 10px; min-width: 0; background: var(--surface); }
+.rc-line.skip { background: var(--surface-2); }
+.rc-line.skip .rc-read b { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--muted); }
+.rc-line-top { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; min-width: 0; }
+.rc-read { display: grid; gap: 1px; min-width: 0; }
+.rc-read b { font-size: 14.5px; font-weight: 700; overflow-wrap: anywhere; }
+.rc-read small { font-size: var(--fs-xs); }
+.rc-cands { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.rc-grid { display: grid; gap: 10px; grid-template-columns: minmax(200px, 2fr) repeat(4, minmax(110px, 1fr)); align-items: start; min-width: 0; }
+.rc-grid > * { min-width: 0; }
+.rc-new { grid-template-columns: minmax(200px, 2fr) repeat(2, minmax(110px, 1fr)); padding-top: 10px; border-top: 1px dashed var(--line); }
+
+.rc-total { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: flex-end; padding: 10px 0 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+.rc-total b { font-size: 17px; font-weight: 700; }
+.rc-diff { color: var(--warn); font-weight: 600; }
+
+.rc-expense { border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px 12px; margin: 0; display: grid; gap: 10px; min-width: 0; }
+.rc-expense legend { padding: 0 4px; font-size: 14px; }
+.rc-expense .field { max-width: 240px; }
+
+.rc-off, .rc-done { display: flex; gap: 12px; align-items: flex-start; }
+.rc-off .i { color: var(--muted); flex: none; }
+.rc-done .i { color: var(--ok); flex: none; }
+.rc-off b, .rc-done b { font-size: 15px; font-weight: 700; }
+.rc-off p, .rc-done p { margin: 4px 0 0; font-size: 13.5px; }
+
+@media (max-width: 1100px) {
+  .rc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rc-grid .rc-item { grid-column: 1 / -1; }
+  .rc-new { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rc-new > :first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .rc-pick { grid-template-columns: minmax(0, 1fr); }
+  .rc-preview { justify-self: center; }
+  .rc-head { grid-template-columns: minmax(0, 1fr); }
+  .rc-actions { justify-content: stretch; }
+  .rc-actions > * { flex: 1 1 auto; }
+  .rc-hint.end { text-align: left; }
+  .rc-expense .field { max-width: none; }
+}

@@ -24,6 +24,7 @@ import {
 import './notify.ts';
 import orderRoutes from './orders.routes.ts';
 import csvRoutes, { sendMovesCsv } from './csv-routes.ts';
+import receiptRoutes from './receipt.routes.ts';
 
 const idParam = z.object({ id: z.coerce.number({ error: '번호가 올바르지 않아요.' }).int().positive('번호가 올바르지 않아요.') });
 const pageFields = {
@@ -70,6 +71,8 @@ const vendorsQuery = z.object({ active: z.enum(['active', 'inactive', 'all']).op
 export default async function routes(app: FastifyInstance): Promise<void> {
   // CSV 가져오기·내보내기(phase-03-task-03, csv-routes.ts)
   await app.register(csvRoutes);
+  // 명세서 사진 입고(phase-04-task-08, receipt.routes.ts)
+  await app.register(receiptRoutes);
 
   // 품목 목록: 검색·분류·상태·정렬·쪽 나누기. { data, total, counts, categories }
   app.get('/items', async (req) => listItems(app.db, app.clock, parseInput(itemsQuery, req.query)));
