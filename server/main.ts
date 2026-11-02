@@ -15,6 +15,7 @@ import { buildApp, HEALTH_PATH, INSTANCE_HEADER, readVersion } from './app.ts';
 import { fixedClock, systemClock } from './lib/clock.ts';
 import { appDbPath, type Db } from './db/index.ts';
 import { openAppDb } from './db/migrate.ts';
+import { startScheduler } from './jobs/scheduler.ts';
 
 export const EXIT_OK = 0;
 export const EXIT_CRASH = 1;
@@ -397,6 +398,8 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
   console.log(startupMessage(config.port, lan, readVersion()));
   writeLog(paths.logFile, `서버 시작 pid=${process.pid} host=${plan.host} port=${config.port}`);
   if (env.OPEN_BROWSER === '1' && env.NO_BROWSER !== '1') openBrowser(`http://localhost:${config.port}`);
+  // 예약 작업(세션 정리·기한형 알림): 지금 한 번, 그 뒤 매시 정각(server/jobs/scheduler.ts)
+  const scheduler = startScheduler({ db, clock, log: (m) => writeLog(paths.logFile, m) });
 
   // 끄기: stop.bat이 stop.flag를 만들거나, Ctrl+C·종료 신호를 받으면 정리하고 0으로 끝낸다
   return await new Promise<number>((resolve) => {
@@ -405,6 +408,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
       if (closing) return;
       closing = true;
       clearInterval(timer);
+      await scheduler.stop();
       console.log(`\n서버를 끄는 중이에요(${why})...`);
       await app.close().catch(() => {});
       db.close();
