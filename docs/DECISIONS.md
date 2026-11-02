@@ -118,3 +118,4 @@
 | 2026-11-03 | GET /api/dashboard는 server/modules/dashboard/에 두고 notifications routes에서 등록한다. 응답 계약은 shared/schemas/dashboard.ts에 둔다. 역할상 볼 수 없는 영역은 null, 아직 없는 영역은 ready:false로 준다. AI 금액은 원장만 보고 %는 모두 본다. 상단바 데모 배지는 "가상 데이터"(demoMode)와 "AI 키 미설정"(ai.demo)을 나눠 표시한다. 인사말 날짜는 서버 시계를 따른다 (03-10) | FR-008, 02-03 요청 |
 | 2026-11-03 | 지출 분류에 code를 둔다(재료비 'material'). 입고와 지출은 stock_move_ref 부분 UNIQUE로 연결한다. AI 월간 요약은 서버가 집계 숫자만 만들어 보낸다. GET /api/expenses의 기본값은 서버 기준 이번 달이다 (04-04) | FR-110·111 |
 | 2026-11-03 | main.test·migrate.test의 서버 기동 대기를 45초로 늘린다(판정 단언은 그대로) (조정자) | PC 부하가 클 때 15초를 넘겨 간헐 실패했다(04-04·04-06 보고) |
+| 2026-11-03 | 390px 가로 스크롤 판정에 "innerWidth = 390 유지"를 더한다. 알림 6종 출처표(NOTIFY_SOURCES)와 scanner 기대 목록을 notify-job.ts에 둔다 (04-05) | isMobile 흉내에서는 넘치면 화면이 축소돼 기존 판정이 넘침을 놓친다(실측 656). 알림 출처가 빠지면 경고하려고 |
