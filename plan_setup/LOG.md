@@ -222,3 +222,11 @@
   - --omit=dev: moderate 3건(minimatch 등), high/critical 0
   - 전체: moderate 16건
   - NFR-002 AC6(high/critical 0)은 지금 충족한다. 05-02에서 다시 점검한다.
+
+## 2026-11-02 21:12 phase-02-task-04 통합
+- 같은 워커의 follow-up(ctx_f8574d0415d4), 커밋 278ca71
+  - 종 팝오버와 /notifications 화면을 연결하고 e2e를 fixture로 옮겼다.
+  - AC3: page.clock으로 실제 30초 폴링을 확인했다.
+- main 병합 후 게이트: lint PASS, unit 399건, e2e 27건
+- DECISIONS 5건(01-04·02-04 결정)을 옮겼다.
+- 다음: 02-04 검증(검증 슬롯 3)
