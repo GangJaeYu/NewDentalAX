@@ -1,6 +1,6 @@
 ---
 id: phase-01-task-04
-status: in_progress
+status: completed
 phase: "01"
 title: "디자인 시스템·앱 셸·첫 설정/로그인 화면"
 depends_on: [phase-01-task-03]

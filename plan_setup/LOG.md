@@ -207,3 +207,18 @@
   - 01-05 구현(슬롯 0), 02-05 구현(슬롯 1), 02-03 구현(슬롯 2)
   - 02-04 연결 follow-up(send, 슬롯 3)
 - 충돌 예상: server/modules/admin/routes.ts(01-05·02-05 등록 줄). 조정자가 해결한다.
+
+## 2026-11-02 21:06 phase-01-task-04 task_validation → PASS(6/6) → completed
+- 검증 워커 ctx_cbeea8c2fbb6(대상 31b5678, 코드는 1b8aa5e와 같음). 게이트: lint PASS, unit 371건, e2e 20건
+- 확인 내용
+  - 스크린샷 32장을 기준선과 대조
+  - axe 18회 모두 위반 0
+  - 키보드만으로 로그인 가능, 포커스 표시 #0c7c76
+  - 인터넷 차단 상태에서 Pretendard 렌더 확인(글자 폭 측정)
+  - 연결 끊김 띠 표시 확인
+- 증거: evidence/phase-01-task-04/
+- 선행 01-03이 completed라서 01-04를 completed로 바꿨다.
+- npm audit
+  - --omit=dev: moderate 3건(minimatch 등), high/critical 0
+  - 전체: moderate 16건
+  - NFR-002 AC6(high/critical 0)은 지금 충족한다. 05-02에서 다시 점검한다.
