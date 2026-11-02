@@ -1,6 +1,6 @@
 ---
 id: phase-03-task-01
-status: pending
+status: in_progress
 phase: "03"
 title: "재고: 품목·입출고·상태·거래처·단가"
 depends_on: [phase-01-task-05, phase-02-task-04]
