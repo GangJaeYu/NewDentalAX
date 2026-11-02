@@ -26,3 +26,15 @@
 - phase-01-task-01 수용 기준 추가: gate.mjs 세 게이트 PASS, lint 단계 출력 계약, preflight Playwright 항목 활성. 범위에 Playwright 설정 계약을 추가했다.
 - CLAUDE.md(에이전트용 문서 포인터)를 만들었다.
 - 제품 게이트 실행: 없음(제품 코드 없음, 미활성 = 통과 아님)
+
+## 2026-11-02 루프 준비
+- 로컬 git 저장소를 만들었다(main). 첫 커밋 d6bbc52(문서), 3149871(.gitattributes). push는 없다.
+- Orca 실행 경로 시험(Run run_de4176c8b3c0)
+  - 워커 ①(current, 읽기 전용, claude-opus-5-5): 성공. 대화를 물려받지 않았다.
+  - 워커 ②(new-child 작업 사본에서 쓰기): 성공. 커밋 b37a746이 그 브랜치에만 있고 main은 바뀌지 않았다.
+  - 정리: worker-release, orca worktree rm, git branch -D로 완료했다.
+- 발견: Orca 작업 사본이 C:\Users\main\orca\workspaces\ 아래(이 폴더 밖)에 만들어진다. 원문 "이 폴더 밖 수정 금지"와 겹쳐서 시작 전에 사용자에게 확인한다.
+- 바꾼 것
+  - preflight 포트 범위를 18090~18097로 넓혔다(재실행해서 전부 OK).
+  - .gitignore에 .tmp/를 추가했다.
+  - loop_setup/LOOP.md를 작성했다.

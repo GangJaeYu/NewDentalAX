@@ -3,7 +3,8 @@
 > 이 파일만 읽고도 이어서 작업할 수 있게 유지한다. 태스크 상태의 정본은 각 태스크 frontmatter다.
 
 ## 현재
-- **단계**: 계획 작성 완료 → **하네스 준비 완료(2026-11-02, `harness_setup/`)**. 다음은 `loop-setup`이다. Loop는 아직 시작하지 않았다.
+- **단계**: 계획 → 하네스 → **루프 준비 완료(2026-11-02, `loop_setup/LOOP.md`)**. Loop 시작 승인을 기다리는 중이다(LOOP.md §8의 두 항목).
+- **Orca**: 시험 Run `run_de4176c8b3c0`(시험 워커 2개 모두 회수·해제했고, 작업 사본과 브랜치도 삭제함). 실제 Loop는 새 Run으로 시작한다.
 - **하네스 상태**: 게이트 4종 정의 완료. lint·unit·e2e는 미활성이고 01-01에서 활성화한다. task_validation 절차와 인계서 스크립트는 활성이다. 사전 점검은 통과했다.
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git 저장소는 01-01에서 만든다)
 - **진행 중 태스크**: 없음(37개 모두 pending)
@@ -34,5 +35,5 @@
 
 ## 다음 행동
 1. ~~`harness-setup`~~ 완료
-2. `loop-setup`: Orca 워커 생성 시험, 루프 운영(`loop_setup/LOOP.md`)
-3. Loop 시작: phase-01-task-01부터
+2. ~~`loop-setup`~~ 완료
+3. 사용자에게 Loop 시작 승인과 Orca 작업 사본 위치 허용 여부를 받는다 → 승인 후 `loop_started_at`을 기록하고 phase-01-task-01 구현 워커를 시작한다

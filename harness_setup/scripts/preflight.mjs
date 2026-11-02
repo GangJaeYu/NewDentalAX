@@ -56,7 +56,8 @@ await check('Playwright로 Edge 실행', async () => {
   await b.close();
   return `Edge ${v}`;
 });
-for (const p of [8090, 18090, 18091, 18092, 18093]) await check(`포트 ${p}`, () => portFree(p));
+// 8090=제품, 18090~18093=구현 워커 슬롯 0~3의 E2E, 18094~18097=검증 워커 슬롯 0~3 (loop_setup/LOOP.md §4)
+for (const p of [8090, 18090, 18091, 18092, 18093, 18094, 18095, 18096, 18097]) await check(`포트 ${p}`, () => portFree(p));
 await check('디스크 여유(작업 드라이브)', () => {
   const out = run('powershell -NoProfile -Command "(Get-PSDrive C).Free/1GB"');
   const gb = parseFloat(out);

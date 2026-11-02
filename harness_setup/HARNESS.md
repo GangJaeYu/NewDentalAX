@@ -13,7 +13,7 @@
 | 브라우저 | Microsoft Edge(설치됨), Playwright `channel:'msedge'` 조종 가능 | 시안 8장 촬영 실험 |
 | 독립 세션 | Claude CLI 2.1.316(`-p` 지원), Orca 런타임 ready, Agent 도구(general-purpose) | `claude --help`, `orca status` |
 | 자원 | 논리 CPU 20개, 메모리 32GB, C: 여유 45GB | CIM, preflight |
-| 포트 | 8090(제품), 18090~18093(E2E·검증) 모두 비어 있음 | preflight |
+| 포트 | 8090(제품), 18090~18097(구현·검증 워커 E2E 슬롯, LOOP.md §4) 모두 비어 있음 | preflight |
 | 외부 서비스 | 없음. LLM은 데모 또는 `tests/fake-llm` 가짜 서버만 쓰고 실제 키는 쓰지 않는다 | PRD 자율운영 합의 |
 | 다른 OS | 대상 아님. 서버는 Windows 전용이고, 클라이언트는 브라우저다. WSL이 있지만 쓰지 않는다 | — |
 
