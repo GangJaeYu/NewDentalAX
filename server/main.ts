@@ -1,12 +1,15 @@
-// 이 파일이 하는 일: 서버 진입점. 설정을 읽고 → 데이터 폴더를 준비하고 → buildApp으로 서버를 만들어 포트를 연 뒤,
+// 이 파일이 하는 일: 서버 진입점. 설정을 읽고 → 데이터 폴더를 준비하고 → app.db를 열어 마이그레이션을 적용하고 → buildApp으로 서버를 만들어 포트를 연 뒤,
 // 이 PC와 원내 다른 기기에서 접속할 주소를 한국어로 안내한다. PID 파일을 남기고, stop.bat이 만든 종료 표시 파일을 보면 스스로 꺼진다.
-// 종료 코드: 0 정상 종료, 1 예기치 못한 오류(start.bat이 다시 시작), 2 포트 문제, 3 설정 오류(2·3은 다시 시작하지 않음).
+// 종료 코드: 0 정상 종료, 1 예기치 못한 오류(start.bat이 다시 시작), 2 포트 문제, 3 설정·데이터 파일 오류(2·3은 다시 시작하지 않음).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { ConfigError, loadConfig, type AppConfig } from './config.ts';
-import { buildApp, fixedClock, readVersion, systemClock } from './app.ts';
+import { buildApp, readVersion } from './app.ts';
+import { fixedClock, systemClock } from './lib/clock.ts';
+import { appDbPath, type Db } from './db/index.ts';
+import { openAppDb } from './db/migrate.ts';
 
 export const EXIT_OK = 0;
 export const EXIT_CRASH = 1;
@@ -127,13 +130,31 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
   fs.rmSync(paths.stopFlag, { force: true });
 
   const clock = config.testNow ? fixedClock(config.testNow) : systemClock;
-  const app = await buildApp({ dataDir: config.dataDir, clock });
+
+  // DB 열기 → 마이그레이션(이미 적용한 번호는 건너뜀). 실패하면 다시 시작해도 똑같으므로 종료 코드 3(다시 시작 안 함)으로 끝낸다.
+  let db: Db;
+  try {
+    const opened = openAppDb(config.dataDir, { clock });
+    db = opened.db;
+    const m = opened.migration;
+    const note = m.applied.length ? `새로 적용: ${m.applied.join(', ')}` : '새로 적용한 것 없음';
+    writeLog(paths.logFile, `DB 준비 ${appDbPath(config.dataDir)} schema_version=${m.version} (${note})`);
+    if (m.applied.length) console.log(`데이터 구조를 준비했어요(버전 ${m.version}, ${m.applied.length}개 적용).`);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`\n[문제] 데이터 파일(app.db)을 준비하지 못했어요.\n[원인] ${msg}\n[해결 방법] 서버 창이 이미 켜져 있으면 닫고 다시 실행해 주세요. 계속되면 backups 폴더의 최근 백업으로 복원이 필요할 수 있어요.\n`);
+    writeLog(paths.logFile, `DB 준비 실패: ${msg}`);
+    return EXIT_CONFIG;
+  }
+
+  const app = await buildApp({ dataDir: config.dataDir, clock, db });
 
   try {
     await app.listen({ port: config.port, host: config.host });
   } catch (e) {
     const code = (e as NodeJS.ErrnoException).code;
     await app.close().catch(() => {});
+    db.close();
     if (code === 'EADDRINUSE' || code === 'EACCES') {
       console.error(portProblemMessage(config.port, code));
       writeLog(paths.logFile, `listen 실패 port=${config.port} code=${code}`);
@@ -156,6 +177,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
       clearInterval(timer);
       console.log(`\n서버를 끄는 중이에요(${why})...`);
       await app.close().catch(() => {});
+      db.close();
       fs.rmSync(paths.pidFile, { force: true });
       writeLog(paths.logFile, `서버 종료 (${why})`);
       console.log('서버가 꺼졌어요.');
