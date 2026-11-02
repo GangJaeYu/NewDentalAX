@@ -1,0 +1,16 @@
+# task_validation 결과 — phase-04-task-02 (작업 사본 커밋 6315aa6, TEST_NOW=2026-11-02T09:00:00+09:00)
+
+| # | 수용 기준 | 판정(PASS/FAIL/판정 불가) | 관찰 증거(명령·출력 요약·파일 경로) |
+|---|---|---|---|
+| 1 | 주기 12개월 교육을 2025-12-01 이수 기록 → 다음 예정 2026-12-01, D-30 안이면 해당 직원과 manager에게 알림 | PASS | 수동 서버(포트 18196, 임시 DATA_DIR .tmp/manual-val/data-*, 데모 AI)에서 실행. 실장이 POST /api/trainings {감염관리 교육, cycleMonths:12}를 보내 201을 받음(직원이 보내면 403). 직원이 POST /api/trainings/1/records {completedOn:"2025-12-01"} → 201, status.nextDueOn="2026-12-01", daysLeft=29, state="soon", notified=3. training_due 알림은 해당 직원·실장·원장에게만 "이직원 님 감염관리 교육 이수 예정일이 29일 남았어요"로 오고, 다른 직원 2명에게는 [] (없음). 경계값: 2025-12-02 → D-30에서 알림이 왔고(notified=3), 2025-12-05 → D-33에서는 notified=0, 알림 없음. 실장 화면 직원별 현황과 직원 화면 내 교육 표에 2025-12-01 / 2026-12-01 / D-29가 보임(.tmp/manual-val/out/mgr-training-1440-light.png, staff-training-1440-light.png, staff-notifications.png). e2e hr-training.spec.ts:68 ok |
+| 2 | 증빙 파일 업로드 후 다운로드된다 | PASS | multipart POST /api/trainings/1/records(이수증-검증.pdf, 112B) → 201, file={id:1,name:"이수증-검증.pdf",size:112}. 본인이 GET /api/trainings/records/2/file → 200, application/pdf, Content-Disposition filename*=UTF-8''이수증-검증.pdf, 내려받은 내용이 원본과 바이트 단위로 같음(identical=true). 실장도 200·같은 내용. 다른 직원은 403. .exe를 올리면 415 FILE_TYPE("PDF·JPG·PNG 파일만…"). 화면의 기록 목록 대화상자에서 내려받기 링크를 누르면 파일 이름이 이수증-검증.pdf이고 내용도 같음(staff-training-records-dialog.png). e2e hr-training.spec.ts:127 ok |
+| 3 | AI(데모)로 치과위생사 온보딩 초안 → 템플릿 저장 → 신규 직원 배정 → 항목 체크 시 진행률 %가 직원·멘토 화면 모두에서 갱신 | PASS | POST /api/ai/run {feature:"onboarding", input:{jobType:"치과위생사"}} → 200, demo:true, provider:"demo", 비용 0원, 항목 11개(스케일링·멸균 등 포함). 실장 화면에서 "초안 만들기"를 누르면 편집 가능한 항목 11개가 나옴. 마지막 항목을 고쳐 "템플릿으로 저장" → GET templates에서 jobType=hygienist, source="ai", 11개, 마지막 항목이 고친 문구로 저장됨. 최신입(멘토 이직원)에게 배정했고 실장 표는 0%. 신입 화면에서 3개 체크 → 27%(=3/11). 멘토 화면에도 27%가 보이고, 멘토가 1개 더 체크 → 36%. 신입 화면은 새로고침 후 36%. 신입이 1개 해제 → 27%, API에서 done=3, percent=27. 상관없는 직원은 배정 목록이 [] 이고 체크하면 403. 콘솔 오류 0건(mgr-onboarding-draft-1440-light.png, newbie-onboarding-1440-light.png, mentor-onboarding-1440-light.png). e2e hr-training.spec.ts:166 ok |
+| 화면 | DESIGN.md §5 시각 기준(기준선 preview-dashboard-*) | PASS | npm run screenshots로 hr-training, hr-training-record, hr-onboarding, hr-onboarding-draft를 4너비×2테마, 모두 32장 찍음(artifacts/screens/hr-*.png, 모두 OK). 수동 측정한 scrollWidth가 innerWidth와 같아 390/768/1440·라이트/다크에서 가로 스크롤이 없음. 기준선과 같은 청록 주 버튼은 화면마다 하나이고, 카드 모서리·간격·Pretendard 글꼴, 빈 상태 안내와 첫 항목 버튼, 글자가 들어간 상태 칩(D-29·이수 기록 필요·사용 중)이 기준선과 맞음. 390px에서는 넓은 표가 카드 안에서만 가로로 스크롤됨. e2e의 axe 위반 0건, 390px 검사 ok |
+
+- 게이트 결과: lint=PASS(tsc-server 290, tsc-web 155, eslint 422, headers 461), unit=PASS(720건), e2e=PASS(243건, E2E_PORT=18096, 11.1분, 이 태스크 spec 4건 포함)
+  - 로그: harness_setup/evidence/runs/2026-11-02T23-15-27-528Z-phase-04-task-02-lint.log, …23-16-12-900Z-…-unit.log, …23-17-52-137Z-…-e2e.log
+- 환경 문제·판정 불가 사유: 없음. 참고 관찰(FAIL 아님):
+  - ① 다른 사람이 체크해도 열려 있는 화면은 바로 바뀌지 않음. 멘토가 체크한 뒤 신입 화면을 새로고침하거나 다시 들어가야 바뀐 %가 보임(2초 동안 기다려도 27%로 남아 있다가 새로고침 후 36%). e2e도 새로고침으로 확인함.
+  - ② D-30 알림은 직원·실장에 더해 원장(admin)에게도 감(notified=3).
+  - ③ 수동 서버는 내가 띄운 자식 핸들로 종료했고, 18096·18196 포트가 닫힌 것을 확인함.
+- 재현 방법(실패 시): 해당 없음. 수동 검증 스크립트는 .tmp/manual-val/verify.ts에 있고 `node --disable-warning=ExperimentalWarning .tmp/manual-val/verify.ts`로 실행함. 로그는 .tmp/manual-val/out/verify-log.txt.

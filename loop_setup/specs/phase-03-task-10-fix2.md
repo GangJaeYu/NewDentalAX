@@ -1,6 +1,6 @@
 # 구현 워커 지시문 — phase-03-task-10
 
-너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@c23f474에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
+너는 치과 원내 업무 AX 웹 서비스의 **구현 워커**다. 이 작업 사본(main@f200105에서 갈라진 너의 브랜치)에서 태스크 하나를 끝까지 구현하고 직접 검사를 통과시킨 뒤, 브랜치에 커밋하고 worker_done으로 보고한다.
 
 ## 먼저 읽을 것
 1. `CLAUDE.md`(문서 포인터·금지 사항)
@@ -15,7 +15,7 @@
 - 모든 새 소스 파일 첫 5줄 안에 `이 파일이 하는 일:` 한국어 주석, 주요 함수에 쉬운 한국어 설명을 단다. 화면·오류 문구는 쉬운 한국어로 쓴다.
 - 의존성: `package-lock.json`이 있으면 시작할 때 `npm ci`. 새 런타임 의존성 추가는 금지(TD-023). 꼭 필요하면 추가하지 말고 보고에 "변경 요청"으로 적는다. (phase-01-task-01만 예외로 TD-023 목록 전체를 설치한다.)
 - `web/dist/`는 git에 넣지 않는다(.gitignore). e2e 전에 필요하면 빌드만 한다.
-- 포트·데이터: 이 워커는 **슬롯 1**이다. E2E는 `E2E_PORT=18091`, 수동 서버는 `PORT=18191`, 데이터는 작업 사본 안 `.tmp/`만 쓴다. 실제 `data/` 폴더나 8090 포트를 쓰지 않는다.
+- 포트·데이터: 이 워커는 **슬롯 2**이다. E2E는 `E2E_PORT=18092`, 수동 서버는 `PORT=18192`, 데이터는 작업 사본 안 `.tmp/`만 쓴다. 실제 `data/` 폴더나 8090 포트를 쓰지 않는다.
 - 무거운 작업(e2e·스크린샷·npm ci)은 한 번에 하나씩 실행한다.
 
 ## 검사 (모두 PASS여야 커밋·보고)
@@ -49,23 +49,19 @@ node harness_setup/scripts/gate.mjs e2e phase-03-task-10
 전체 Loop 마감 2026-11-03T18:55:20+09:00. 이 태스크는 가능하면 3시간 안에 끝낸다. 길어지면 진행분을 커밋하고 남은 일을 보고한다.
 
 ## 조정자 메모
-- 소유: `server/modules/dashboard/**`, `web/src/pages/DashboardPage.tsx`(04-01이 '오늘 근무' 카드 부분만 동시에 고칠 수 있다. 그 카드는 04-01의 RosterTodayCard에 맡기고 너는 다른 카드를 맡는다. 병합 충돌은 조정자가 정리한다)
-- 연결할 것(각 모듈이 내보낸 함수·API를 쓴다)
-  - 재고 경고·빠른 출고: 03-01 재고 service, `web/src/pages/inventory/QuickOutDialog.tsx`
-  - 발주 진행: 03-02 orders service
-  - 공지·처리 전 인수인계·체크리스트 진행률: 03-04 `GET /api/posts?unresolved=1`, `GET /api/checklists/:kind`
-  - 점검·의무 일정: 03-08 `listLegalDue(db, clock)`
-  - 승인 대기: 03-09 `pendingLeaveCount(db)`
-  - AI 빠른 요청: AiPanel(02-03·03-05)
-  - AI 사용: /api/ai/status
-- 아직 없는 데이터는 빈 상태로 두고 연결 지점을 남긴다: 지출(04-04), 멸균기 상태(04-03), 이번 주 일정의 근무·교육(04-01·04-02)
-- **상단바 데모 배지 연결(02-03 요청)**
-  - `web/src/layout/TopBar.tsx`에서 `/api/ai/status`의 demo를 받아 "AI 키 미설정"을 표시한다.
-  - 2026-11-02에 조정자가 시도했다가 e2e 2건이 깨져서 되돌렸다.
-    - tests/e2e/backup-reset.spec.ts AC5·AC6: 초기화 뒤 배지가 사라지는 것을 기대한다.
-    - tests/e2e/app-shell.spec.ts AC6: 연결 끊김 띠
-  - 배지의 의미("가상 데이터" vs "AI 키 미설정")에 맞게 테스트 기대값을 정확히 고친다. 검사를 약하게 만들지 않는다.
-- 수용 기준: NFR-009 클릭 수 측정, `GET /api/dashboard` p95 측정(10배 데이터는 05-01에서. 여기서는 측정 스크립트와 1배 수치)
+**수정 작업(시도 2).** 03-10 독립 검증에서 AC1~6은 PASS였다. DESIGN §5 "글자 잘림 없음" 하나가 FAIL이었다. 원문: `harness_setup/evidence/phase-03-task-10/validation-2026-11-03T0832-fail-design.md`
+
+결함
+- 768px(라이트·다크)에서 "다가오는 점검·의무 일정" 카드의 목록 행이 카드보다 32px 넓다(행 오른쪽 440 / 카드 408). 그래서 "조치 필요" 칩이 잘린다.
+- 390px에서도 2px 넘친다. 1440·1024는 정상이다.
+- 고칠 곳(추정): `web/src/pages/dashboardCards.tsx` 점검 카드 행. 긴 제목·칩의 min-width, ellipsis, 줄바꿈 처리가 문제로 보인다.
+
+할 일
+- 원인을 고친다. 행 텍스트 영역은 min-width:0과 말줄임이나 줄바꿈으로, 칩·D-day는 줄어들지 않게 한다.
+- 다른 대시보드 카드(재고 경고, 발주, 최근 입출고, 공지 등)에도 같은 패턴이 있으면 함께 고친다.
+- **회귀 테스트 추가**: e2e에서 4너비(1440·1024·768·390) × 2테마로 대시보드 각 카드의 모든 `li`·자식 요소 오른쪽 끝이 카드 오른쪽 끝을 넘지 않는지 측정한다(데모 데이터). 테스트 이름에 `phase-03-task-10 DESIGN5`를 넣는다. 390px 측정은 innerWidth=390 유지 조건을 함께 본다(04-05 결정).
+- `npm run screenshots -- dashboard-demo`로 다시 찍어서 768·390을 직접 확인한다.
+- 게이트 3종을 PASS시킨 뒤 커밋한다.
 - 현재 main(01-01·01-02·01-03·01-06·02-01·02-02 completed, 01-04 병합)의 공통 규칙
   - **e2e는 `tests/e2e/fixtures.ts`의 `test`·`expect`를 import한다.** spec 파일마다 격리 서버가 뜬다. 역할별 계정은 `addUser()`로 만든다. 자세한 내용은 `harness_setup/quality_gates/e2e.md`.
   - 화면: `web/src/routes.tsx`(01-04 소유)에 모든 경로가 이미 등록돼 있다. **네 태스크의 `web/src/pages/.../*.tsx` 파일만 교체**한다(routes.tsx, layout/**는 수정 금지). 공용 컴포넌트는 `web/src/components/`(01-04)를 쓰고, 고칠 일이 있으면 보고에 변경 요청으로 적는다.

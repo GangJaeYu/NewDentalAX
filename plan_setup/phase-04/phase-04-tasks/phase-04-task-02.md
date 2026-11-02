@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-02
-status: in_progress
+status: completed
 phase: "04"
 title: "교육 이수 기록·신규 직원 온보딩"
 depends_on: [phase-02-task-03, phase-03-task-08]
