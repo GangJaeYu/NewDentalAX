@@ -21,6 +21,10 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'login', url: '/login', state: 'anon', ready: '로그인' },
   { name: 'dashboard', url: '/', state: 'user', ready: '오늘 할 일' },
   { name: 'stub', url: '/inventory', state: 'user', ready: '준비 중인 화면이에요' },
+  // phase-01-task-05: 사용자·권한, 병원 기본 정보, 활동 기록
+  { name: 'users', url: '/admin/users', state: 'user', ready: '직원 목록' },
+  { name: 'clinic', url: '/admin/clinic', state: 'user', ready: '진료시간' },
+  { name: 'audit', url: '/admin/audit', state: 'user', ready: '시작 날짜' },
 ];
 
 /** 서버가 준비될 때까지 /api/health를 확인한다 */

@@ -1,7 +1,14 @@
-// 이 파일이 하는 일: admin 모듈의 직원 계정·감사 로그·설정·백업·데모 API(backend.md §3.2) 자리. 아직 비어 있고, 이 모듈을 맡은 태스크가 채운다.
-// 등록은 server/modules/index.ts가 이미 해 두었으니 이 파일만 고치면 된다. 경로는 '/api'가 붙은 채로 등록된다(예: app.get('/items', ...) → GET /api/items).
+// 이 파일이 하는 일: admin 모듈의 API 등록부(backend.md §3.2). 직원 계정(users.ts)·병원 기본 정보(clinic.ts)·활동 기록(audit.ts)을 등록한다.
+// 백업·데모(phase-02-task-05)는 아래 등록 줄을 더해 붙인다. 등록은 server/modules/index.ts가 '/api' 앞붙임으로 한다(예: app.get('/users') → GET /api/users).
 // 로그인·CSRF·주소별 권한은 server/auth/guard.ts가 먼저 확인한다. 본문·작성자에 따라 다른 권한은 requireCap·assertCan으로 더 확인한다.
 import type { FastifyInstance } from 'fastify';
+import { usersRoutes } from './users.ts';
+import { clinicRoutes } from './clinic.ts';
+import { auditRoutes } from './audit.ts';
 
-/** admin 모듈 API를 등록한다(아직 없음) */
-export default async function routes(_app: FastifyInstance): Promise<void> {}
+/** admin 모듈 API를 등록한다 */
+export default async function routes(app: FastifyInstance): Promise<void> {
+  await usersRoutes(app);
+  await clinicRoutes(app);
+  await auditRoutes(app);
+}
