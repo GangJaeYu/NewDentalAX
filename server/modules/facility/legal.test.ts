@@ -307,7 +307,7 @@ describe('주기 수정 권한·감사 로그', () => {
 describe('데모 데이터', () => {
   test('phase-03-task-08 범위(seed): 하늘숲치과 데모는 템플릿에 수행 기록을 넣고 장비별 정기검사 2개를 더하며, 두 번 불러도 늘지 않는다', async () => {
     const { app: a, clock } = await makeApp();
-    expect(tables).toEqual(['legal_tasks', 'legal_task_logs']);
+    expect(tables).toEqual(['legal_tasks', 'legal_task_logs', 'equipment', 'equipment_logs', 'sterilizer_logs']);
     seedDemo(a.db, { clock, scale: 1 });
     seedDemo(a.db, { clock, scale: 1 });
     const admin = loginAs(a, 'admin');

@@ -4,8 +4,12 @@
 // 서버가 켜질 때 법정 일정 기본 템플릿(TRD TD-022) 중 빠진 것을 넣는다.
 import type { FastifyInstance } from 'fastify';
 import { ensureLegalTemplates } from '../../db/seed/legal-templates.ts';
+import { registerUploads } from '../../lib/files.ts';
 import { registerLegalRoutes } from './legal.ts';
 import { registerLegalNotifyScanner } from './legal-notify.ts';
+import { registerEquipmentRoutes } from './equipment.ts';
+import { registerEquipmentNotifyScanner } from './equipment-notify.ts';
+import { registerSterilizerRoutes } from './sterilizer.ts';
 
 /** facility 모듈 API를 등록한다 */
 export default async function routes(app: FastifyInstance): Promise<void> {
@@ -13,4 +17,9 @@ export default async function routes(app: FastifyInstance): Promise<void> {
   if (app.hasDecorator('db') && app.hasDecorator('clock')) ensureLegalTemplates(app.db, app.clock);
   registerLegalNotifyScanner();
   registerLegalRoutes(app);
+  // 장비 점검·수리 이력 첨부 파일(multipart)을 이 플러그인 범위에서 받는다
+  await registerUploads(app);
+  registerEquipmentNotifyScanner();
+  registerEquipmentRoutes(app);
+  registerSterilizerRoutes(app);
 }

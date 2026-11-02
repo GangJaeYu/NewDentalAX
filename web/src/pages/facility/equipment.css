@@ -1,0 +1,98 @@
+/* 이 파일이 하는 일: 장비 점검·유지보수(/facility/equipment)·멸균기 점검 기록(/facility/sterilizer) 화면과 그 인쇄 화면(/print/equipment/:id, /print/sterilizer)의 모양.
+   목록 표(휴대폰에서는 카드처럼 세로로 쌓임), 자세히 보기 서랍, 기록 입력 양식, 불합격 경고 띠, 인쇄용 표. 색은 tokens.css 변수만 쓴다. */
+
+.card.eq-card > .body { padding: 0; gap: 0; }
+.eq-title { display: grid; gap: 2px; min-width: 0; }
+.eq-title b { font-weight: 600; overflow-wrap: anywhere; }
+.eq-title small, .eq-sub { color: var(--muted); font-size: var(--fs-small); overflow-wrap: anywhere; }
+.eq-duecell { display: grid; gap: 3px; }
+.eq-due { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.eq-m { display: none; }
+.eq-v { min-width: 0; overflow-wrap: anywhere; }
+.eq-table { min-width: 0; }
+.eq-table .tablewrap { position: relative; }
+.eq-table td { vertical-align: middle; white-space: normal; padding-top: 8px; padding-bottom: 8px; }
+.eq-table td:first-child { min-width: 170px; }
+.toolbar .input.eq-filter { width: auto; min-width: 150px; min-height: 36px; height: 36px; }
+.toolbar .input.eq-date { width: 150px; min-height: 36px; height: 36px; }
+.eq-range { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.eq-range span { color: var(--muted); font-size: var(--fs-small); }
+
+/* 태블릿 세로·휴대폰: 표 줄을 카드처럼 세로로 쌓고 칸 이름을 앞에 붙인다(가로 스크롤 없이) */
+@media (max-width: 900px) {
+  .eq-table .tablewrap { overflow: visible; }
+  .eq-table table, .eq-table tbody, .eq-table tr, .eq-table td { display: block; width: 100%; }
+  .eq-table thead { display: none; }
+  .eq-table tr { padding: 12px var(--pad); border-top: 1px solid var(--line); }
+  .eq-table tr:first-child { border-top: 0; }
+  .eq-table td { height: auto; padding: 3px 0; border: 0; min-width: 0 !important; max-width: none !important; display: flex; align-items: baseline; gap: 8px; }
+  .eq-table td:first-child { padding-bottom: 6px; }
+  .eq-due { flex-wrap: wrap; white-space: normal; }
+  .eq-m { display: inline-block; flex: none; width: 76px; color: var(--muted); font-size: var(--fs-small); }
+}
+
+.eq-drawer { display: grid; gap: 16px; }
+.eq-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.eq-dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; margin: 0; font-size: 14px; }
+.eq-dl dt { color: var(--muted); font-size: var(--fs-small); padding-top: 1px; }
+.eq-dl dd { margin: 0; overflow-wrap: anywhere; }
+.eq-sec { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
+.eq-sec h3 { margin: 0; font-size: 15px; }
+.eq-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.eq-form { display: grid; gap: 12px; }
+.eq-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.eq-grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+@media (max-width: 1100px) { .eq-grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .eq-grid2, .eq-grid4 { grid-template-columns: minmax(0, 1fr); } }
+.eq-logs { list-style: none; margin: 0; padding: 0; display: grid; }
+.eq-logs li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 2px 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.eq-logs li:first-child { border-top: 0; }
+.eq-logs .eq-logbody { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.eq-logs small { color: var(--muted); font-size: var(--fs-small); }
+.eq-logs a { color: var(--accent-strong); font-weight: 600; text-underline-offset: 2px; }
+.eq-legal { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+.eq-legal li { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.eq-legal a { color: var(--accent-strong); font-weight: 600; }
+
+/* 멸균 기록 */
+.st-alert { display: grid; gap: 10px; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--r-md); background: var(--danger-weak); color: var(--danger); border: 1px solid var(--danger); }
+.st-alert-head { display: flex; gap: 8px; align-items: center; font-weight: 700; }
+.st-alert ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.st-alert li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: var(--r-sm, 8px); background: var(--surface); color: var(--fg); }
+.st-alert li span { min-width: 0; overflow-wrap: anywhere; }
+.st-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 6px; }
+.st-fieldset legend { padding: 0; margin-bottom: 6px; font-size: var(--fs-small); font-weight: 600; }
+.st-form .st-result { display: flex; gap: 8px; flex-wrap: wrap; }
+.st-radio { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-md); cursor: pointer; font-weight: 600; }
+.st-radio:has(input:checked) { border-color: var(--accent); background: var(--accent-weak); color: var(--accent-strong); }
+.st-radio.fail:has(input:checked) { border-color: var(--danger); background: var(--danger-weak); color: var(--danger); }
+.st-radio:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.st-radio input { margin: 0; accent-color: var(--accent); }
+.st-pending { color: var(--danger); font-weight: 600; }
+.st-focus { outline: 2px solid var(--danger); outline-offset: -2px; }
+
+/* 인쇄 화면 */
+.eq-print { width: 100%; border-collapse: collapse; font-size: 12px; }
+.eq-print th, .eq-print td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.eq-print th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+.eq-print td.c, .eq-print th.c { text-align: center; }
+.eq-print td.r { text-align: right; }
+.eq-print .fail { color: var(--danger); font-weight: 700; }
+.eq-print-meta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px 14px; margin: 0 0 16px; font-size: 13px; }
+.eq-print-meta dt { color: var(--muted); }
+.eq-print-meta dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .eq-print-meta { grid-template-columns: auto minmax(0, 1fr); } }
+.eq-print-sum { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.eq-print-h3 { margin: 18px 0 8px; font-size: 14px; }
+/* 휴대폰 화면 미리보기: 표를 눌러 줄이지 않고 표 상자 안에서 옆으로 넘겨 본다(종이 인쇄에는 적용 안 함) */
+@media screen and (max-width: 720px) {
+  .eq-paper .tablewrap { position: relative; }
+  .eq-paper .eq-print { min-width: 680px; }
+}
+@media print {
+  /* 본문 글꼴의 대체 숫자 모양(ss06·tabular)은 PDF로 저장하면 글자 정보가 빠져 숫자를 복사·검색할 수 없다(orders.css와 같은 처리). 인쇄물에서는 기본 숫자 모양을 쓴다 */
+  .eq-paper, .eq-paper * { font-feature-settings: normal !important; font-variant-numeric: normal !important; }
+  .eq-print { font-size: 9pt; }
+  .eq-print th, .eq-print td { border-color: #9AA9A8 !important; padding: 3px 5px; }
+  .eq-print th { background: #EEF3F2 !important; }
+}

@@ -44,7 +44,7 @@ function count(app: FastifyInstance, sql: string): number {
 /**
  * 여러 모듈의 업무 데이터가 쌓인 상태를 흉내 낸다. 아직 다른 태스크가 만들지 않은 업무 테이블은 시험용으로 만든다
  * (서로 외래키로 이어진 표, 검색 색인, legal_tasks 템플릿·사용자 추가 항목). 핵심 테이블(알림·파일·AI 사용 기록)은 001·010 마이그레이션 것이다.
- * 검색 색인 kb_fts는 041_kb.sql(phase-03-task-07)이 이미 만들므로 IF NOT EXISTS로 둔다.
+ * 검색 색인 kb_fts는 041_kb.sql(phase-03-task-07)이 이미 만들므로 IF NOT EXISTS로 둔다. 장비 표(equipment)는 051_equipment.sql(phase-04-task-03)의 실제 표를 쓴다.
  */
 function fillBusinessData(env: Env, admin: TestLogin): void {
   const { app } = env;
@@ -52,7 +52,6 @@ function fillBusinessData(env: Env, admin: TestLogin): void {
   app.db.exec(`
     CREATE TABLE aaa_vendors (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
     CREATE TABLE zzz_moves (id INTEGER PRIMARY KEY, vendor_id INTEGER NOT NULL REFERENCES aaa_vendors(id), user_id INTEGER REFERENCES users(id), qty REAL);
-    CREATE TABLE equipment (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
     CREATE TABLE expense_categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL);
     CREATE VIRTUAL TABLE IF NOT EXISTS kb_fts USING fts5(heading, grams, cross, tokenize='unicode61');
   `);
@@ -60,7 +59,8 @@ function fillBusinessData(env: Env, admin: TestLogin): void {
   const manager = loginAs(app, 'manager');
   app.db.run("INSERT INTO aaa_vendors (id, name) VALUES (1, '가상거래처')");
   app.db.run('INSERT INTO zzz_moves (vendor_id, user_id, qty) VALUES (1, ?, 3), (1, ?, 5)', [staff.userId, manager.userId]);
-  app.db.run("INSERT INTO equipment (id, name) VALUES (1, '고압증기멸균기')");
+  // equipment는 051 마이그레이션의 실제 표다(phase-04-task-03)
+  app.db.run("INSERT INTO equipment (id, name, kind, created_at, updated_at) VALUES (1, '고압증기멸균기', 'sterilizer', ?, ?)", [now, now]);
   // legal_tasks는 050 마이그레이션의 실제 표다(phase-03-task-08). 서버가 켜질 때 넣은 템플릿 하나에 수행 기록·장비 연결을 넣고, 직접 추가한 항목과 이력을 더한다
   app.db.run("UPDATE legal_tasks SET last_done_on = '2026-10-01', equipment_id = 1 WHERE template_key = 'radiation-inspection'");
   app.db.run("INSERT INTO legal_tasks (template_key, title, category, last_done_on, created_at, updated_at) VALUES (NULL, '직접 추가한 일정', 'other', '2026-10-02', ?, ?)", [now, now]);
