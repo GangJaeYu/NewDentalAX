@@ -1,0 +1,36 @@
+/* 이 파일이 하는 일: 연차·휴가 화면(/hr/leave)의 모양. 카드 세로 쌓기, 승인 대기 목록(이름·기간·사유·경고·버튼), 경고 상자, 신청 요약, 부여 일수 입력 줄.
+   색은 tokens.css 변수만 쓰고, 경고는 아이콘·글자로도 알 수 있게 한다(색만으로 구분하지 않음, DESIGN §5-5). 520px 이하는 두 칸 입력을 한 칸으로 쌓는다. */
+
+.leave-stack { display: grid; gap: var(--gap); margin-top: var(--gap); min-width: 0; }
+.leave-pad { padding: var(--pad); }
+
+.leave-pending { list-style: none; margin: 0; padding: 0; }
+.leave-pending > li { display: grid; gap: 6px; padding: 12px var(--pad); border-top: 1px solid var(--line); min-width: 0; }
+.leave-pending > li:first-child { border-top: 0; }
+.leave-pending .who { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.leave-pending .who b { font-weight: 700; }
+.leave-pending .when { color: var(--fg); font-size: var(--fs-small); }
+.leave-pending .when small { color: var(--muted); font-size: var(--fs-xs); }
+.leave-pending .why { margin: 0; color: var(--muted); font-size: var(--fs-small); overflow-wrap: anywhere; }
+.leave-pending .acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.leave-pending .acts .muted { font-size: var(--fs-xs); }
+
+.leave-warn { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: var(--r-md); background: var(--warn-weak); color: var(--warn); font-size: 13px; min-width: 0; }
+.leave-warn b { display: block; font-weight: 700; }
+.leave-warn ul { list-style: disc; margin: 4px 0 0; padding-left: 18px; color: var(--fg); }
+.leave-warn li { overflow-wrap: anywhere; }
+
+.leave-note { display: inline-block; white-space: normal; min-width: 120px; max-width: 320px; overflow-wrap: anywhere; padding: 6px 0; font-size: var(--fs-small); }
+
+.leave-form { display: grid; gap: 12px; }
+.leave-form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .leave-form .row2 { grid-template-columns: 1fr; } }
+
+.leave-summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; margin: 0; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); font-size: var(--fs-small); }
+.leave-summary dt { color: var(--muted); font-weight: 600; }
+.leave-summary dd { margin: 0; overflow-wrap: anywhere; }
+
+.leave-allow-list li { flex-wrap: wrap; padding: 6px 0; }
+.leave-allow-input { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: var(--fs-small); }
+.leave-allow-input .input { width: 96px; text-align: right; }
+.leave-allow-err { width: 100%; color: var(--danger); font-size: var(--fs-xs); font-weight: 600; }
