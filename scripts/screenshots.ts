@@ -21,6 +21,9 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'login', url: '/login', state: 'anon', ready: '로그인' },
   { name: 'dashboard', url: '/', state: 'user', ready: '오늘 할 일' },
   { name: 'stub', url: '/inventory', state: 'user', ready: '준비 중인 화면이에요' },
+  // phase-02-task-05: 백업·복원, 데모 데이터 초기화
+  { name: 'admin-backup', url: '/admin/backup', state: 'user', ready: '보관할 백업 개수' },
+  { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '업무 데이터 비어 있음' },
 ];
 
 /** 서버가 준비될 때까지 /api/health를 확인한다 */
