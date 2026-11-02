@@ -64,6 +64,23 @@ describe('원내망 제한', () => {
     expect(isInternalAddress(undefined)).toBe(false);
   });
 
+  test('phase-01-task-03 AC5: 이중 스택(::)으로 들어오는 IPv4-mapped·IPv6 주소도 같은 규칙으로 판별한다(::ffff:8.8.8.8 → 403, ::ffff:192.168.0.5 → 허용)', async () => {
+    const cases: [string, number][] = [
+      ['::ffff:8.8.8.8', 403],
+      ['::ffff:192.168.0.5', 200],
+      ['::ffff:127.0.0.1', 200],
+      ['::1', 200],
+      ['fe80::1', 200],
+      ['fd00::5', 200],
+      ['2001:4860:4860::8888', 403],
+    ];
+    for (const [ip, status] of cases) {
+      const r = await app.inject({ method: 'GET', url: '/api/health', remoteAddress: ip });
+      expect(r.statusCode, ip).toBe(status);
+      if (status === 403) expect(r.json(), ip).toMatchObject({ error: { code: 'NETWORK_BLOCKED' } });
+    }
+  });
+
   test('phase-01-task-03 AC5: X-Forwarded-For로 원내 주소를 흉내 내도 막힌다', async () => {
     const r = await app.inject({ method: 'GET', url: '/api/health', remoteAddress: '8.8.8.8', headers: { 'x-forwarded-for': '192.168.0.5' } });
     expect(r.statusCode).toBe(403);
