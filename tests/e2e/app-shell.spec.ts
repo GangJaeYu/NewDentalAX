@@ -234,7 +234,7 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
         await expect(p2.getByRole('region', { name: '오늘 현황' })).toBeVisible();
         const r2 = await new AxeBuilder({ page: p2 }).analyze();
         expect(axeList(r2.violations), `셸 ${width} ${theme}`).toEqual([]);
-        await p2.goto(url('/inventory'));
+        await p2.goto(url('/inventory/orders'));
         await expect(p2.getByText('준비 중인 화면이에요')).toBeVisible();
         const r3 = await new AxeBuilder({ page: p2 }).analyze();
         expect(axeList(r3.violations), `스텁 ${width} ${theme}`).toEqual([]);
@@ -313,7 +313,7 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
     await expect(banner).toHaveCount(0, { timeout: 30000 });
     // 다시 연결된 뒤에도 로그인 상태 그대로 화면을 쓸 수 있다
     await page.getByRole('link', { name: '재고 현황' }).click();
-    await expect(page.getByText('준비 중인 화면이에요')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '재고 현황' })).toBeVisible();
     await ctx.close();
   });
 });

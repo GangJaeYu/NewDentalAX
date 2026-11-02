@@ -26,7 +26,7 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'setup', url: '/setup', state: 'setup', ready: '첫 설정' },
   { name: 'login', url: '/login', state: 'anon', ready: '로그인' },
   { name: 'dashboard', url: '/', state: 'user', ready: '오늘 할 일' },
-  { name: 'stub', url: '/inventory', state: 'user', ready: '준비 중인 화면이에요' },
+  { name: 'stub', url: '/inventory/orders', state: 'user', ready: '준비 중인 화면이에요' },
   { name: 'notifications', url: '/notifications', state: 'user', ready: '거즈 재고가 부족해요' },
   {
     name: 'notification-popover',

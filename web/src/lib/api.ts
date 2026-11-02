@@ -14,14 +14,17 @@ export class ApiError extends Error {
   readonly fields?: Record<string, string>;
   /** 잠금 등에서 다시 시도할 수 있을 때까지 남은 초 */
   readonly retryAfterSec?: number;
+  /** 서버가 오류와 함께 보낸 그 밖의 값(예: 재고보다 많은 출고의 needsConfirm·stock) */
+  readonly details?: Record<string, unknown>;
 
-  constructor(status: number, code: string, message: string, extra: { fields?: Record<string, string>; retryAfterSec?: number } = {}) {
+  constructor(status: number, code: string, message: string, extra: { fields?: Record<string, string>; retryAfterSec?: number; details?: Record<string, unknown> } = {}) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
     if (extra.fields) this.fields = extra.fields;
     if (extra.retryAfterSec !== undefined) this.retryAfterSec = extra.retryAfterSec;
+    if (extra.details) this.details = extra.details;
   }
 }
 
@@ -56,7 +59,11 @@ export function toApiError(status: number, body: unknown): ApiError {
         : '요청을 처리하지 못했어요. 다시 시도해 주세요.';
   const fields = err?.fields && typeof err.fields === 'object' ? (err.fields as Record<string, string>) : undefined;
   const retryAfterSec = typeof err?.retryAfterSec === 'number' ? err.retryAfterSec : undefined;
-  return new ApiError(status, code, message, { fields, retryAfterSec });
+  const rest: Record<string, unknown> = {};
+  if (err && typeof err === 'object') {
+    for (const [k, v] of Object.entries(err)) if (!['code', 'message', 'fields', 'retryAfterSec'].includes(k)) rest[k] = v;
+  }
+  return new ApiError(status, code, message, { fields, retryAfterSec, details: Object.keys(rest).length ? rest : undefined });
 }
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -113,6 +120,18 @@ async function request<T>(method: Method, path: string, body?: unknown, opts: Re
   if (res.status === 204) return undefined as T;
   const json = (await res.json().catch(() => null)) as { data?: T } | null;
   return (json && 'data' in json ? json.data : json) as T;
+}
+
+/**
+ * 쪽 나누기 목록(GET)을 받는다. 응답 본문 { data, total, ...그 밖의 값 }을 그대로 돌려준다(api.get은 data만 돌려줌).
+ * 예: const { data, total } = await api.page<ItemRow>('/api/items?page=2')
+ */
+async function page<T, Extra extends object = object>(path: string, opts: RequestOptions = {}): Promise<{ data: T[]; total: number } & Extra> {
+  const res = await send(path, { method: 'GET', headers: headersFor('GET', false), signal: opts.signal });
+  if (!res.ok) return fail(path, res);
+  const json = (await res.json().catch(() => null)) as ({ data?: T[]; total?: number } & Extra) | null;
+  const data = Array.isArray(json?.data) ? json.data : [];
+  return { ...(json ?? ({} as Extra)), data, total: typeof json?.total === 'number' ? json.total : data.length } as { data: T[]; total: number } & Extra;
 }
 
 /** SSE 한 사건 */
@@ -180,6 +199,7 @@ async function stream(path: string, body: unknown, onEvent: (ev: SseEvent) => vo
 /** 서버 API 호출 모음 */
 export const api = {
   get: <T>(path: string, opts?: RequestOptions) => request<T>('GET', path, undefined, opts),
+  page,
   post: <T>(path: string, body?: unknown, opts?: RequestOptions) => request<T>('POST', path, body ?? {}, opts),
   patch: <T>(path: string, body?: unknown, opts?: RequestOptions) => request<T>('PATCH', path, body ?? {}, opts),
   put: <T>(path: string, body?: unknown, opts?: RequestOptions) => request<T>('PUT', path, body ?? {}, opts),

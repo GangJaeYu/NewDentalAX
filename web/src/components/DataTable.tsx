@@ -1,5 +1,5 @@
 // 이 파일이 하는 일: 목록 표 DataTable. 열 정의·정렬(머리글 버튼)·행 누르기(키보드 Enter 포함)·선택 상자를 지원하고,
-// 불러오는 중(Skeleton)·오류(ErrorState + 다시 시도)·빈 상태(EmptyState)를 표 안에서 처리한다(NFR-006 AC3). 좁은 화면에서는 표만 가로로 스크롤된다.
+// 불러오는 중(Skeleton)·오류(ErrorState + 다시 시도)·빈 상태(EmptyState)를 표 안에서 처리한다(NFR-006 AC3). 좁은 화면에서는 표만 가로로 스크롤된다. 스크롤 영역은 키보드로도 닿게 tabIndex=0·role="region"·이름을 단다(axe scrollable-region-focusable).
 // 정렬 계산(sortRows)은 순수 함수라 단위 테스트한다.
 import { useMemo, useState, type ReactNode } from 'react';
 import { Icon } from './Icon.tsx';
@@ -84,7 +84,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
   };
 
   return (
-    <div className="tablewrap">
+    <div className="tablewrap" tabIndex={0} role="region" aria-label={caption}>
       <table className="table">
         <caption className="sr-only">{caption}</caption>
         <thead>
