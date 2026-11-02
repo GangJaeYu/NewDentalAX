@@ -147,7 +147,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
     return EXIT_CONFIG;
   }
 
-  const app = await buildApp({ dataDir: config.dataDir, clock, db });
+  const app = await buildApp({ dataDir: config.dataDir, clock, db, allowExternal: config.allowExternal });
 
   try {
     await app.listen({ port: config.port, host: config.host });

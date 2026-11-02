@@ -2,15 +2,22 @@
 // 빌드된 화면 파일(web/dist) 제공, 화면 주소를 모두 index.html로 돌려주는 SPA 폴백을 담당한다.
 // 테스트는 deps(시계·데이터 폴더·화면 폴더·DB·DB 점검 함수)를 바꿔 끼워 실제 서버 없이 inject로 확인한다.
 // DB를 넣지 않으면 dataDir/app.db를 직접 열어 마이그레이션까지 적용하고, 서버를 닫을 때 함께 닫는다.
+// 요청 순서: 원내망 검사(security/network) → 세션·CSRF·권한(auth/guard) → 인증 API(auth/routes)·업무 모듈(modules/index). 모든 응답에 보안 헤더.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
+import fastifyCookie from '@fastify/cookie';
 import { systemClock, type Clock } from './lib/clock.ts';
 import { toErrorResponse } from './lib/errors.ts';
 import type { Db } from './db/index.ts';
 import { makeDbCheck, openAppDb } from './db/migrate.ts';
+import { registerNetworkGuard } from './security/network.ts';
+import { registerSecurityHeaders } from './security/headers.ts';
+import { registerAuthGuard } from './auth/guard.ts';
+import { authRoutes } from './auth/routes.ts';
+import { registerModules } from './modules/index.ts';
 
 // 시계는 server/lib/clock.ts에 있다. 예전 import 경로(./app.ts)도 계속 쓸 수 있게 다시 내보낸다.
 export { fixedClock, systemClock, type Clock } from './lib/clock.ts';
@@ -43,6 +50,8 @@ export interface AppDeps {
   checkDb?: () => DbStatus;
   /** Fastify 요청 로그를 켤지(기본 꺼짐) */
   logger?: boolean;
+  /** true면 원내망 밖 접속도 허용한다(config.json의 allowExternal, 기본 false) */
+  allowExternal?: boolean;
 }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -87,6 +96,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.decorate('clock', clock);
   if (ownDb) app.addHook('onClose', async () => db.close());
 
+  // 보안 헤더(모든 응답) → 원내망 검사(가장 먼저) → 쿠키 → 세션·CSRF·권한 검사
+  registerSecurityHeaders(app);
+  registerNetworkGuard(app, { allowExternal: deps.allowExternal ?? false });
+  await app.register(fastifyCookie);
+  registerAuthGuard(app);
+
   // 오류 응답을 한 형식으로: { error: { code, message(한국어), fields? } } (lib/errors.ts)
   app.setErrorHandler((err, req, reply) => {
     const { status, body } = toErrorResponse(err);
@@ -101,6 +116,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     reply.code(ok ? 200 : 503).header('cache-control', 'no-store');
     return { ok, version, db, now: clock.now().toISOString() };
   });
+
+  // 인증 API와 업무 모듈 API
+  await authRoutes(app);
+  await registerModules(app);
 
   const indexFile = path.join(webDist, 'index.html');
   const hasWeb = fs.existsSync(indexFile);

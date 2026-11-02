@@ -7,6 +7,7 @@ import { AppError, ERROR_CODES, lockedError, toErrorResponse, validationError } 
 import { fixedClock, manualClock, MINUTE_MS } from './clock.ts';
 import { buildApp } from '../app.ts';
 import { makeTmpDir } from '../../tests/helpers/tmp-dir.ts';
+import { loginAs } from '../../tests/helpers/auth.ts';
 
 const tmp = makeTmpDir('dentalax-errors-');
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
@@ -53,10 +54,12 @@ describe('오류 코드표', () => {
     app.get('/api/_test/crash', async () => {
       throw new Error('내부 비밀 경로 C:\\data');
     });
-    const a = await app.inject({ method: 'GET', url: '/api/_test/app-error' });
+    // /api는 로그인이 필요하므로(phase-01-task-03) 테스트 사용자 세션으로 부른다
+    const { headers } = loginAs(app, 'admin');
+    const a = await app.inject({ method: 'GET', url: '/api/_test/app-error', headers });
     expect(a.statusCode).toBe(403);
     expect(a.json()).toEqual({ error: { code: 'FORBIDDEN', message: '이 기능을 사용할 권한이 없습니다.' } });
-    const b = await app.inject({ method: 'GET', url: '/api/_test/crash' });
+    const b = await app.inject({ method: 'GET', url: '/api/_test/crash', headers });
     expect(b.statusCode).toBe(500);
     expect(b.json()).toEqual({ error: { code: 'INTERNAL', message: ERROR_CODES.INTERNAL[1] } });
     expect(b.body).not.toContain('비밀');
