@@ -273,3 +273,14 @@
   - 실제 공급자에는 닿지 않는다(가짜 서버만 3건 수신).
 - 02-05 병합 뒤 main(c40830b)에서 e2e 63건 PASS를 확인했다. 그 안에 02-03 spec이 들어 있다.
 - 선행 02-02·01-04가 completed라서 02-03을 completed로 바꿨다.
+
+## 2026-11-02 21:42 phase-01-task-05 task_validation → PASS(6/6) → completed. phase-01 완료
+- 검증 워커 ctx_967fb158d74d(대상 ddd48a0). 게이트: lint PASS, unit 422건, e2e 53건
+- 수동 서버와 Edge로 6개 기준과 화면을 확인했다.
+- 02-05 병합 뒤 main(c40830b) e2e 63건 PASS(01-05 spec 포함)
+- 선행 01-04가 completed라서 01-05를 completed로 바꿨다.
+- **phase-01 묶음 판정**: 6/6 태스크 completed
+  - 묶음 기준 1 "첫 설정 → 셸": 01-04 검증 AC1에서 확인
+  - 묶음 기준 2 "역할별 메뉴·403": 01-03 AC8, 01-04 AC3에서 확인
+  - 묶음 기준 3 "게이트 실제 실행": 매 통합 때 확인
+  - 결과: phase-01 완료
