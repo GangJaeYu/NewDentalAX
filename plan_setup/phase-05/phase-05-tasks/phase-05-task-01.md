@@ -1,6 +1,6 @@
 ---
 id: phase-05-task-01
-status: pending
+status: in_progress
 phase: "05"
 title: "성능·부하 측정"
 depends_on: [phase-03-task-10, phase-04-task-04]
