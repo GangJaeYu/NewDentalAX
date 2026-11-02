@@ -1,16 +1,17 @@
 // 이 파일이 하는 일: 화면 스크린샷 생성(`npm run screenshots`). 임시 서버를 띄워 지정한 화면을 4너비(1440·1024·768·390)×2테마(라이트·다크)로
 // Edge에서 찍어 artifacts/screens/<page>-<너비>-<테마>.png(화면 크기)와 -full.png(전체 길이)로 저장하고, 가로 스크롤이 생긴 화면과 Pretendard 글꼴이 안 걸린 화면을 알려 준다.
 // 순서: 첫 설정 전 화면(setup) → API로 첫 설정(관리자 생성) → 로그아웃 상태 화면(login) → 로그인 상태 화면(대시보드 셸·스텁 등).
-// 화면 목록은 각 화면 태스크(최종 phase-05-task-03)가 PAGES에 더한다. 특정 화면만: node scripts/screenshots.ts dashboard stub
+// 화면 목록: 새 화면은 scripts/screens/<태스크ID>.ts에 `export const pages`로 더한다(이 파일의 PAGES는 고치지 않는다). 특정 화면만: node scripts/screenshots.ts dashboard stub
 // 알림 화면·종 팝오버(phase-02-task-04)를 위해 첫 설정 뒤 서버 DB(임시 데이터 폴더)에 예시 알림을 notify.emit으로 넣는다. action이 있는 화면은 찍기 전에 그 동작(팝오버 열기)을 한다.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { chromium, type BrowserContext, type Page } from '@playwright/test';
 import { appDbPath, openDb } from '../server/db/index.ts';
 import { fixedClock } from '../server/lib/clock.ts';
 import { emitNotification } from '../server/modules/notifications/emit.ts';
-import { seedDemo as seedInventoryDemo } from '../server/modules/inventory/seed.ts';
+import { seedDemo as seedDeskDemo } from '../server/modules/desk/seed.ts';
 
 const ROOT = process.cwd();
 const PORT = Number(process.env.E2E_PORT || 18090);
@@ -45,24 +46,31 @@ const PAGES: Array<{ name: string; url: string; state: 'setup' | 'anon' | 'user'
   { name: 'audit', url: '/admin/audit', state: 'user', ready: '시작 날짜' },
   // phase-02-task-05: 백업·복원, 데모 데이터 초기화
   { name: 'admin-backup', url: '/admin/backup', state: 'user', ready: '보관할 백업 개수' },
-  { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '업무 데이터 비어 있음' },
-  // phase-03-task-01: 재고 현황·품목 상세·입출고 기록·거래처·단가 변동·출고 빠른 입력(찍기 전에 재고 데모 데이터를 넣는다, 품목 2 = 니트릴 글러브 M)
-  { name: 'inventory', url: '/inventory', state: 'user', ready: '품목 목록' },
-  { name: 'inventory-item', url: '/inventory/items/2', state: 'user', ready: '단가 기록' },
-  { name: 'inventory-moves', url: '/inventory/moves', state: 'user', ready: '기록한 사람' },
-  { name: 'inventory-vendors', url: '/inventory/vendors', state: 'user', ready: '한빛덴탈' },
-  { name: 'inventory-prices', url: '/inventory/prices', state: 'user', ready: '직전 단가' },
-  {
-    name: 'inventory-quick-out',
-    url: '/inventory',
-    state: 'user',
-    ready: '품목 목록',
-    action: async (page) => {
-      await page.getByRole('button', { name: '출고 기록' }).click();
-      await page.getByRole('dialog', { name: '출고 기록' }).getByRole('list', { name: '찾은 품목' }).getByRole('button').first().waitFor();
-    },
-  },
+  // 스크린샷용 예시 알림(업무 데이터)이 들어가 있어 '있음/비어 있음' 대신 공통 제목으로 기다린다(02-04·02-05 통합 결함 수정)
+  { name: 'admin-reset', url: '/admin/reset', state: 'user', ready: '지금 상태' },
+  // phase-03-task-04: 공지·인수인계, 오픈·마감 체크리스트, 체크리스트 인쇄(데스크 데모 데이터를 한 번 넣고 다시 그린다)
+  { name: 'desk-board', url: '/desk/board', state: 'user', ready: '공지·인수인계', action: (page) => withDeskDemo(page, '11월 원내 감염관리 교육 일정 안내') },
+  { name: 'desk-board-detail', url: '/desk/board/1', state: 'user', ready: '공지·인수인계', action: (page) => withDeskDemo(page, '읽은 사람 1명') },
+  { name: 'desk-checklist', url: '/desk/checklist', state: 'user', ready: '오픈·마감 체크리스트', action: (page) => withDeskDemo(page, '출입문·대기실 조명 켜기') },
+  { name: 'desk-checklist-past', url: '/desk/checklist?date=2026-11-01', state: 'user', ready: '오픈·마감 체크리스트', action: (page) => withDeskDemo(page, '조회만 할 수 있어요') },
+  { name: 'print-checklist', url: '/print/checklist/open/2026-11-01', state: 'user', ready: '체크리스트', action: (page) => withDeskDemo(page, '확인자') },
 ];
+
+/** phase-03-task-04: 데스크 데모 데이터(공지·인수인계·체크리스트)를 처음 한 번만 서버 DB에 넣고, 화면을 다시 그려 waitText가 보일 때까지 기다린다 */
+let deskSeeded = false;
+async function withDeskDemo(page: Page, waitText: string): Promise<void> {
+  if (!deskSeeded) {
+    const db = openDb(appDbPath(DATA_DIR));
+    try {
+      seedDeskDemo(db, { clock: fixedClock(process.env.TEST_NOW || '2026-11-02T09:00:00+09:00'), scale: 1 });
+    } finally {
+      db.close();
+    }
+    deskSeeded = true;
+  }
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.getByText(waitText).first().waitFor({ timeout: 10000 });
+}
 
 /** 스크린샷용 예시 알림(관리자가 받는 것): 읽지 않음 4건 + 읽음 1건 */
 function seedNotifications(dataDir: string): void {
@@ -75,16 +83,6 @@ function seedNotifications(dataDir: string): void {
     emitNotification(db, { type: 'equipment_due', title: '오토클레이브 정기 점검이 7일 남았어요', link: '/facility/equipment', dedupeKey: 'shot:equip' }, clock);
     emitNotification(db, { type: 'ai_budget', title: '이번 달 AI 사용 금액이 예산의 80%를 넘었어요', body: '사용 40,120원 / 예산 50,000원', link: '/admin/ai-usage', dedupeKey: 'shot:budget' }, clock);
     emitNotification(db, { type: 'stock_low', title: '거즈 재고가 부족해요', body: '현재 3팩 · 적정 10팩', link: '/inventory', dedupeKey: 'shot:stock' }, clock);
-  } finally {
-    db.close();
-  }
-}
-
-/** 재고 화면 스크린샷용 데모 데이터(phase-03-task-01): 거래처 5곳·품목 약 80개·90일 기록 */
-function seedInventory(dataDir: string): void {
-  const db = openDb(appDbPath(dataDir));
-  try {
-    seedInventoryDemo(db, { clock: fixedClock(process.env.TEST_NOW || '2026-11-02T09:00:00+09:00'), scale: 1 });
   } finally {
     db.close();
   }
@@ -112,6 +110,12 @@ async function login(ctx: BrowserContext): Promise<void> {
 }
 
 const only = process.argv.slice(2);
+// 각 태스크가 scripts/screens/<태스크ID>.ts에 내보낸 화면 목록도 더한다(types.ts 제외, 이름순)
+const screensDir = path.join(ROOT, 'scripts', 'screens');
+for (const f of fs.existsSync(screensDir) ? fs.readdirSync(screensDir).filter((n) => n.endsWith('.ts') && n !== 'types.ts').sort() : []) {
+  const mod = (await import(pathToFileURL(path.join(screensDir, f)).href)) as { pages?: typeof PAGES };
+  for (const pg of mod.pages ?? []) PAGES.push(pg);
+}
 const pages = only.length ? PAGES.filter((p) => only.includes(p.name)) : PAGES;
 fs.mkdirSync(OUT, { recursive: true });
 // 데이터 폴더를 직접 정해 예시 알림을 넣을 수 있게 한다(끝나면 지운다)
@@ -123,18 +127,12 @@ try {
   await waitReady();
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
   let setupDone = false;
-  let inventorySeeded = false;
   for (const p of pages) {
     if (p.state !== 'setup' && !setupDone) {
       const r = await fetch(`${BASE}/api/setup`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(ADMIN) });
       if (r.status !== 201) throw new Error(`스크린샷용 첫 설정 실패: ${r.status}`);
       setupDone = true;
       seedNotifications(DATA_DIR);
-    }
-    // 재고 화면은 데모 재고가 있어야 내용이 보인다(앞 화면의 "업무 데이터 비어 있음"을 해치지 않게 처음 재고 화면 직전에 넣는다)
-    if (p.name.startsWith('inventory') && !inventorySeeded) {
-      seedInventory(DATA_DIR);
-      inventorySeeded = true;
     }
     for (const [width, height] of WIDTHS) {
       for (const theme of THEMES) {

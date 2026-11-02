@@ -300,3 +300,14 @@
 - main 게이트: lint PASS, unit 452건, e2e 63건
 - DECISIONS 4건을 옮겼다.
 - 다음: 02-05 검증(검증 슬롯 1). phase-03 워커 3명에게 main 수정 사실을 알린다.
+
+## 2026-11-02 22:08 phase-02-task-05 task_validation → AC1~6 PASS, 화면 행 FAIL(하네스 결함)
+- 검증 워커 ctx_84058217a092(대상 e43d882)
+  - AC1~6은 실서버·DB·zip을 직접 관찰해서 PASS였다. unit 452건 3회 연속 PASS(간헐 실패 없음), e2e 63건 PASS.
+  - 화면 행 FAIL: `npm run screenshots`가 admin-reset에서 결정적으로 시간 초과됐다.
+    - 원인: 02-04의 seedNotifications가 업무 데이터를 넣어서 화면이 "업무 데이터 있음"이 되는데, 02-05는 준비 글자로 "비어 있음"을 기다렸다(통합 결함).
+    - 검증자가 직접 찍은 화면 24장은 기준선과 일치했다.
+- 조정자 수정: scripts/screenshots.ts admin-reset의 준비 글자를 "지금 상태"(공통 카드 제목)로 바꿨다(하네스 파일, 제품 코드 변경 없음).
+  - 확인: `npm run screenshots` 전체 exit 0, 104장 OK. lint PASS
+- **02-05는 아직 completed 아님**: 조정자가 직접 고쳤으므로 화면 행은 다른 검증자가 다시 판정한다. 다음 검증 묶음(03-xx 검증 워커)에 "02-05 화면 행 재판정"을 넣는다.
+- 증거: evidence/phase-02-task-05/validation-2026-11-02T2208-fail-screens.md
