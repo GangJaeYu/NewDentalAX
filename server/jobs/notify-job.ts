@@ -67,10 +67,39 @@ export async function runNotifyScan(db: Db, clock: Clock, scanners: readonly Not
   return result;
 }
 
+/**
+ * FR-090 AC2 알림 종류가 어디서 만들어지는지 적은 표(phase-04-task-05 점검 결과).
+ * via가 'scanner:<이름>'이면 이 파일의 등록부로 매시 찾고, 'emit'이면 업무 모듈이 저장하는 순간 바로 만든다.
+ */
+export const NOTIFY_SOURCES: readonly { category: string; type: string; via: string; where: string }[] = [
+  { category: '연차 신청·결과', type: 'leave_requested', via: 'emit', where: 'server/modules/hr/leave.ts' },
+  { category: '연차 신청·결과', type: 'leave_result', via: 'emit', where: 'server/modules/hr/leave.ts' },
+  { category: '재고 부족·유효기간', type: 'stock_low', via: 'emit', where: 'server/modules/inventory/service.ts' },
+  { category: '재고 부족·유효기간', type: 'stock_low', via: 'scanner:inventory.stock', where: 'server/modules/inventory/notify.ts' },
+  { category: '재고 부족·유효기간', type: 'stock_expiry', via: 'scanner:inventory.stock', where: 'server/modules/inventory/notify.ts' },
+  { category: '점검·법정 일정 임박', type: 'equipment_due', via: 'scanner:facility.equipment', where: 'server/modules/facility/equipment-notify.ts' },
+  { category: '점검·법정 일정 임박', type: 'legal_due', via: 'scanner:facility.legal', where: 'server/modules/facility/legal-notify.ts' },
+  { category: '새 공지', type: 'notice', via: 'emit', where: 'server/modules/desk/posts.ts' },
+  { category: '멸균 불합격', type: 'sterilizer_fail', via: 'emit', where: 'server/modules/facility/sterilizer.ts' },
+  { category: 'AI 예산 경고', type: 'ai_budget', via: 'emit', where: 'server/ai/budget.ts' },
+];
+
+/** 서버가 켜졌을 때 등록돼 있어야 하는 scanner 이름(위 표의 scanner + 교육 예정 hr.training) */
+export const EXPECTED_NOTIFY_SCANNERS: readonly string[] = [
+  ...new Set([...NOTIFY_SOURCES.filter((s) => s.via.startsWith('scanner:')).map((s) => s.via.slice('scanner:'.length)), 'hr.training']),
+];
+
+/** 등록돼 있어야 하는데 빠진 scanner 이름 목록(없으면 빈 배열) */
+export function missingNotifyScanners(): string[] {
+  return EXPECTED_NOTIFY_SCANNERS.filter((name) => !registry.has(name));
+}
+
 /** scheduler에 넣는 작업: 기한형 알림 찾기 */
 export const notifyScanJob: ScheduledJob = {
   name: 'notify.scan',
   async run({ db, clock, log }) {
+    // 모듈 등록을 빠뜨리면 기한 알림이 조용히 안 가므로 로그에 남긴다
+    for (const name of missingNotifyScanners()) log(`알림 찾기 scanner '${name}'가 등록되지 않았어요`);
     const r = await runNotifyScan(db, clock);
     for (const e of r.errors) log(`알림 찾기 실패 scanner=${e.name}: ${e.message}`);
     if (r.created > 0) log(`알림 ${r.created}건을 만들었어요(scanner ${r.scanners.length}개)`);
