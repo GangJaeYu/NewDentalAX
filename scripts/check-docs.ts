@@ -1,13 +1,15 @@
 // 이 파일이 하는 일: 사용자 문서(README·LLM_GUIDE·COST·PLAN·DECISIONS·SECURITY·PROGRESS)에 원문 12·13절이 요구한 소제목이 빠짐없이 있는지 검사한다(NFR-011, phase-05-task-04).
-// 더해서 COST.md 가격·데이터 정책 표의 모든 줄에 확인일(YYYY-MM-DD)과 출처 주소(https://)가 있는지, README의 그림 파일이 실제로 있는지도 본다.
+// 더해서 COST.md 가격·데이터 정책 표의 모든 줄에 확인일(YYYY-MM-DD)과 출처 주소(https://)가 있는지, README·GUIDE의 그림 파일이 실제로 있는지도 본다.
+// 2026-11-03: 원문 12절의 비개발자용 안내(설치·접속·첫 설정·백업·FAQ·폴더 지도 등)는 docs/GUIDE.md로 옮기고, README는 첫 화면용 요약(공개 저장소 소개)으로 바꿨다.
 // `npm run lint`의 docs 단계가 부른다(scripts/lint.ts). 따로 실행: node scripts/check-docs.ts [--root <폴더>]  (문제가 있으면 목록을 보여 주고 종료 코드 1)
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-/** 문서별 필수 소제목(## 또는 ### 제목이 이 글자로 시작해야 한다). 원문 12절 = README, 13절 = COST, 나머지는 원문 12~13절 문서 목록 */
+/** 문서별 필수 소제목(## 또는 ### 제목이 이 글자로 시작해야 한다). 원문 12절 = GUIDE(+README 요약), 13절 = COST, 나머지는 원문 12~13절 문서 목록 */
 export const REQUIRED_HEADINGS: Readonly<Record<string, readonly string[]>> = {
-  'README.md': [
+  'README.md': ['어떻게 만들었나', '할 수 있는 일', '빠른 시작', '문서', '원칙'],
+  'docs/GUIDE.md': [
     '할 수 있는 일',
     '준비물',
     '설치하기 (Windows)',
@@ -57,8 +59,9 @@ export const REQUIRED_HEADINGS: Readonly<Record<string, readonly string[]>> = {
 /** COST.md에서 줄마다 확인일·출처를 요구하는 표가 있는 소제목 */
 export const SOURCED_SECTIONS = ['공급자·모델 가격 비교표', '공급자별 데이터 정책'] as const;
 
-/** README 그림이 있어야 하는 최소 장수(대표 화면 + 휴대폰 1장) */
+/** 안내서(GUIDE) 그림이 있어야 하는 최소 장수(대표 화면 + 휴대폰 1장). README는 첫 화면 그림 1장 이상 */
 export const MIN_README_IMAGES = 5;
+export const MIN_IMAGES: Readonly<Record<string, number>> = { 'docs/GUIDE.md': MIN_README_IMAGES, 'README.md': 1 };
 
 export interface DocsResult {
   /** 검사한 문서 수 */
@@ -141,9 +144,10 @@ export function checkDocs(root: string): DocsResult {
         for (const r of unsourcedRows(body)) problems.push(`${rel}: "${sec}" 표의 줄에 확인일 또는 출처 주소가 없어요 → ${r.trim().slice(0, 80)}`);
       }
     }
-    if (rel === 'README.md') {
+    const minImages = MIN_IMAGES[rel];
+    if (minImages !== undefined) {
       const imgs = imageLinks(text);
-      if (imgs.length < MIN_README_IMAGES) problems.push(`${rel}: 화면 그림이 ${imgs.length}장뿐이에요(최소 ${MIN_README_IMAGES}장)`);
+      if (imgs.length < minImages) problems.push(`${rel}: 화면 그림이 ${imgs.length}장뿐이에요(최소 ${minImages}장)`);
       for (const img of imgs) {
         if (!fs.existsSync(path.join(root, path.dirname(rel), img))) problems.push(`${rel}: 그림 파일 "${img}"이(가) 없어요`);
       }

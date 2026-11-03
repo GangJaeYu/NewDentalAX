@@ -137,3 +137,5 @@
 | 2026-11-03 | transcribe는 ai.minutes 권한을 쓴다. OpenAI는 gpt-transcribe(분 단가, server/ai/transcribe.ts TRANSCRIBE_PRICING), Gemini는 오디오 입력(14MB 초과는 Files API 뒤 삭제), Anthropic은 미지원 안내. 녹음은 m4a·mp3·wav·webm 20MB 이하, 디스크에 쓰지 않는다. 공급자 호출은 gateway.ts callAudioProvider만 한다 (06-03) | 05-02 규칙(공급자 호출은 게이트웨이만), 녹음 파일 보관 위험 줄이기 |
 | 2026-11-03 | P2 병합 때 API_RULES에 /roster/suggest·/roster/apply(roster.edit), /ai/transcribe(ai.minutes)를 추가했다 | 05-02 결정(주소만으로 권한이 정해지는 경로는 표에도 둔다) |
 | 2026-11-03 | Playwright 테스트 시간 한도를 30초에서 60초로 늘린다(재시도 0·flaky 거부는 그대로) | 여러 검증 세션이 동시에 돌 때 무관한 spec이 30초 시간 초과로 번갈아 FAIL했다(06-02 검증 e2e 3회). app-shell AC1은 혼자서도 28.9초 |
+| 2026-11-03 | 공개 저장소용으로 README를 요약 첫 화면으로 바꾸고, 원문 12절의 비개발자 안내는 docs/GUIDE.md로 옮긴다(문서 검사도 GUIDE 기준). 사용 흐름(docs/walkthrough)과 시연 영상은 scripts/demo-video.ts로 다시 만들 수 있다 | 사용자 요청(단일 프롬프트판 저장소와 비슷한 구성) |
+| 2026-11-03 | 시연 영상에 합성 음성을 넣지 않고 자막만 쓴다 | 사용자 결정. Windows 기본 음성(Heami)은 녹음 공개 배포 조건이 공식 문서로 확인되지 않음. 무료 오픈소스 한국어 음성도 학습 데이터 출처가 불분명 |

@@ -43,8 +43,8 @@ describe('phase-05-task-04 문서 검사', () => {
   });
 
   test('phase-05-task-04 AC1: 소제목이 하나라도 빠지면 lint docs 단계가 실패한다', () => {
-    const root = copyDocs({ 'README.md': (t) => t.replace(/^## 백업과 복원.*$/m, '## 데이터 보관') });
-    expect(checkDocs(root).problems).toContain('README.md: 필수 소제목 "백업과 복원"이(가) 없어요');
+    const root = copyDocs({ 'docs/GUIDE.md': (t) => t.replace(/^## 백업과 복원.*$/m, '## 데이터 보관') });
+    expect(checkDocs(root).problems).toContain('docs/GUIDE.md: 필수 소제목 "백업과 복원"이(가) 없어요');
     const r = spawnSync(process.execPath, ['scripts/lint.ts', '--steps', 'docs', '--root', root], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(1);
     expect(r.stdout).toContain('백업과 복원');
@@ -76,9 +76,10 @@ describe('phase-05-task-04 문서 검사', () => {
     expect(checkDocs(root).problems.some((p) => p.includes('확인일 또는 출처 주소가 없어요'))).toBe(true);
   });
 
-  test('phase-05-task-04 AC3: README가 가리키는 스크린샷 파일이 모두 있고, 촬영 목록(readmeShots)의 화면이 빠짐없이 README에 실려 있다', () => {
-    const readme = read('README.md');
-    const imgs = imageLinks(readme);
+  test('phase-05-task-04 AC3: 안내서(README에서 옮긴 docs/GUIDE.md)가 가리키는 스크린샷 파일이 모두 있고, 촬영 목록(readmeShots)의 화면이 빠짐없이 실려 있다', () => {
+    const guide = read('docs/GUIDE.md');
+    // 안내서는 docs/ 안에 있어서 그림 경로가 docs/ 기준(images/…)이다. 저장소 기준 경로로 바꿔 비교한다
+    const imgs = imageLinks(guide).map((p) => path.posix.join('docs', p));
     for (const img of imgs) expect(fs.existsSync(path.join(ROOT, img)), img).toBe(true);
     for (const s of readmeShots) {
       const rel = `docs/images/${s.file}.png`;
@@ -94,8 +95,8 @@ describe('phase-05-task-04 문서 검사', () => {
     expect(checkDocs(root).problems.some((p) => p.includes('화면 그림이 0장뿐'))).toBe(true);
   });
 
-  test('phase-05-task-04 AC4: README 설치 절차가 실제 실행 파일·요구 버전과 맞는다(리허설은 phase-05-task-05)', () => {
-    const readme = read('README.md');
+  test('phase-05-task-04 AC4: 안내서(docs/GUIDE.md) 설치 절차가 실제 실행 파일·요구 버전과 맞는다(리허설은 phase-05-task-05)', () => {
+    const readme = read('docs/GUIDE.md');
     const install = sectionBody(readme, '설치하기 (Windows)') as string;
     expect(install).toMatch(/Node\.js 24 LTS/);
     expect(install).toContain('https://nodejs.org');

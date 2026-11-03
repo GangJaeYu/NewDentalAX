@@ -27,13 +27,14 @@
 ## 현재 상태
 
 - 진행 상황 요약은 [PROGRESS.md](../PROGRESS.md), 재개 지점·태스크별 상태 정본은 `plan_setup/STATE.md`와 각 태스크 frontmatter에 있다.
-- 2026-11-03 기준 phase 01·02는 완료, 03·04는 마무리·검증 중, 05(최종 검증·문서)가 진행 중이다.
+- 2026-11-03 17:00 기준 phase 01~06 전체 37개 태스크 완료(Loop 종료).
 - 원문 12·13절 사용자 문서
   | 문서 | 내용 |
   |---|---|
-  | `README.md` | 할 수 있는 일(화면 그림), Windows 설치, 매일 켜고 끄기, 원내 접속·방화벽, 첫 설정, 백업·복원, 업데이트, 보안·주의, FAQ, 문제 해결, 폴더 지도, Claude Code 요청 요령 |
+  | `README.md` | 공개 저장소 첫 화면: 만든 방법·숫자·할 수 있는 일·빠른 시작·문서 목록(2026-11-03 개편) |
+  | `docs/GUIDE.md` | (예전 README) 할 수 있는 일(화면 그림), Windows 설치, 매일 켜고 끄기, 원내 접속·방화벽, 첫 설정, 백업·복원, 업데이트, 보안·주의, FAQ, 문제 해결, 폴더 지도, Claude Code 요청 요령 |
   | `docs/LLM_GUIDE.md` | LLM API 비유, 공급자 3곳 키 발급, 토큰·요금, 키 안전 수칙 |
   | `docs/COST.md` | 가격 비교(확인일·출처), 기능별 토큰, 5·10·20명 월 비용, 추천 조합, 절약 팁, 데이터 정책, 서버 비용 |
   | `docs/SECURITY.md` | 보안 점검 체크리스트(05-02) |
 - 문서 필수 소제목은 `npm run lint`의 `docs` 단계(`scripts/check-docs.ts`)가 검사한다(05-04).
-- README 그림은 `node scripts/readme-shots.ts`로 다시 찍는다(목록: `scripts/screens/phase-05-task-04.ts`).
+- 안내서(GUIDE)·README 그림은 `node scripts/readme-shots.ts`로 다시 찍는다(목록: `scripts/screens/phase-05-task-04.ts`).
