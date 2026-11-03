@@ -559,3 +559,5 @@
 - 09:13 04-08 검증 ctx_0934ee7ccd83: 5/5와 화면 PASS → 04-08 completed(선행 03-01·04-04). 증거: evidence/phase-04-task-08/
   - 하네스 결함 보고: scripts/screens/phase-04-task-03.ts:67 선택자 strict mode 위반으로 전체 스크린샷이 멈춘다 → 05-03에 수정을 전달했다.
 - 03-10 수정 보고(ctx_a439979d4ad2): .dash-card 본문 grid minmax(0,1fr) + 자식 min-width:0. 카드 10개 공통 원인이었다. 측정 e2e(DESIGN5)를 추가했다. 05-01 게이트가 끝나면 병합한다.
+- 09:20 05-01 병합 뒤 main 게이트 PASS(lint 294/155/426/465, unit 732, e2e 244, 커밋 60af70b). 03-10 수정 커밋을 충돌 없이 병합했다. 게이트는 백그라운드에서 실행 중이다.
+- 05-01 검증 배정(검증 슬롯 1, 기준 60af70b)
