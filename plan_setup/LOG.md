@@ -574,3 +574,4 @@
 - 10:00 main@b7bf4ed 게이트 lint·unit 757·e2e 255 PASS. 03-10 재검증·05-02 검증 워커를 띄웠다.
 - 10:2x 05-03 완료 보고(e2e 303 PASS, 640장 스크린샷 열람, 결함 4건 수정). 충돌 없이 병합했다. 공용 파일 수정(Dialog autoFocus, 카드 머리글 줄바꿈, 인쇄 숫자, StreamRedactor 빠른 내보내기)은 검토 후 승인. 병합 뒤 게이트 실행 중.
 - 10:3x 05-02 독립 검증 3/3 PASS(ctx_9a6481347c93). 선행 04-05가 03-10을 기다리므로 completed는 보류한다.
+- 10:4x 03-10 재검증 7/7 PASS(ctx_c4026cb85fae, 768 카드 넘침 해소·390 innerWidth 유지 확인, 근거 evidence/phase-03-task-10/validation-2026-11-03T1040-pass.md). 03-10 completed → 선행이 풀린 04-05(검증 PASS 기존), 05-02(검증 PASS 10:3x)도 completed.

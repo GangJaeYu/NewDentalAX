@@ -1,6 +1,6 @@
 ---
 id: phase-04-task-05
-status: in_progress
+status: completed
 phase: "04"
 title: "알림센터 완성·휴대폰 홈 화면(PWA)"
 depends_on: [phase-03-task-10]
