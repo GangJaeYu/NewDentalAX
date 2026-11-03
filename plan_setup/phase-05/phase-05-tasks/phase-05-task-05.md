@@ -1,6 +1,6 @@
 ---
 id: phase-05-task-05
-status: in_progress
+status: completed
 phase: "05"
 title: "깨끗한 설치 리허설·최종 보고 준비"
 depends_on: [phase-05-task-01, phase-05-task-02, phase-05-task-04]

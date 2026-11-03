@@ -1,6 +1,6 @@
 ---
 id: phase-06-task-01
-status: in_progress
+status: completed
 phase: "06"
 title: "바코드 출고(스캐너·사진)"
 depends_on: [phase-05-task-05]
