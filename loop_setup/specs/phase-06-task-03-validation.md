@@ -11,8 +11,8 @@
 
 ## 대상 코드
 - 저장소: C:\Users\main\Desktop\DentalAX_with_Skills
-- HEAD: dea0b4a
-- 변경 범위(기준 dea0b4a):
+- HEAD: 4df48b6
+- 변경 범위(기준 4df48b6):
 ```
 
 ```
@@ -92,4 +92,4 @@ verification: [lint, unit, e2e, task_validation]
   - 결과 원문(반환 형식 표 전체)을 `.tmp/validation-result.md`에 저장한다.
   - 같은 내용을 worker_done 본문으로 보고한다.
   - outcome: 모든 기준이 PASS면 succeeded, 하나라도 FAIL이나 판정 불가가 있으면 failed
-- 참고: 이번은 재검증이다. 작업 사본은 main@dea0b4a(P2 병합 + 수정, web/dist 포함)이다. 직전 검증(harness_setup/evidence/phase-06-task-03/validation-2026-11-03T1430-fail-design.md)은 AC1~3 PASS, DESIGN §5-4 FAIL(받아쓰기 상태 확인 API 실패 시 '확인하고 있어요…'에서 멈춤, 뼈대 없음)이었다. 그 항목을 포함해 모든 기준을 처음부터 다시 판정한다. 실제 LLM 공급자로 요청을 보내지 않는다(데모·가짜 서버 tests/fake-llm/audio.ts만).
+- 참고: 이번은 재검증이다. 작업 사본은 main@4df48b6(P2 병합 + 수정, web/dist 포함)이다. 직전 검증(harness_setup/evidence/phase-06-task-03/validation-2026-11-03T1430-fail-design.md)은 AC1~3 PASS, DESIGN §5-4 FAIL(받아쓰기 상태 확인 API 실패 시 '확인하고 있어요…'에서 멈춤, 뼈대 없음)이었다. 그 항목을 포함해 모든 기준을 처음부터 다시 판정한다. 실제 LLM 공급자로 요청을 보내지 않는다(데모·가짜 서버 tests/fake-llm/audio.ts만).
