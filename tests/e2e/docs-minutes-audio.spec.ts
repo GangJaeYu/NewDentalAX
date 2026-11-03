@@ -134,7 +134,8 @@ test.describe.serial('회의 녹음 → 회의록', () => {
     await expect(card.getByText('받아쓰기를 쓸 수 있는지 확인하고 있어요…')).toHaveCount(0);
     await page.unroute('**/api/ai/transcribe/status');
     await err.getByRole('button', { name: '다시 시도' }).click();
-    await expect(card.locator('input[type=file]')).toHaveCount(1);
+    // 다시 시도하면 실제 상태가 보인다. 앞 테스트(AC2)가 공급자를 Anthropic으로 바꿔 두었으면 비활성 안내, 아니면 고르기 칸
+    await expect(card.getByTestId('recording-off').or(card.locator('input[type=file]'))).toHaveCount(1);
     await expect(card.getByRole('alert')).toHaveCount(0);
   });
 });
