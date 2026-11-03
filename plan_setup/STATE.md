@@ -62,6 +62,8 @@
 
 - [x] (05-03에서 처리) **390px 판정 함정**(04-05 발견): Playwright isMobile 흉내에서는 넘치면 브라우저가 축소해서 innerWidth가 커진다(실측 656). 그래서 "scrollWidth ≤ innerWidth"만으로는 넘침을 못 잡는다. 05-03에서 전 화면의 390px 검사를 "innerWidth = 390 유지" 조건을 더해 다시 확인한다(기존 spec들의 측정식 점검).
 
+- [ ] 동시 부하에서 unit 게이트의 실제 서버 실행 테스트(server/main.test.ts·app.test.ts·start.bat·백업)가 20~30초 시간 초과로 FAIL한다(05-05·06-01 검증 관찰, 재실행하면 PASS). unit도 무거운 검사 자리를 잡게 하거나 해당 테스트 시간 한도를 늘린다.
+
 ## 변경 요청(공유 파일)
 - 없음
 
