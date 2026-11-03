@@ -584,3 +584,4 @@
 - 11:5x 05-03 독립 검증 4/4 PASS(ctx_ddc997005768, e2e 314·스크린샷 640 OK·axe 0). 05-03·05-04 completed. 참고: 월간 요약 도넛 '기타'·'임대료' 색 같음(경미, 범례로 구분됨).
 - 12:1x 06-03 녹음 회의록 구현 완료 보고(4b5b659, e2e 319 PASS). 병합 대기. 병합 때: COST.md 받아쓰기 가격 줄, backend.md, units.test 기능 수 16.
 - 12:3x P2 통합 사본(.tmp/p2-int, 브랜치 p2-integration)에서 06-01·02·03을 병합. 06-02·06-03 기능 목록 충돌(양쪽 살림, 기능 수 16)을 해결하고 API_RULES 3줄·backend/database/COST 문서·DECISIONS를 반영(63339a6). 게이트 실행 중(E2E_PORT 18301). main 병합은 05-05 뒤.
+- 12:5x P2 통합 게이트 PASS(lint·unit 807·e2e 334). 06-01·02·03 검증 워커를 p2-integration@63339a6으로 띄웠다.

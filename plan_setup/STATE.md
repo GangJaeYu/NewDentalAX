@@ -10,9 +10,9 @@
 - **진행 중 태스크**
 - completed(33): phase-01~04 전부, 05-01·02·03·04
   - 구현 중: 05-05 설치 리허설 `ctx_7c94c708432b`(슬롯 0)
-  - 구현 완료·병합 대기(05-05 뒤): 06-01 바코드(브랜치 phase-06-task-01-worker@633223f), 06-02 AI 근무표(phase-06-task-02-worker@11e7259)
-  - 구현 중: 06-03 녹음 회의록 `ctx_9feb50eadaf3`(슬롯 3)
-  - 병합 때 할 일: API_RULES에 roster suggest·apply 추가, backend.md·database.md 문서 반영, units.test·exposure.test 기능 수 충돌 정리, web/dist 재빌드 커밋
+  - P2 통합: 브랜치 p2-integration@63339a6(작업 사본 .tmp/p2-int, 06-01·02·03 병합, 게이트 lint·unit 807·e2e 334 PASS). main 병합은 05-05 completed 뒤
+  - 검증 중(p2-integration@63339a6): 06-01 `ctx_11c62539ef6d`(검증 슬롯 1), 06-02 `ctx_c4a931ab6fcc`(검증 슬롯 2), 06-03 `ctx_fe3eb0ebd223`(검증 슬롯 3)
+  - main 병합 뒤 할 일: web/dist 재빌드 커밋, PROGRESS 갱신(P2), 게이트, 최종 보고
   - 경미: 월간 요약 도넛 '기타'·'임대료' 색 같음
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
