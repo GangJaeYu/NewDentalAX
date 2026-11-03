@@ -14,6 +14,7 @@ import { parseInput } from '../../security/validate.ts';
 import { can, type Cap } from '../../../shared/roles.ts';
 import { DOC_KINDS, documentCreateSchema, documentPatchSchema } from '../../../shared/schemas/docs.ts';
 import { createDocument, deleteDocument, getDocument, listDocuments, listVersions, updateDocument, uploadDocument, type Actor } from './service.ts';
+import transcribeRoutes from './transcribe.routes.ts';
 
 /** 목록 조회 조건 */
 const listQuery = z.object({
@@ -64,6 +65,8 @@ function actorOf(req: FastifyRequest): Actor {
 export default async function routes(app: FastifyInstance): Promise<void> {
   // 이 플러그인 범위에서만 multipart(파일 올리기)를 받는다
   await registerUploads(app);
+  // 회의 녹음 받아쓰기(phase-06-task-03, transcribe.routes.ts). 위 multipart 받기를 함께 쓴다
+  await app.register(transcribeRoutes);
 
   app.get('/documents', async (req) => {
     const q = parseInput(listQuery, req.query);

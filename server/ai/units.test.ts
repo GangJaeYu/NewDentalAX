@@ -39,11 +39,13 @@ const SAMPLE: Record<string, unknown> = {
   assistant: { question: '멸균 주기', chunks: [{ n: 1, text: '매일' }] },
   receipt: { images: [{ mime: 'image/jpeg', data: 'AAAA' }] },
   monthly_summary: { month: '2026-10', numbers: { 지출: 1000 } },
+  transcribe: { audio: Buffer.from('ftyp'), mime: 'audio/m4a', name: 'meeting.m4a' },
 };
 
 describe('phase-02-task-02 기능 목록', () => {
   test('phase-02-task-02 AC1: 14개 기능이 모두 등록되고, 데모 응답은 "[데모 응답]"으로 시작하며 JSON 기능의 데모는 검사를 통과한다', () => {
-    expect(AI_FEATURE_IDS).toHaveLength(14);
+    // 14개 + phase-06-task-03 transcribe
+    expect(AI_FEATURE_IDS).toHaveLength(15);
     expect(Object.keys(FEATURE_MODULES).sort()).toEqual([...AI_FEATURE_IDS].sort());
     for (const id of AI_FEATURE_IDS) {
       const def = AI_FEATURES[id];
