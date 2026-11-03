@@ -1,0 +1,12 @@
+# task_validation 결과 — phase-04-task-05 (작업 사본 커밋 6315aa6, dirty=no)
+
+| # | 수용 기준 | 판정(PASS/FAIL/판정 불가) | 관찰 증거(명령·출력 요약·파일 경로) |
+|---|---|---|---|
+| 1 | FR-090 AC2 알림 6종 각각을 발생시키는 E2E/통합 테스트가 있고 올바른 수신자에게만 간다 | PASS | e2e 게이트 `tests/e2e/notifications-sources.spec.ts` 2건 ok(#229 6종 9유형: 실장=equipment_due·leave_requested·legal_due·notice·sterilizer_fail·stock_expiry·stock_low, 원장=+ai_budget, 신청 직원=leave_result·notice, 다른 직원=notice만 / #230 390px "모두 읽음" 배지 제거·axe 0건), unit에 `server/jobs/notify-sources.test.ts` 포함 720건 통과. 독립 점검(`.tmp/probe.ts`, 서버 18197, 데모 데이터 이후 새 알림만 비교): 직원2 반차 신청→원장 반려, 품목 출고로 부족, 멸균 BI 불합격, 공지 → 원장·실장=[leave_requested, notice, sterilizer_fail, stock_low], 직원1(출고·멸균 기록자)=[notice], 직원2=[leave_result, notice]. 실장 390px 알림 화면 "모두 읽음" 후 새로 고침: 배지 1→0, "읽지 않은 알림 0개" (`.tmp/probe-result.json`, `.tmp/probe-notifications-mgr-390.png`) |
+| 2 | 모바일 에뮬레이션(390×844)에서 manifest가 로드되고 이름·아이콘·theme-color가 올바르다 | PASS | e2e #213 ok. 독립 점검(390×844, isMobile, Edge CDP `Page.getAppManifest`): url=/manifest.webmanifest, errors=[], name·short_name="원내 업무", display=standalone, start_url=/, theme_color=#0C7C76(= meta theme-color #0C7C76), apple-mobile-web-app-title="원내 업무", 아이콘 3개 모두 200 image/png, 실제 크기 192x192·512x512·512x512(maskable) = 선언과 일치, innerWidth=390 |
+| 3 | 390px에서 주요 화면 10개에 가로 스크롤이 없다(scrollWidth ≤ innerWidth, innerWidth=390 그대로) | PASS | e2e #214(측정 방법 자체 확인: 640px 요소 넣으면 FAIL로 잡힘) + #215~#228 14개 화면 × 라이트·다크 ok. 독립 점검: `web/src/routes.tsx`의 인자 없는 비인쇄 라우트 36개 × 라이트·다크 = 72회 측정 모두 sw=390, iw=390, h1 정상 렌더(로그인 화면 아님), 실패 0 (`.tmp/probe-result.json`) |
+
+- 게이트 결과: lint=PASS(tsc-server 290, tsc-web 155, eslint 422, headers 461), unit=PASS(720건), e2e=PASS(243건, skipped 0, flaky 0, 12.6m) — 로그 `harness_setup/evidence/runs/2026-11-02T23-15-34-866Z-phase-04-task-05-lint.log`, `...23-16-36-545Z-...-unit.log`, `...23-17-54-494Z-...-e2e.log` (commit=6315aa6 dirty=no)
+- 화면 대조: `npm run screenshots -- notifications-kinds notifications-read-all`(E2E_PORT=18197) 16장 OK(`artifacts/screens/notifications-*`). 1440 다크·390 다크를 기준선 `harness_setup/evidence/design-baseline/preview-dashboard-1440-dark.png`와 대조 — 헤더·사이드바·청록 강조 버튼·회색 종류 태그·청록 "읽지 않음" 태그·카드 테두리·밀도가 일치, 빈 상태 안내 쉬운 한국어, 넘침 없음. 문제 없음.
+- 환경 문제·판정 불가 사유: 없음. e2e는 PC 전체 동시 2개 제한으로 약 1분 대기 후 실행. 수동 서버(18197, `.tmp/manual-data`)는 부모 프로세스가 내 bash·내 작업 사본 경로임을 확인한 뒤 종료, 스크린샷 서버는 스크립트가 스스로 종료(18197 해제 확인).
+- 재현 방법(실패 시): 해당 없음. 독립 점검 재현은 `E2E_DATA_DIR=.tmp/manual-data E2E_PORT=18197 node scripts/e2e-server.ts` 후 `node .tmp/probe.ts`.
