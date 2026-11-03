@@ -207,8 +207,8 @@
 
 | 게이트 | 판정 | 로그 |
 |---|---|---|
-| lint | PASS — tsc-server 294, tsc-web 155, eslint 427, headers 465 | `harness_setup/evidence/runs/2026-11-02T23-44-13-946Z-phase-05-task-02-lint.log` |
-| unit | PASS — 745건(새 보안 테스트 25건 포함) | `harness_setup/evidence/runs/2026-11-02T23-44-51-227Z-phase-05-task-02-unit.log` |
-| e2e | **미완료** — 전체 게이트 실행이 PC 메모리 부족으로 첫 spec 전에 중단됐다(2026-11-03). 새 `security-xss.spec.ts` 단독 실행은 9건 통과(`E2E_PORT=18091 npx playwright test tests/e2e/security-xss.spec.ts`) | 재실행 필요 |
+| lint | PASS — tsc-server 298, tsc-web 155, eslint 431, headers 469(main 병합 뒤) | `harness_setup/evidence/runs/2026-11-03T00-04-03-998Z-phase-05-task-02-lint.log` |
+| unit | **FAIL 1건(이 태스크 밖)** — 756 통과 / 1 실패. 실패는 05-01의 `scripts/perf-lib.test.ts` "phase-05-task-01 AC1: …p95가 300ms 이하다"(재고 목록 853~966ms). 보안 테스트 25건은 모두 통과. 그 성능 테스트는 단독 실행 12/12 통과, `tests/security`를 빼고 main 서버 코드로 되돌려도 전체 실행에서 실패(1146.9ms) → 전체 실행 부하에서 불안정한 main 쪽 문제. main 병합 전(418d1a7)에는 unit 745건 PASS | `harness_setup/evidence/runs/2026-11-03T00-07-36-423Z-phase-05-task-02-unit.log`, 병합 전 PASS `…/2026-11-02T23-44-51-227Z-phase-05-task-02-unit.log` |
+| e2e | PASS — 253건(새 `security-xss.spec.ts` 9건 포함) | `harness_setup/evidence/runs/2026-11-03T00-09-58-784Z-phase-05-task-02-e2e.log` |
 
 게이트 판정·건수는 이 태스크의 worker_done 보고와 `plan_setup/LOG.md`(조정자가 옮김)에도 적는다. task_validation은 별도 세션이 수행한다.
