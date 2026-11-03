@@ -134,7 +134,7 @@ describe('내보내기', () => {
     await call(env, env.staff, 'POST', '/api/inventory/moves', { itemId: it.id, type: 'out', qty: 2 });
 
     for (const [url, header, row] of [
-      ['/api/export/items.csv', '품목명,분류,단위,적정 재고,유효기간 관리,기본 거래처,보관 위치,메모,현재고,상태', '치과용 거즈,소모품,팩,20,아니오,한빛덴탈,,,3,'],
+      ['/api/export/items.csv', '품목명,분류,단위,적정 재고,유효기간 관리,기본 거래처,보관 위치,메모,바코드,현재고,상태', '치과용 거즈,소모품,팩,20,아니오,한빛덴탈,,,,3,'],
       ['/api/export/vendors.csv', '상호,담당자,업무용 연락처,이메일,주문 방법,메모', '한빛덴탈,,,,,,1,사용'],
       ['/api/export/moves.csv', '일시,구분,품목명,단위,수량,단가,거래처,로트,유효기간,사유·메모,기록한 사람', '2026-11-02 09:00,출고,치과용 거즈,팩,-2,'],
       ['/api/inventory/moves?format=csv&type=in', '일시,구분,품목명,단위,수량', '2026-11-02 09:00,입고,치과용 거즈,팩,5,3000,한빛덴탈'],
@@ -181,7 +181,7 @@ describe('내보내기', () => {
   test('phase-03-task-03: 양식은 BOM + 가져오기 열 이름이고, 그대로 올리면 예시 줄 하나가 신규로 보인다', async () => {
     const env = await makeEnv();
     const t = await raw(env, env.manager, '/api/import/items/template.csv');
-    expect(t.text.startsWith(`${UTF8_BOM}품목명,분류,단위,적정 재고,유효기간 관리,기본 거래처,보관 위치,메모\r\n`)).toBe(true);
+    expect(t.text.startsWith(`${UTF8_BOM}품목명,분류,단위,적정 재고,유효기간 관리,기본 거래처,보관 위치,메모,바코드\r\n`)).toBe(true);
     const p = await preview(env, env.manager, 'template.csv', t.bytes);
     expect(p.status).toBe(200);
     expect(p.body.data.totals).toEqual({ new: 1, update: 0, unchanged: 0, error: 0 });

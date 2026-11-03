@@ -1,10 +1,10 @@
 // 이 파일이 하는 일: 재고 CSV 가져오기·내보내기(FR-056, backend.md §3.5 import/export)의 API 모양을 서버와 화면이 함께 쓰게 둔다.
 // 품목 CSV 열 이름(양식과 내보내기가 같은 이름을 써서, 내보낸 파일을 고쳐 다시 올릴 수 있다), 미리보기 줄 모양, 확정 입력 검사가 있다.
-// 환자 정보 항목은 두지 않는다. shared 폴더는 다른 폴더를 import하지 않는다(zod만 쓴다).
+// 바코드 열(FR-130)은 앞뒤 공백을 지운 값으로 비교하고, 다른 품목과 겹치면 오류 줄이 된다. 환자 정보 항목은 두지 않는다. shared 폴더는 다른 폴더를 import하지 않는다(zod만 쓴다).
 import { z } from 'zod';
 
 /** 가져올 수 있는 품목 칸 */
-export const IMPORT_FIELDS = ['name', 'category', 'unit', 'par', 'trackExpiry', 'vendor', 'location', 'memo'] as const;
+export const IMPORT_FIELDS = ['name', 'category', 'unit', 'par', 'trackExpiry', 'vendor', 'location', 'memo', 'barcode'] as const;
 export type ImportField = (typeof IMPORT_FIELDS)[number];
 
 /** 품목 CSV 열 이름(양식 첫 줄). *는 새 품목에 꼭 적어야 하는 칸 */
@@ -17,6 +17,7 @@ export const IMPORT_FIELD_LABELS: Record<ImportField, string> = {
   vendor: '기본 거래처',
   location: '보관 위치',
   memo: '메모',
+  barcode: '바코드',
 };
 
 /** 미리보기 줄의 처리 방법: 새 품목 · 기존 품목 변경 · 바뀌는 것 없음 · 오류 */
@@ -34,6 +35,8 @@ export interface ImportRowData {
   vendor: string | null;
   location: string | null;
   memo: string | null;
+  /** 바코드(빈 칸은 그대로 둠) */
+  barcode: string | null;
 }
 
 /** 기존 품목에서 바뀌는 칸 하나 */
