@@ -34,6 +34,8 @@
 .ck-print td.c { text-align: center; white-space: nowrap; }
 .ck-print td.n { width: 36px; text-align: right; color: var(--muted); }
 @media (max-width: 520px) { .ck-print th, .ck-print td { padding: 6px; } .ck-print th { white-space: normal; } }
+/* 휴대폰 화면 미리보기: 항목 칸이 두세 글자 너비로 눌리지 않게 표 최소 너비를 두고 표 상자 안에서 옆으로 넘겨 본다(종이 인쇄에는 적용 안 함, phase-05-task-03) */
+@media screen and (max-width: 520px) { .ck-print { min-width: 520px; } }
 .ck-print-sum { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
 @media print {
   .ck-print th { background: #EDF2F2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }

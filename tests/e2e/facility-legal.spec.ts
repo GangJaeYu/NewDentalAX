@@ -5,6 +5,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'lgadmin', password: 'Legal-Admin-Pass-8', withDemo: false };
 const MANAGER = { username: 'lgmanager', password: 'Legal-Manager-Pass-8', name: '윤실장' };
@@ -260,8 +261,7 @@ test.describe.serial('법정 의무 일정', () => {
         const page = await ctx.newPage();
         await page.goto(url('/facility/legal'));
         await expect(row(page, '파노라마 정기검사')).toHaveCount(1);
-        const overflow = (await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean;
-        expect(overflow, `${width}-${colorScheme}`).toBe(false);
+        await expectNoHorizontalScroll(page, `${width}-${colorScheme}`);
         await ctx.close();
       }
     }

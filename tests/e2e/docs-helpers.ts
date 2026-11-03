@@ -42,7 +42,9 @@ export async function apiCreateDoc(page: Page, csrf: string, body: { kind: strin
   return ((await r.json()) as { data: { id: number } }).data.id;
 }
 
-/** 가로 스크롤 여부(문서 전체 너비 ≤ 창 너비) */
+/** 가로 스크롤 여부(문서 전체 너비 ≤ 창 너비). 창 너비가 정한 너비 그대로인지도 여기서 확인한다(휴대폰 흉내 축소 함정, phase-05-task-03) */
 export async function noHorizontalScroll(page: Page): Promise<{ sw: number; iw: number }> {
-  return (await page.evaluate('({ sw: document.documentElement.scrollWidth, iw: window.innerWidth })')) as { sw: number; iw: number };
+  const m = (await page.evaluate('({ sw: document.documentElement.scrollWidth, iw: window.innerWidth })')) as { sw: number; iw: number };
+  expect(m.iw, '창 너비(innerWidth)가 정한 너비 그대로').toBe(page.viewportSize()?.width);
+  return m;
 }

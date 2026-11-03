@@ -90,8 +90,7 @@
   .eq-paper .eq-print { min-width: 680px; }
 }
 @media print {
-  /* 본문 글꼴의 대체 숫자 모양(ss06·tabular)은 PDF로 저장하면 글자 정보가 빠져 숫자를 복사·검색할 수 없다(orders.css와 같은 처리). 인쇄물에서는 기본 숫자 모양을 쓴다 */
-  .eq-paper, .eq-paper * { font-feature-settings: normal !important; font-variant-numeric: normal !important; }
+  /* 인쇄물의 기본 숫자 모양(PDF 숫자 글자 빠짐 방지)은 styles/print.css가 공통으로 처리한다 */
   .eq-print { font-size: 9pt; }
   .eq-print th, .eq-print td { border-color: #9AA9A8 !important; padding: 3px 5px; }
   .eq-print th { background: #EEF3F2 !important; }

@@ -213,6 +213,7 @@ test.describe.serial('AI 설정·사용량 화면', () => {
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
         await expect(page.locator('.skel')).toHaveCount(0);
         const m = (await page.evaluate('({ sw: document.documentElement.scrollWidth, iw: window.innerWidth })')) as { sw: number; iw: number };
+        expect(m.iw, `${path} 창 너비 ${width} 그대로`).toBe(width);
         expect(m.sw, `${path} ${width}px 가로 스크롤`).toBeLessThanOrEqual(m.iw);
         await ctx.close();
       }

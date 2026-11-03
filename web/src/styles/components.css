@@ -29,8 +29,9 @@
 
 /* ── 카드 ── */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); min-width: 0; display: flex; flex-direction: column; }
-.card > header { display: flex; align-items: center; gap: 8px; padding: 14px var(--pad) 10px; min-width: 0; }
-.card > header h2 { font-size: var(--fs-card-title); font-weight: 700; }
+.card > header { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 14px var(--pad) 10px; min-width: 0; }
+/* 제목은 줄어들지 않게 하고, 긴 보조 문구는 자리가 모자라면 다음 줄로 내린다(좁은 화면에서 제목이 한 줄에 두세 글자씩 쌓이던 문제, phase-05-task-03) */
+.card > header h2 { flex: none; max-width: 100%; font-size: var(--fs-card-title); font-weight: 700; }
 .card > header .sub { color: var(--muted); font-size: var(--fs-small); }
 .card > header .more { margin-left: auto; font-size: var(--fs-small); color: var(--accent-strong); text-decoration: none; font-weight: 600; white-space: nowrap; }
 .card > header .more:hover { text-decoration: underline; }
@@ -196,6 +197,8 @@ dialog.drawer .dialog-body { overflow-y: auto; }
 .c4 { color: var(--danger); background-color: var(--danger); fill: var(--danger); stroke: var(--danger); }
 .c5 { color: var(--muted); background-color: var(--muted); fill: var(--muted); stroke: var(--muted); }
 .c6 { color: var(--accent-strong); background-color: var(--accent-strong); fill: var(--accent-strong); stroke: var(--accent-strong); }
+/* 그래프 안에서 fill="none"으로 적은 도형(도넛 호·테두리 원)은 계열 색 class가 안쪽을 채우지 않게 한다(선 색만 쓴다, phase-05-task-03) */
+.chart [fill="none"] { fill: none; }
 
 /* ── 파일 놓기 ── */
 .filedrop { position: relative; display: grid; justify-items: center; gap: 6px; padding: 22px 16px; border: 1.5px dashed var(--line); border-radius: var(--r-md); background: var(--surface-2); color: var(--muted); text-align: center; cursor: pointer; }

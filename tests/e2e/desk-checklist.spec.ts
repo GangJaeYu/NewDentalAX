@@ -6,6 +6,7 @@ import AxeBuilder from '@axe-core/playwright';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 import { extractText, getDocumentProxy } from 'unpdf';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'ckadmin', password: 'Check-Admin-Pass-4', withDemo: false };
 const MANAGER = { username: 'ckmanager', password: 'Check-Manager-Pass-4', name: '윤실장' };
@@ -189,14 +190,13 @@ test.describe.serial('오픈·마감 체크리스트', () => {
       await page.goto(url(path));
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await expect(page.getByText('멸균기 예열').first()).toBeVisible();
-      const overflow = ((await page.evaluate('document.documentElement.scrollWidth - window.innerWidth')) as number);
-      expect(overflow, path).toBeLessThanOrEqual(0);
+      await expectNoHorizontalScroll(page, path);
     }
     // 편집 대화상자도 휴대폰에서 넘치지 않는다
     await page.goto(url('/desk/checklist'));
     await page.getByRole('button', { name: '항목 편집' }).click();
     await expect(page.getByRole('dialog', { name: '오픈 체크리스트 항목 편집' })).toBeVisible();
-    expect(((await page.evaluate('document.documentElement.scrollWidth - window.innerWidth')) as number)).toBeLessThanOrEqual(0);
+    await expectNoHorizontalScroll(page);
     expect(await axe(page)).toEqual([]);
     await ctx.close();
   });

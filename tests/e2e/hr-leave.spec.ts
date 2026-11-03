@@ -5,6 +5,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { APIRequestContext, Browser, BrowserContext, Page } from '@playwright/test';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'lvadmin', password: 'Leave-Admin-Pass-9', withDemo: false };
 const MANAGER = { username: 'lvmanager', password: 'Leave-Manager-Pass-9', name: '윤실장' };
@@ -286,10 +287,10 @@ test.describe.serial('연차·휴가 신청과 승인', () => {
       await page.goto(url('/hr/leave'));
       await expect(page.getByRole('heading', { name: '내 신청' })).toBeVisible();
       await expect(page.getByRole('row').first()).toBeVisible();
-      expect((await page.evaluate('document.documentElement.scrollWidth - window.innerWidth')) as number, who.username).toBeLessThanOrEqual(0);
+      await expectNoHorizontalScroll(page, who.username);
       await page.getByRole('button', { name: '휴가 신청', exact: true }).click();
       await expect(page.getByRole('dialog', { name: '휴가 신청', exact: true })).toBeVisible();
-      expect((await page.evaluate('document.documentElement.scrollWidth - window.innerWidth')) as number, `${who.username} 대화상자`).toBeLessThanOrEqual(0);
+      await expectNoHorizontalScroll(page, `${who.username} 대화상자`);
       if (who === STAFF) expect(await axe(page)).toEqual([]);
       await ctx.close();
     }

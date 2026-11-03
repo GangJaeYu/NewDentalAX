@@ -11,6 +11,7 @@ import { startFakeLlm, type FakeLlm } from '../fake-llm/server.ts';
 import { readImageSize } from '../../server/modules/inventory/receipt-image.ts';
 import { fakeJpeg } from '../fixtures/receipt/images.ts';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const KEY = 'sk-ant-e2e-ONLYFAKE-receipt-3Rk8';
 const PHOTO = path.join(process.cwd(), 'tests', 'fixtures', 'receipt', 'statement-4000x3000.jpg');
@@ -80,7 +81,7 @@ function dbAll<T>(sql: string, params: Array<string | number> = []): T[] {
 }
 
 async function noHorizontalScroll(page: Page): Promise<void> {
-  expect((await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean).toBe(false);
+  await expectNoHorizontalScroll(page);
 }
 
 /** 화면에서 사진을 고르고 확인 체크 → "AI로 읽기"를 누른 뒤 서버 응답 본문을 돌려준다 */

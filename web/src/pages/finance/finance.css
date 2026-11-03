@@ -47,8 +47,6 @@
 @media (max-width: 720px) { .fin-trend .chart { height: auto; } }
 .fin-rank { white-space: nowrap; }
 
-/* 도넛: 공용 색 class(.c1~.c6)가 fill도 칠해 호 안쪽이 채워지는 것을 막고(선만), 크기를 140px로 고정한다(휴대폰에서 100%로 커지지 않게).
-   공용 components.css 수정은 01-04 소유라 변경 요청으로 보고했다(phase-04-task-04) */
+/* 도넛: 크기를 140px로 고정한다(휴대폰에서 100%로 커지지 않게). 호 안쪽이 채워지지 않게 하는 처리는 공용 components.css로 옮겼다(phase-05-task-03) */
 .fin-split .chart { width: 140px; height: 140px; }
-.fin-split .chart path, .fin-split .chart circle { fill: none; }
 @media (max-width: 720px) { .fin-split .chart { margin: 0 auto; } }

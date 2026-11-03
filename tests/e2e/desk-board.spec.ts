@@ -6,6 +6,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'boardadmin', password: 'Board-Admin-Pass-4', withDemo: false };
 const MANAGER = { username: 'boardmgr', password: 'Board-Manager-Pass-4', name: '윤실장' };
@@ -188,8 +189,7 @@ test.describe.serial('공지·인수인계 보드', () => {
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       // 목록 표·빈 상태 안내·읽은 사람 칸 중 하나가 그려질 때까지 기다린다(처리 전 인수인계가 없으면 빈 상태)
       await expect(page.locator('table, .empty, [data-testid="post-readers"]').first()).toBeVisible();
-      const overflow = ((await page.evaluate('document.documentElement.scrollWidth - window.innerWidth')) as number);
-      expect(overflow, path).toBeLessThanOrEqual(0);
+      await expectNoHorizontalScroll(page, path);
     }
     expect(await axe(page)).toEqual([]);
     await ctx.close();

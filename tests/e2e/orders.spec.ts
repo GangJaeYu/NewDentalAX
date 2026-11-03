@@ -6,6 +6,7 @@ import type { APIRequestContext, Browser, BrowserContext, Page } from '@playwrig
 import AxeBuilder from '@axe-core/playwright';
 import { extractText, getDocumentProxy } from 'unpdf';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '김원장', username: 'poadmin01', password: 'Po-Admin-Pass-01', withDemo: false };
 const MANAGER = { name: '윤실장', username: 'pomgr0001', password: 'Po-Mgr-Pass-001' };
@@ -61,8 +62,7 @@ async function stockOf(req: APIRequestContext, id: number): Promise<number> {
 
 /** 가로 스크롤이 생겼는지 */
 async function noHorizontalScroll(page: Page): Promise<void> {
-  const overflow = (await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean;
-  expect(overflow).toBe(false);
+  await expectNoHorizontalScroll(page);
 }
 
 const rowOf = (page: Page, text: string) => page.getByRole('row').filter({ hasText: text });

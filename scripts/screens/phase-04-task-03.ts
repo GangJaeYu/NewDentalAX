@@ -64,7 +64,8 @@ export const pages: ShotPage[] = [
     ready: '장비 점검·유지보수',
     action: async (page) => {
       await withEquipmentDemo(page, '오토클레이브 1호기');
-      await page.getByRole('row', { name: /오토클레이브 1호기/ }).click();
+      // 다른 화면 목록(대시보드 데모 등)이 같은 이름의 장비를 먼저 넣었을 수 있어 첫 줄을 고른다(phase-05-task-03 전체 촬영에서 발견)
+      await page.getByRole('row', { name: /오토클레이브 1호기/ }).first().click();
       await page.getByTestId('equipment-logs').waitFor({ timeout: 10000 });
     },
   },

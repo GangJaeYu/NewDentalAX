@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'tradmin', password: 'Train-Admin-Pass-9', withDemo: false };
 const MANAGER = { username: 'trmanager', password: 'Train-Manager-Pass-9', name: '윤실장' };
@@ -42,8 +43,7 @@ async function axe(page: Page): Promise<string[]> {
 }
 
 async function noHorizontalScroll(page: Page): Promise<void> {
-  const [scrollWidth, innerWidth] = (await page.evaluate('[document.documentElement.scrollWidth, window.innerWidth]')) as [number, number];
-  expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
+  await expectNoHorizontalScroll(page);
 }
 
 /** 알림함 제목들(API) */

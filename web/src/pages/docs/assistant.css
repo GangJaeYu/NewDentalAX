@@ -42,5 +42,7 @@
 
 .as-status { display: inline-grid; gap: 4px; justify-items: start; }
 .as-reason { color: var(--muted); font-size: var(--fs-small); max-width: 320px; overflow-wrap: anywhere; white-space: normal; }
+/* 좁은 화면에서 상태 칸이 글자 몇 개 너비로 눌려 실패 사유가 한 줄에 두세 글자씩 쌓이지 않게 최소 너비를 둔다(표는 카드 안에서 옆으로 넘겨 본다, phase-05-task-03) */
+.as-status { min-width: 180px; }
 .as-cell-wrap { overflow-wrap: anywhere; }
 .as-row-actions { display: inline-flex; flex-wrap: wrap; gap: 4px; }

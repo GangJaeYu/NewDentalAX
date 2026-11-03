@@ -5,6 +5,7 @@
 import type { APIRequestContext, Browser, BrowserContext, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '김원장', username: 'invadmin1', password: 'Inv-Admin-Pass-1', withDemo: false };
 const MANAGER = { name: '윤실장', username: 'invmgr01', password: 'Inv-Mgr-Pass-01' };
@@ -59,8 +60,7 @@ const rowOf = (page: Page, text: string) => page.getByRole('row').filter({ hasTe
 
 /** 가로 스크롤이 생겼는지 */
 async function noHorizontalScroll(page: Page): Promise<void> {
-  const overflow = (await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean;
-  expect(overflow).toBe(false);
+  await expectNoHorizontalScroll(page);
 }
 
 test.describe.serial('재고: 품목·입출고·상태·거래처·단가', () => {

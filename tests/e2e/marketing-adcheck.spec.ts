@@ -5,6 +5,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'adadmin', password: 'Adcheck-Admin-Pass-8', withDemo: false };
 const STAFF = { username: 'adstaff', password: 'Adcheck-Staff-Pass-8', name: '서다온' };
@@ -263,12 +264,12 @@ test.describe.serial('의료광고 문구 점검·홍보 글', () => {
         await page.goto(url('/docs/adcheck'));
         await runCheck(page, AC1_TEXT);
         await expect(page.getByRole('article', { name: '점검 규칙 사전' }).getByRole('row').filter({ hasText: '전문병원' })).toHaveCount(1);
-        expect((await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean, `adcheck ${width}-${colorScheme}`).toBe(false);
+        await expectNoHorizontalScroll(page, `adcheck ${width}-${colorScheme}`);
         await page.goto(url('/docs/promo'));
         await page.getByTestId('ai-panel-promo').getByLabel('주제').fill('스케일링 주기 안내');
         await page.getByTestId('ai-panel-promo').getByRole('button', { name: '초안 만들기' }).click();
         await expect(page.getByTestId('adcheck-result')).toBeVisible({ timeout: 15000 });
-        expect((await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean, `promo ${width}-${colorScheme}`).toBe(false);
+        await expectNoHorizontalScroll(page, `promo ${width}-${colorScheme}`);
         if (width === 390 && colorScheme === 'dark') expect(await axe(page)).toEqual([]);
         await ctx.close();
       }
