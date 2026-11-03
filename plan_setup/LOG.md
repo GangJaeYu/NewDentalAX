@@ -580,3 +580,4 @@
 - 11:2x main@c7f7326 게이트 lint·unit 768·e2e 314 PASS(05-04 병합 뒤). web/dist 저장소 포함. phase-06(P2) 3건을 선행 시작(파일 겹치지 않음, 병합은 05-05 뒤): 06-01 슬롯1, 06-02 슬롯2, 06-03 슬롯3.
 - 11:3x 05-04 독립 검증 4/4 PASS(ctx_febd4385a1a8, 가격·데이터 정책 웹 재확인 일치). 기준 밖 문서 오류 4건(COST 절약 팁 숫자, 반올림 1건, Anthropic 보관 문구 근거, README 첫 설정 칸·버튼 이름)을 조정자가 고쳤다. 선행 05-03 검증 대기로 completed 보류.
 - 11:4x 06-01 바코드 구현 완료 보고(633223f, e2e 323 PASS, @zxing/library 0.21.3 dev 의존성 추가). 05-05 뒤 병합 대기.
+- 11:4x 06-02 AI 근무표 구현 완료 보고(11e7259, e2e 320 PASS). 병합 때 할 일: API_RULES에 /api/roster/suggest·apply(M) 추가(05-02 결정), backend.md §3.7·§4 문서 반영, 06-03과 units.test·exposure.test 기능 수 충돌 정리.
