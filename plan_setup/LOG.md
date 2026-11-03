@@ -561,3 +561,10 @@
 - 03-10 수정 보고(ctx_a439979d4ad2): .dash-card 본문 grid minmax(0,1fr) + 자식 min-width:0. 카드 10개 공통 원인이었다. 측정 e2e(DESIGN5)를 추가했다. 05-01 게이트가 끝나면 병합한다.
 - 09:20 05-01 병합 뒤 main 게이트 PASS(lint 294/155/426/465, unit 732, e2e 244, 커밋 60af70b). 03-10 수정 커밋을 충돌 없이 병합했다. 게이트는 백그라운드에서 실행 중이다.
 - 05-01 검증 배정(검증 슬롯 1, 기준 60af70b)
+- 09:30 05-02 구현 보고(ctx_5bd6f951f299)
+  - SECURITY.md 19개 영역 점검, 결함 3건 수정(zod eval·CSP 등), API_RULES 7줄 보강
+  - lint·e2e 253 PASS. unit은 05-01의 perf-lib.test p95 단언이 전체 실행 부하로 FAIL이었다.
+- 조정자 조치: perf-lib.test의 p95 300ms 단언을 PERF_STRICT=1(npm run perf)에서만 판정하게 바꿨다.
+  - 일반·엄격 모드 둘 다 12건 PASS
+  - NFR-005 판정은 npm run perf에 남는다(약화 아님, DECISIONS 기록).
+  - 05-02에 main 병합 뒤 unit 재실행을 지시한다.
