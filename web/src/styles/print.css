@@ -1,5 +1,5 @@
 /* 이 파일이 하는 일: 인쇄 스타일. A4 용지·여백 15mm, 화면 전용 요소(.no-print·메뉴·상단바·탭 막대) 숨김, 쪽 번호,
-   표 행이 쪽 경계에서 잘리지 않게 한다. 인쇄 전용 화면(/print/*)과 일반 화면 인쇄에 함께 쓴다. */
+   표 행이 쪽 경계에서 잘리지 않게 하고, PDF에서 숫자 글자가 빠지지 않게 대체 숫자 모양을 끈다. 인쇄 전용 화면(/print/*)과 일반 화면 인쇄에 함께 쓴다. */
 @page {
   size: A4;
   margin: 15mm;
@@ -8,6 +8,9 @@
 
 @media print {
   :root { color-scheme: light; }
+  /* 본문 글꼴의 대체 숫자 모양(ss06·tabular-nums, .num)은 PDF로 저장하면 글자 정보(ToUnicode)가 빠져 숫자를 복사·검색할 수 없다.
+     인쇄물 전체에서 기본 숫자 모양을 쓴다(03-02 발주서·04-03 장비 인쇄가 따로 하던 처리를 여기로 모음, phase-05-task-03) */
+  html, body, body * { font-feature-settings: normal !important; font-variant-numeric: normal !important; }
   html, body { background: #FFFFFF !important; color: #142120 !important; }
   body { font-size: 10.5pt; }
   .no-print, .top, .side, .bottomnav, .offline, .toasts, .skip-link { display: none !important; }

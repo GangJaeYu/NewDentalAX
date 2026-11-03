@@ -9,6 +9,7 @@ import type { APIRequestContext, Browser, BrowserContext, Page } from '@playwrig
 import AxeBuilder from '@axe-core/playwright';
 import { startFakeLlm, type FakeLlm } from '../fake-llm/server.ts';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const KEY = 'sk-ant-e2e-ONLYFAKE-finance-9Wm2';
 const ADMIN = { clinicName: '하늘숲치과', name: '김원장', username: 'finadmin01', password: 'Fin-Admin-Pass-01', withDemo: false };
@@ -81,7 +82,7 @@ function dbValue(sql: string): number {
 }
 
 async function noHorizontalScroll(page: Page): Promise<void> {
-  expect((await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean).toBe(false);
+  await expectNoHorizontalScroll(page);
 }
 
 const rowOf = (page: Page, text: string) => page.getByRole('table', { name: '지출 목록' }).getByRole('row').filter({ hasText: text });

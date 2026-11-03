@@ -1,0 +1,60 @@
+
+Running 53 tests using 1 worker
+
+
+[1/53] [edge] › tests\e2e\final-screens.spec.ts:140:3 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 첫 설정 화면(두 테마) axe 위반 0건, 휴대폰 390px 넘침 없음
+[2/53] [edge] › tests\e2e\final-screens.spec.ts:158:3 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › 준비: 데모 데이터로 첫 설정, 직원·임시 비밀번호 계정, 상세 화면 id
+[3/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 로그인 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[4/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 대시보드 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[5/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 알림 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[6/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 공지·인수인계 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[7/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 공지 상세 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[8/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 오픈·마감 체크리스트 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[9/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 응대 스크립트 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[10/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 리뷰 답글 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[11/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 자주 쓰는 문구 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[12/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 재고 현황 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[13/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 품목 상세 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[14/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 입출고 기록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[15/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 영수증 입고 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[16/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 발주서 목록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[17/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 발주서 상세 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[18/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 거래처 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[19/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 단가 비교 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[20/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 품목 가져오기 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[21/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: AI 문서 작성 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[22/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 업무 도우미 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[23/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 회의록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[24/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 광고 문구 점검 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[25/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 홍보 글 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[26/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 서식 보관함 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[27/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 서식 상세 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[28/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 근무표 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[29/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 연차·휴가 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[30/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 교육 이수 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[31/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 신입 적응 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[32/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 채용 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[33/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 장비 점검 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[34/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 멸균기 기록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[35/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 법정 의무 일정 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[36/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 지출 기록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[37/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 월간 운영 요약 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[38/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 사용자·권한 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[39/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 병원 기본 정보 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[40/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: AI 설정 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[41/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: AI 사용 기록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[42/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 백업·복원 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[43/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 활동 기록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[44/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 데모 데이터 초기화 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[45/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 인쇄: 발주서 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[46/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 인쇄: 문서 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[47/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 인쇄: 체크리스트 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[48/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 인쇄: 근무표 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[49/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 인쇄: 멸균기 기록 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[50/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 인쇄: 장비 이력 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[51/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 권한 없음(직원이 관리 화면) 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[52/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 없는 주소 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+[53/53] [edge] › tests\e2e\final-screens.spec.ts:173:5 › 최종 점검: 전 화면 axe(두 테마)·휴대폰 390px › phase-05-task-03 AC3: 비밀번호 변경(임시 비밀번호) 화면 — 라이트·다크 axe 위반 0건, 휴대폰 390px(innerWidth 390 유지) 넘침 없음
+  Slow test file: [edge] › tests\e2e\final-screens.spec.ts (7.0m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  53 passed (7.1m)

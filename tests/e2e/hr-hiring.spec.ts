@@ -215,6 +215,7 @@ test.describe.serial('채용 공고·면접 질문', () => {
       ] as const) {
         await page.setViewportSize({ width: w, height: h });
         const { sw, iw } = (await page.evaluate('({ sw: document.documentElement.scrollWidth, iw: window.innerWidth })')) as { sw: number; iw: number };
+        expect(iw, `${w}px 창 너비 그대로`).toBe(w);
         expect(sw, `${w}px ${theme}`).toBeLessThanOrEqual(iw);
       }
       await ctx.close();

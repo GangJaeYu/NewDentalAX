@@ -136,6 +136,7 @@ test.describe.serial('FR-090 AC2 알림 6가지(실제 서버)', () => {
     await expect(list.getByText('AI 예산', { exact: true })).toHaveCount(0);
     await expect(page.getByTestId('notification-badge')).toBeVisible();
     const sw = (await page.evaluate('({ sw: document.documentElement.scrollWidth, iw: window.innerWidth })')) as { sw: number; iw: number };
+    expect(sw.iw, '창 너비 390 그대로').toBe(390);
     expect(sw.sw).toBeLessThanOrEqual(sw.iw);
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations.map((v) => v.id)).toEqual([]);

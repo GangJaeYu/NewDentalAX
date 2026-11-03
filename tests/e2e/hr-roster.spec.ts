@@ -6,6 +6,7 @@ import AxeBuilder from '@axe-core/playwright';
 import type { APIRequestContext, Browser, BrowserContext, Page } from '@playwright/test';
 import { extractText, getDocumentProxy } from 'unpdf';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'rsadmin', password: 'Roster-Admin-Pass-9', withDemo: false };
 const MANAGER = { username: 'rsmanager', password: 'Roster-Manager-Pass-9', name: '윤실장' };
@@ -83,8 +84,7 @@ function total(page: Page, date: string) {
 }
 
 async function noHorizontalScroll(page: Page): Promise<void> {
-  const [sw, iw] = (await page.evaluate('[document.documentElement.scrollWidth, window.innerWidth]')) as [number, number];
-  expect(sw).toBeLessThanOrEqual(iw);
+  await expectNoHorizontalScroll(page);
 }
 
 let ids: { staff: number; staff2: number; manager: number; types: Record<string, number> };

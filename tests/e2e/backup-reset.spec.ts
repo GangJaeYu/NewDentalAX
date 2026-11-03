@@ -238,6 +238,7 @@ test.describe.serial('백업·복원·데모 초기화 화면', () => {
           await expect(page.getByRole('heading', { level: 1, name: pageCase.title })).toBeVisible();
           await expect(page.locator('.skel')).toHaveCount(0);
           const m = (await page.evaluate('({ sw: document.documentElement.scrollWidth, iw: window.innerWidth })')) as { sw: number; iw: number };
+          expect(m.iw, `${pageCase.name} ${width} 창 너비 그대로`).toBe(width);
           expect(m.sw, `${pageCase.name} ${width} ${theme}`).toBeLessThanOrEqual(m.iw);
           await ctx.close();
         }

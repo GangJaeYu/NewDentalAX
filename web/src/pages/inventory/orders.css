@@ -55,8 +55,7 @@
 }
 
 @media print {
-  /* 본문 글꼴의 대체 숫자 모양(ss06·tabular)은 PDF로 저장하면 글자 정보가 빠져 숫자를 복사·검색할 수 없다. 인쇄물에서는 기본 숫자 모양을 쓴다 */
-  .po-paper, .po-paper * { font-feature-settings: normal !important; font-variant-numeric: normal !important; }
+  /* 인쇄물의 기본 숫자 모양(PDF 숫자 글자 빠짐 방지)은 styles/print.css가 공통으로 처리한다 */
   .po-parties section { border-color: #8A9998 !important; }
   .po-parties dt, .po-small { color: #586968 !important; }
   .po-table thead th, .po-table tfoot th { background: #EDF2F2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }

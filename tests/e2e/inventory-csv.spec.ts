@@ -7,6 +7,7 @@ import path from 'node:path';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '김원장', username: 'csvadmin1', password: 'Csv-Admin-Pass-1', withDemo: false };
 const MANAGER = { name: '윤실장', username: 'csvmgr01', password: 'Csv-Mgr-Pass-01' };
@@ -193,7 +194,7 @@ test.describe.serial('재고 CSV 가져오기·내보내기', () => {
     await upload(page, CP949_FILE);
     expect(axeList((await new AxeBuilder({ page }).analyze()).violations)).toEqual([]);
     // 넓은 화면에서도 가로 스크롤이 없다(숨긴 파일 입력이 화면 밖으로 넘치지 않음)
-    expect((await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean).toBe(false);
+    await expectNoHorizontalScroll(page);
     await ctx.close();
   });
 
@@ -203,7 +204,7 @@ test.describe.serial('재고 CSV 가져오기·내보내기', () => {
     await page.goto(url('/inventory/import'));
     await upload(page, CP949_FILE);
     await expect(page.getByRole('button', { name: '오류 줄 건너뛰고 확정' })).toBeVisible();
-    expect((await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean).toBe(false);
+    await expectNoHorizontalScroll(page);
     await ctx.close();
   });
 });

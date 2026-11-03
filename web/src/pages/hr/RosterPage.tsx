@@ -44,6 +44,7 @@ function CellBody({ cell, types }: { cell: RosterCell | undefined; types: Readon
   return (
     <>
       {p.leave?.fullDay ? null : p.shift ? <span className={shiftChipClass(p.shift.colorToken)}>{p.shift.label}</span> : null}
+      {p.shift && p.leave && !p.leave.fullDay ? ' ' : null}
       {p.leave ? <Chip tone={leaveTone(p.leave.fullDay)}>{p.leave.label}</Chip> : null}
     </>
   );
@@ -217,7 +218,8 @@ export default function RosterPage() {
                               <button
                                 type="button"
                                 className="roster-cell"
-                                aria-label={`${u.name} ${rosterDateLabel(d.date)} ${text}, 바꾸기`}
+                                // 이름 안에 보이는 글자(근무·휴가 칩)가 그대로 들어가야 음성 입력 사용자가 부를 수 있다(axe label-content-name-mismatch, phase-05-task-03)
+                                aria-label={`${u.name} ${rosterDateLabel(d.date)} ${text.replace(' · ', ' ')}, 바꾸기`}
                                 onClick={() => setPicking({ userId: u.id, name: u.name, date: d.date, cell })}
                               >
                                 <CellBody cell={cell} types={types} />

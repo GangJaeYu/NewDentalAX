@@ -192,6 +192,7 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
         await expect(page.getByRole('region', { name: '오늘 현황' }), label).toBeVisible();
         await page.evaluate('document.fonts.ready');
         const m = (await page.evaluate(SHELL_PROBE)) as ShellProbe;
+        expect(m.innerWidth, `${label} 창 너비 그대로`).toBe(width);
         expect(m.scrollWidth, `${label} 가로 스크롤`).toBeLessThanOrEqual(m.innerWidth);
         expect(m.topOverlap, `${label} 상단바 겹침`).toBe(false);
         expect(m.outside, `${label} 카드가 본문 밖으로`).toBe(0);

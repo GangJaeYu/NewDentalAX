@@ -367,9 +367,14 @@ export interface StreamSink {
 /**
  * 스트림 중 개인정보를 가리기 위해 글을 조금 모아 두었다가 보낸다.
  * 끝에서 HOLD 글자는 아직 다 오지 않은 번호일 수 있어 남겨 두고, 그 앞의 줄바꿈·띄어쓰기 경계까지만 가려서 내보낸다.
+ * 첫 글자를 빨리 보이게(phase-05-task-03): 숫자·@가 아직 없는 앞부분은 HOLD를 기다리지 않고 띄어쓰기 경계까지 먼저 보낸다.
+ * 이때도 첫 숫자·@(또는 버퍼 끝) 앞 CONTEXT 글자는 남겨 둔다. 가림 규칙이 번호 앞 20글자 안의 문맥 단어("계좌", "주민" 등)를
+ * 보므로, 번호와 그 문맥이 늘 같은 조각에 들어가 가림 결과가 예전과 같다.
  */
 export class StreamRedactor {
   static readonly HOLD = 48;
+  /** 숫자·@ 앞에 남겨 두는 글자 수(가림 규칙의 앞 문맥 범위 20글자보다 넉넉하게) */
+  static readonly CONTEXT = 24;
   private buf = '';
   private readonly redact: (s: string) => string;
 
@@ -380,15 +385,27 @@ export class StreamRedactor {
   /** 조각을 넣고, 지금 보내도 되는 가린 글을 돌려준다(없으면 '') */
   push(text: string): string {
     this.buf += text;
-    if (this.buf.length <= StreamRedactor.HOLD) return '';
-    const limit = this.buf.length - StreamRedactor.HOLD;
-    const head = this.buf.slice(0, limit);
-    let cut = head.lastIndexOf('\n');
-    if (cut < 0) cut = head.search(/\s\S*$/);
+    const cut = Math.max(this.holdCut(), this.earlyCut());
     if (cut < 0) return '';
     const ready = this.buf.slice(0, cut + 1);
     this.buf = this.buf.slice(cut + 1);
     return this.redact(ready);
+  }
+
+  /** 예전 방식: 끝 HOLD 글자를 남기고 그 앞 마지막 줄바꿈(없으면 띄어쓰기) 자리. 없으면 -1 */
+  private holdCut(): number {
+    if (this.buf.length <= StreamRedactor.HOLD) return -1;
+    const head = this.buf.slice(0, this.buf.length - StreamRedactor.HOLD);
+    const nl = head.lastIndexOf('\n');
+    return nl >= 0 ? nl : head.search(/\s\S*$/);
+  }
+
+  /** 빠른 방식: 첫 숫자·@(없으면 버퍼 끝)보다 CONTEXT 글자 앞쪽의 마지막 띄어쓰기·줄바꿈 자리. 없으면 -1 */
+  private earlyCut(): number {
+    const risky = this.buf.search(/[0-9０-９@＠]/);
+    const limit = (risky < 0 ? this.buf.length : risky) - StreamRedactor.CONTEXT;
+    if (limit <= 0) return -1;
+    return this.buf.slice(0, limit).search(/\s\S*$/);
   }
 
   /** 남은 글을 모두 가려서 돌려준다 */

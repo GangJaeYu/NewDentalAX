@@ -6,6 +6,7 @@ import AxeBuilder from '@axe-core/playwright';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 import { extractText, getDocumentProxy } from 'unpdf';
 import { expect, test, type IsoServer } from './fixtures.ts';
+import { expectNoHorizontalScroll } from './layout.ts';
 
 const ADMIN = { clinicName: '하늘숲치과', name: '한원장', username: 'eqadmin', password: 'Equip-Admin-Pass-8', withDemo: false };
 const MANAGER = { username: 'eqmanager', password: 'Equip-Manager-Pass-8', name: '윤실장' };
@@ -320,8 +321,7 @@ test.describe.serial('장비 점검·멸균기 기록', () => {
           await page.goto(url(path));
           await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
           await expect(page.locator('.eq-table tbody tr').first()).toBeVisible();
-          const overflow = (await page.evaluate('document.documentElement.scrollWidth > window.innerWidth')) as boolean;
-          expect(overflow, `${path} ${width}-${colorScheme}`).toBe(false);
+          await expectNoHorizontalScroll(page, `${path} ${width}-${colorScheme}`);
           await ctx.close();
         }
       }

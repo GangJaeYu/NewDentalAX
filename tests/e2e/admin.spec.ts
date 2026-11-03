@@ -333,6 +333,7 @@ test.describe.serial('사용자·병원 정보·활동 기록', () => {
         await expect(page.getByRole('heading', { level: 1, name: s.heading })).toBeVisible();
         const sw = await page.evaluate('[document.documentElement.scrollWidth, window.innerWidth]');
         const [scrollWidth, innerWidth] = sw as [number, number];
+        expect(innerWidth, `${s.path} 창 너비 390 그대로`).toBe(390);
         expect(scrollWidth, `${s.path} 390px`).toBeLessThanOrEqual(innerWidth);
         expect(errors).toEqual([]);
         await ctx.close();
