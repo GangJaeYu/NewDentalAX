@@ -15,7 +15,7 @@ import { featureModule } from '../../server/ai/features/index.ts';
 import { uploadsRoot } from '../../server/lib/files.ts';
 import { SEED_REGISTRY } from '../../server/db/seed/registry.ts';
 import { makeAiEnv, putAiSettings, type AiTestEnv } from '../helpers/ai-app.ts';
-import { fillParams, listApiRoutes, makeSecEnv, type SecEnv } from './sweep-helpers.ts';
+import { fillParams, listApiRoutes, makeSecEnv, SWEEP_TIMEOUT_MS, type SecEnv } from './sweep-helpers.ts';
 
 const ROOT = process.cwd();
 
@@ -31,7 +31,7 @@ function walk(dir: string, filter: (f: string) => boolean = () => true): string[
   return out;
 }
 
-describe('phase-05-task-02 API 키 노출', () => {
+describe('phase-05-task-02 API 키 노출', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   beforeAll(async () => {
     env = await makeSecEnv();
@@ -65,7 +65,7 @@ describe('phase-05-task-02 API 키 노출', () => {
   });
 });
 
-describe('phase-05-task-02 CSV 수식 주입', () => {
+describe('phase-05-task-02 CSV 수식 주입', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   beforeAll(async () => {
     env = await makeSecEnv();
@@ -157,7 +157,7 @@ function multipart(fileName: string, data: Buffer, fields: Record<string, string
   return { payload: Buffer.concat(parts), contentType: `multipart/form-data; boundary=${boundary}` };
 }
 
-describe('phase-05-task-02 파일 업로드', () => {
+describe('phase-05-task-02 파일 업로드', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   beforeAll(async () => {
     env = await makeSecEnv();
@@ -228,7 +228,7 @@ describe('phase-05-task-02 파일 업로드', () => {
   });
 });
 
-describe('phase-05-task-02 로그인 시도 제한(기기별)', () => {
+describe('phase-05-task-02 로그인 시도 제한(기기별)', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   beforeAll(async () => {
     env = await makeSecEnv({ demo: false });
@@ -298,7 +298,7 @@ function piiSample(schema: unknown): unknown {
   }
 }
 
-describe('phase-05-task-02 AI 개인정보 필터 우회', () => {
+describe('phase-05-task-02 AI 개인정보 필터 우회', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: AiTestEnv;
   beforeAll(async () => {
     env = await makeAiEnv({ timeoutMs: 2000 });
@@ -354,7 +354,7 @@ describe('phase-05-task-02 AI 개인정보 필터 우회', () => {
   });
 });
 
-describe('phase-05-task-02 정적 검사', () => {
+describe('phase-05-task-02 정적 검사', { timeout: SWEEP_TIMEOUT_MS }, () => {
   /** 저장소 안 소스 파일(테스트 제외) */
   const sources = (dir: string, ext: RegExp) => walk(path.join(ROOT, dir), (f) => ext.test(f) && !/\.test\.tsx?$/.test(f));
 

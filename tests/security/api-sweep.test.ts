@@ -7,7 +7,7 @@ import type { InjectOptions } from 'fastify';
 import { CSP } from '../../server/security/headers.ts';
 import { findApiRule } from '../../server/auth/api-permissions.ts';
 import { createSession } from '../../server/auth/sessions.ts';
-import { countRows, fillParams, isWrite, listApiRoutes, makeSecEnv, PUBLIC_ROUTES, type ApiRoute, type SecEnv } from './sweep-helpers.ts';
+import { countRows, fillParams, isWrite, listApiRoutes, makeSecEnv, PUBLIC_ROUTES, SWEEP_TIMEOUT_MS, type ApiRoute, type SecEnv } from './sweep-helpers.ts';
 
 type Method = InjectOptions['method'];
 
@@ -27,7 +27,7 @@ function sizeOf(res: { headers: Record<string, unknown>; body: string; json(): u
   return res.body.split(/\r?\n/).filter((l) => l.trim()).length;
 }
 
-describe('phase-05-task-02 경로 전수 점검: 인증·CSRF·헤더·원내망', () => {
+describe('phase-05-task-02 경로 전수 점검: 인증·CSRF·헤더·원내망', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   let routes: ApiRoute[];
   beforeAll(async () => {
@@ -231,7 +231,7 @@ const ADDED_TO_TABLE: readonly string[] = [
   'POST /api/finance/monthly/summary',
 ];
 
-describe('phase-05-task-02 경로 전수 점검: 권한 표', () => {
+describe('phase-05-task-02 경로 전수 점검: 권한 표', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   let routes: ApiRoute[];
   beforeAll(async () => {
@@ -291,7 +291,7 @@ const SEARCH_KEYS = ['q', 'search', 'keyword', 'tag', 'folder'];
 /** 정렬·필터로 쓰는 칸 이름(모듈마다 다르므로 넓게 넣는다) */
 const FILTER_KEYS = ['sort', 'order', 'orderBy', 'dir', 'status', 'category', 'categoryId', 'kind', 'type', 'visibility', 'vendorId', 'itemId', 'userId', 'equipmentId', 'month', 'year', 'from', 'to', 'date', 'page', 'pageSize', 'active', 'mine', 'unresolved', 'action', 'feature', 'jobType', 'format'];
 
-describe('phase-05-task-02 SQL 인젝션', () => {
+describe('phase-05-task-02 SQL 인젝션', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   let getRoutes: ApiRoute[];
   beforeAll(async () => {
@@ -389,7 +389,7 @@ describe('phase-05-task-02 SQL 인젝션', () => {
   });
 });
 
-describe('phase-05-task-02 입력 검증(zod)', () => {
+describe('phase-05-task-02 입력 검증(zod)', { timeout: SWEEP_TIMEOUT_MS }, () => {
   let env: SecEnv;
   let routes: ApiRoute[];
   beforeAll(async () => {

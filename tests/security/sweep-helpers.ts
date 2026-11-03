@@ -10,6 +10,12 @@ import { loadDemo } from '../../server/modules/admin/demo-service.ts';
 import { loginAs, type TestLogin } from '../helpers/auth.ts';
 import { makeTmpDir } from '../helpers/tmp-dir.ts';
 
+/**
+ * 전수 점검 묶음의 실행 시간 상한(2분). 경로마다 수십~수천 번 요청하므로, 전체 단위 테스트와 함께 돌면 기본 20초를 넘는다.
+ * 검사 조건은 그대로이고 시간 예산만 늘린다(재시도 없음).
+ */
+export const SWEEP_TIMEOUT_MS = 120_000;
+
 /** 테스트 기준 시각(HARNESS §5) */
 export const SEC_TEST_NOW = '2026-11-02T09:00:00+09:00';
 
