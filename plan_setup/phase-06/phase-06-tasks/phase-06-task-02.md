@@ -1,6 +1,6 @@
 ---
 id: phase-06-task-02
-status: in_progress
+status: completed
 phase: "06"
 title: "AI 근무표 배정 제안"
 depends_on: [phase-05-task-05]

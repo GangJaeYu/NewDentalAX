@@ -1,0 +1,15 @@
+# task_validation 결과 — phase-06-task-02 (AI 근무표 배정 제안) · 재검증
+
+- 검증 커밋: 작업 사본 HEAD 8254344(= 3b5d5a3 + loop 지시문 커밋 1개, 제품·테스트 변경 없음). 독립 검증 워커 슬롯 2(E2E_PORT=18096, 수동 서버 PORT=18196, 데이터 .tmp/ 아래). 실제 LLM 공급자 호출 없음(데모 모드와 tests/fake-llm만 씀).
+
+| # | 수용 기준 | 판정(PASS/FAIL/판정 불가) | 관찰 증거(명령·출력 요약·파일 경로) |
+|---|---|---|---|
+| 1 | 제안 미리보기에서 승인 휴가일에 근무가 배정되지 않는다 | PASS | `node --disable-warning=ExperimentalWarning .tmp/manual/verify.ts`: 실제 서버 프로세스(server/main.ts, PORT 18196, TEST_NOW 2026-11-02, AI_BASE_URL_*=가짜 서버)에 HTTP 요청. 승인 연차는 김솔비 11/3, 최가람 11/5~11/6. 대기 상태 연차(박도윤 11/4)도 하나 넣음. **데모**: `POST /api/roster/suggest` 200, `ai.demo:true`, 가짜 서버 수신 0건. 휴가 칸 3개 모두 `shiftTypeId:null` + `leave{label:"연차",fullDay:true}`이고 적용 칸(cells)에 없음. 진료일 인원은 6/5/6/5/5/3명(최소 3명). **가짜 AI가 휴가일까지 전원 "종일"로 넣은 틀린 응답**: 200, `demo:false`. fixes 3건(예: "김솔비 11월 3일(화)에는 승인된 연차가 있어서 AI가 넣은 "종일" 근무를 뺐어요."). 휴가 칸 3개는 비어 있고 cells에도 없음. 적용 요청에 휴가 칸(김솔비 11/3 종일)을 일부러 끼워 넣어도 `skipped:1`이고, 적용 뒤 DB의 휴가일 근무 행은 0건. 결과: `.tmp/manual/result.json`, `.tmp/manual/verify-output.txt`. 화면: `artifacts/screens/hr-roster-suggest-preview-1440-light.png`에서 정하늘 11/6 칸에 "연차"만 보임. e2e `hr-roster-suggest.spec.ts` AC1 통과. |
+| 2 | 적용 전에는 근무표가 바뀌지 않는다 | PASS | 같은 스크립트로 데모 제안 뒤와 가짜 AI 제안 뒤에 SQLite `SELECT … FROM roster` 행 전체와 `GET /api/roster` 응답을 비교했고, 둘 다 제안 전과 같았다. 미리 넣은 남유리 11/4 "야간" 1행도 그대로 남아 있었다. 직원 계정으로 보낸 suggest·apply는 둘 다 403. `POST /api/roster/apply`를 보낸 뒤에야 1행이 33행으로 바뀌었다(`saved:33, replaced:1, skipped:1`). 적용 뒤 날짜별 인원은 미리보기와 같았다. e2e AC2 2건 통과: 취소·Esc 뒤 그대로, "적용하기" 뒤 바뀜, 새로 고쳐도 유지, 직원에게 버튼 없음·403. |
+| 3 | AI 요청 본문에 직원 이름이 없다(가짜 서버 수신 확인) | PASS | tests/fake-llm 가짜 서버가 받은 요청은 1건(`/v1/messages`)이고 원문은 `.tmp/manual/fake-llm-request-body.txt`에 있다. 사용자 6명의 이름(한원장·윤실장·김솔비·박도윤·최가람·남유리)·아이디, 이름 두 글자 조각, \uXXXX 이스케이프 형태를 검색했고 모두 0건(`hits:[]`, `escHits:[]`). 본문에는 `S1: 치과위생사(hygienist) / 휴가(근무 불가): 2026-11-03`처럼 내부 번호·직무·휴가일만 있다. 병원 이름("검증치과")은 공통 시스템 프롬프트에만 들어 있다. e2e AC3 통과. |
+
+- 게이트 결과: lint=PASS(tsc-server 331, tsc-web 206, eslint 471, headers 511, docs 7) / unit=PASS 812건 / e2e=PASS 335건(24.2분, 실패·skip·flaky 0). 로그: `harness_setup/evidence/runs/2026-11-03T06-46-11-321Z-phase-06-task-02-lint.log`, `…T06-47-54-848Z-…-unit.log`, `…T06-52-21-421Z-…-e2e.log`
+- 화면 기준(DESIGN §5): `E2E_PORT=18096 npm run screenshots -- hr-roster-suggest hr-roster-suggest-preview` → 16장 모두 OK이고 가로 스크롤 경고는 없었다. 직접 열어 본 화면은 미리보기 1440 라이트, 미리보기 390 다크, 조건 768 라이트다. 기준선 `preview-dashboard-1440-light.png`와 비교해 청록 주 버튼, 칩, 간격, 셸 구성이 같았다. 주 행동 버튼은 하나("제안 받기"/"적용하기")이고, 390px에서는 표만 상자 안에서 가로로 움직인다. 불일치는 없었다.
+- 환경 문제·판정 불가 사유: 없음. 조정자 지시에 따라 무거운 검사는 슬롯을 기다려 하나씩 돌렸다. 직접 띄운 서버는 자식 프로세스 핸들로만 종료했고(SIGTERM), 끝난 뒤 18196·18096 LISTEN이 없음을 확인했다. 작업 트리도 깨끗하다(web/dist 변경 없음).
+- 참고(판정에는 영향 없음): 반차(반나절 휴가) 날에는 미리보기에 근무가 들어갈 수 있다(화면 예: 서다온 11/6 "종일 + 반차(오후)"). 이는 DECISIONS 2026-11-03(04-01) "근무 인원 합계는 … 하루 종일 휴가가 없는 사람으로 센다(반차는 인원에 포함)"와 repairPlan 규칙 ②("하루 종일 휴가일의 근무는 뺀다")를 따른 동작이다. "승인 휴가일"을 반차까지 포함하는 뜻으로 볼지는 제품 쪽에서 판단할 일이다.
+- 재현 방법(실패 시): 해당 없음. AC 수동 재현: `node --disable-warning=ExperimentalWarning .tmp/manual/verify.ts`(PORT 18196, 데이터 `.tmp/manual-data`)
