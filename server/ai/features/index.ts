@@ -15,6 +15,7 @@ import { onboarding } from './onboarding.ts';
 import { assistant } from './assistant.ts';
 import { receipt } from './receipt.ts';
 import { monthly_summary } from './monthly_summary.ts';
+import { roster_suggest } from './roster_suggest.ts';
 
 /** 기능 등록표. 입력 타입은 기능마다 달라서, 꺼내 쓸 때는 inputSchema로 검사한 값만 넘긴다 */
 export const FEATURE_MODULES = {
@@ -32,6 +33,7 @@ export const FEATURE_MODULES = {
   assistant,
   receipt,
   monthly_summary,
+  roster_suggest,
 } satisfies Record<AiFeatureId, { id: AiFeatureId }>;
 
 /** 기능 파일을 꺼낸다 */

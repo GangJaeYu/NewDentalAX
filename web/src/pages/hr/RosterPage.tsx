@@ -1,6 +1,7 @@
 // 이 파일이 하는 일: "근무표" 화면(/hr/roster, FR-081). 직원 × 날짜 표를 주간(월~일)·월간(최대 6주)으로 보여 주고, 날짜별 근무 인원 합계를 맨 아래 줄에 둔다.
 // 실장 이상은 칸을 눌러 근무 유형을 고르고(1~2번 클릭, AC1), "지난주 복사"로 지난주 칸을 이번 주에 붙여 넣으며(휴가는 복사 안 됨, AC2), 근무 유형을 관리한다.
 // 승인된 휴가는 칸에 "연차"처럼 덧씌워 보이고 하루 종일 휴가는 인원 합계에서 빠진다(AC3). 직원은 조회·인쇄만 한다(편집 버튼 없음, 서버도 403, AC4).
+// 실장 이상은 "AI 배정 제안"으로 조건(최소 인원·직무별 인원)에 맞는 한 주 제안을 미리보기로 받고, 적용해야 근무표가 바뀐다(FR-131, RosterSuggestDialog.tsx).
 // 보는 기간은 주소(?view=week|month&date=YYYY-MM-DD)에 남겨 새로 고쳐도 유지된다. 날짜를 주지 않으면 서버 기준 오늘이 든 주를 연다.
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
@@ -29,6 +30,7 @@ import {
   type ShiftType,
 } from '../../../../shared/schemas/roster.ts';
 import { CellPickDialog, ShiftTypesDialog, rosterError } from './RosterDialogs.tsx';
+import { RosterSuggestDialog } from './RosterSuggestDialog.tsx';
 import { ROSTER_KEY, cellParts, fetchRoster, leaveTone, moveAnchor, shiftChipClass, shiftTitle, shortDate, withRo, type RosterMode } from './rosterLib.ts';
 import './roster.css';
 
@@ -66,6 +68,7 @@ export default function RosterPage() {
   const [picking, setPicking] = useState<{ userId: number; name: string; date: string; cell: RosterCell | undefined } | null>(null);
   const [typesOpen, setTypesOpen] = useState(false);
   const [copying, setCopying] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
 
   const types = useMemo(() => new Map((v?.shiftTypes ?? []).map((t) => [t.id, t])), [v?.shiftTypes]);
   const today = v?.today ?? null;
@@ -118,6 +121,11 @@ export default function RosterPage() {
             {editor ? (
               <Button icon="gear" onClick={() => setTypesOpen(true)} disabled={!v}>
                 근무 유형
+              </Button>
+            ) : null}
+            {editor ? (
+              <Button icon="spark" onClick={() => setSuggesting(true)} disabled={!v}>
+                AI 배정 제안
               </Button>
             ) : null}
             {editor ? (
@@ -277,6 +285,21 @@ export default function RosterPage() {
             setTypesOpen(false);
             invalidate(ROSTER_KEY);
             toast.show('근무 유형을 저장했어요.');
+          }}
+        />
+      ) : null}
+
+      {v && editor && copyTarget ? (
+        <RosterSuggestDialog
+          open={suggesting}
+          weekStart={copyTarget}
+          current={v}
+          onClose={() => setSuggesting(false)}
+          onApplied={(r) => {
+            setSuggesting(false);
+            invalidate(ROSTER_KEY);
+            const period = rosterPeriodLabel(r.weekStart, shiftDate(r.weekStart, 6));
+            toast.show(`AI 제안을 ${period} 근무표에 적용했어요. 근무 ${r.saved}칸.${r.skipped ? ` 그사이 휴가가 승인된 ${r.skipped}칸은 넣지 않았어요.` : ''}`);
           }}
         />
       ) : null}

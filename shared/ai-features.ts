@@ -37,6 +37,7 @@ export const AI_FEATURE_IDS = [
   'assistant',
   'receipt',
   'monthly_summary',
+  'roster_suggest',
 ] as const;
 export type AiFeatureId = (typeof AI_FEATURE_IDS)[number];
 
@@ -86,6 +87,7 @@ export const AI_FEATURES: Readonly<Record<AiFeatureId, AiFeatureDef>> = {
   assistant: { id: 'assistant', label: '원내 AI 도우미', screen: '원내 도우미', cap: 'ai.assistant', tier: 'standard', userTier: false, timeoutMs: 60 * S, maxTokens: 1500, output: 'text', images: false },
   receipt: { id: 'receipt', label: '명세서 사진 읽기', screen: '재고 > 명세서 입고', cap: 'ai.receipt', tier: 'standard', userTier: false, timeoutMs: 90 * S, maxTokens: 2000, output: 'json', images: true },
   monthly_summary: { id: 'monthly_summary', label: '월간 요약 문장', screen: '운영 > 월간 요약', cap: 'ai.monthly_summary', tier: 'fast', userTier: false, timeoutMs: 45 * S, maxTokens: 800, output: 'text', images: false },
+  roster_suggest: { id: 'roster_suggest', label: '근무표 배정 제안', screen: '인사 > 근무표', cap: 'roster.edit', tier: 'standard', userTier: false, timeoutMs: 90 * S, maxTokens: 6000, output: 'json', images: false },
 };
 
 /** 값이 기능 id인지 */

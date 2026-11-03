@@ -321,14 +321,18 @@ describe('phase-05-task-02 AI 개인정보 필터 우회', { timeout: SWEEP_TIME
 
   test('phase-05-task-02 점검(개인정보 필터): 글을 받는 13개 AI 기능 모두(/api/ai/run·/api/ai/stream)에서 주민번호가 든 입력은 422 AI_PII_BLOCKED이고 가짜 공급자에게 요청이 하나도 가지 않는다', async () => {
     const ids = (Object.keys(AI_FEATURES) as AiFeatureId[]).filter((id) => !AI_FEATURES[id].images);
-    expect(ids.length).toBe(13);
+    // 02-02의 13개 + roster_suggest(phase-06-task-02). roster_suggest는 서버가 만드는 고정 형식 입력(S1 번호·날짜·시각 패턴, 글 칸 10자 이하)이라
+    // 주민번호가 든 글은 형식 검사(400 VALIDATION)에서 먼저 막힌다. 어느 쪽이든 공급자에게는 요청이 가지 않아야 한다(아래 fake.requests 0건)
+    const FIXED_FORMAT: readonly AiFeatureId[] = ['roster_suggest'];
+    expect(ids.length).toBe(14);
     const wrong: string[] = [];
     for (const id of ids) {
       const input = piiSample(z.toJSONSchema(featureModule(id).inputSchema as z.ZodType, { io: 'input', unrepresentable: 'any' }));
       for (const url of ['/api/ai/run', '/api/ai/stream']) {
         const res = await env.app.inject({ method: 'POST', url, headers: env.admin.writeHeaders, payload: { feature: id, input } });
-        const code = res.statusCode === 422 ? res.json<{ error: { code: string } }>().error.code : '';
-        if (code !== 'AI_PII_BLOCKED') wrong.push(`${url} ${id} → ${res.statusCode} ${res.body.slice(0, 160)}`);
+        const code = res.statusCode === 422 || res.statusCode === 400 ? res.json<{ error: { code: string } }>().error.code : '';
+        const want = FIXED_FORMAT.includes(id) ? 'VALIDATION' : 'AI_PII_BLOCKED';
+        if (code !== want) wrong.push(`${url} ${id} → ${res.statusCode} ${res.body.slice(0, 160)}`);
       }
     }
     expect(wrong).toEqual([]);
