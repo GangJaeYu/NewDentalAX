@@ -588,3 +588,4 @@
 - 13:1x 05-05 완료 보고(리허설 성공: npm ci --omit=dev 8초, health 11초, /→/setup, 콘솔 오류 0). 병합(bf300d3), main lint·unit 771 PASS. 05-05 검증 배정(검증 슬롯 0). 참고: 부하 큰 PC에서 server/main.test.ts 실제 실행 2건 시간 초과 1회, 메모리 부족으로 e2e 재실행 중단 1회.
 - 14:0x 06-01 독립 검증 2/2 PASS(ctx_11c62539ef6d, p2-integration@63339a6). 선행 05-05 검증 대기로 completed 보류. 관찰: 동시 실행 부하에서 unit 시간 초과(20~30초 테스트) 3회 뒤 4번째 PASS — 하네스 점검 거리.
 - 14:1x 05-05 독립 검증 3/3 PASS(ctx_bdadd971749b, 리허설 재현 health 20초). 05-05 completed, phase-05 완료. 06-01 completed(검증 PASS 기존). p2-integration을 main에 병합한다.
+- 14:2x P2 통합을 main에 병합(5940e79, DECISIONS 충돌만 양쪽 유지), npm ci·web/dist 재빌드(9cb51f4). main 게이트 실행 중.

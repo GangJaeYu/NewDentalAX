@@ -8,11 +8,10 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git main)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-- completed(33): phase-01~04 전부, 05-01·02·03·04
-  - 구현 중: 05-05 설치 리허설 `ctx_7c94c708432b`(슬롯 0)
-  - P2 통합: 브랜치 p2-integration@63339a6(작업 사본 .tmp/p2-int, 06-01·02·03 병합, 게이트 lint·unit 807·e2e 334 PASS). main 병합은 05-05 completed 뒤
-  - 검증 중(p2-integration@63339a6): 06-01 `ctx_11c62539ef6d`(검증 슬롯 1), 06-02 `ctx_c4a931ab6fcc`(검증 슬롯 2), 06-03 `ctx_fe3eb0ebd223`(검증 슬롯 3)
-  - main 병합 뒤 할 일: web/dist 재빌드 커밋, PROGRESS 갱신(P2), 게이트, 최종 보고
+- completed(35): phase-01~05 전부, 06-01
+  - main@9cb51f4: P2 통합 병합 + web/dist 재빌드. 게이트 실행 중
+  - 검증 중(p2-integration@63339a6): 06-02 `ctx_c4a931ab6fcc`(검증 슬롯 2), 06-03 `ctx_fe3eb0ebd223`(검증 슬롯 3)
+  - 남은 일: 06-02·03 검증 PASS → completed, PROGRESS P2 갱신, .tmp/p2-int 작업 사본·p2-integration 브랜치 정리, 최종 게이트, 최종 보고
   - 경미: 월간 요약 도넛 '기타'·'임대료' 색 같음
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
