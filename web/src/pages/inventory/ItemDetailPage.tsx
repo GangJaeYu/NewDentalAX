@@ -105,7 +105,7 @@ export default function ItemDetailPage() {
     <>
       <PageHeader
         title={d.name}
-        summary={`${d.category} · 단위 ${d.unit}${d.location ? ` · ${d.location}` : ''}${d.defaultVendor ? ` · 기본 거래처 ${d.defaultVendor.name}` : ''}`}
+        summary={`${d.category} · 단위 ${d.unit}${d.location ? ` · ${d.location}` : ''}${d.defaultVendor ? ` · 기본 거래처 ${d.defaultVendor.name}` : ''}${d.barcode ? ` · 바코드 ${d.barcode}` : ''}`}
         actions={
           d.active ? (
             <>

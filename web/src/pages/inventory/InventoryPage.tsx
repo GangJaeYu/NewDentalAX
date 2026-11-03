@@ -1,6 +1,7 @@
 // 이 파일이 하는 일: "재고 현황" 화면(/inventory, FR-050·052·055). 품목 목록을 검색하고, 상태(부족·곧 부족·유효기간 임박·만료)·분류로 거르고 정렬한다.
 // 현재고는 적정 대비 막대로, 상태는 글자 칩으로, 단가가 많이 오른 품목은 ▲ 칩으로 보여 준다. 줄을 누르면 품목 상세로 간다.
 // 모든 역할이 출고를 기록하고(빠른 입력 2단계), 실장 이상은 품목을 추가한다. 기본 목록은 사용 중 품목만이고 "사용 안 함"은 따로 본다.
+// 목록 위 "바코드로 출고" 칸(BarcodeOut, FR-130)에 스캐너로 찍거나 사진을 올리면 그 품목의 출고 창이 수량 1로 열린다.
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../../components/Button.tsx';
@@ -18,6 +19,7 @@ import { can } from '../../../../shared/roles.ts';
 import type { ItemPage, ItemRow } from '../../../../shared/schemas/inventory.ts';
 import { INV_KEY, ItemFormDialog, Pager, PriceUpChip, qty, StatusChip } from './inventory-ui.tsx';
 import { QuickOutDialog } from './QuickOutDialog.tsx';
+import { BarcodeOut } from './BarcodeOut.tsx';
 
 type StatusFilter = 'all' | 'warning' | 'low' | 'soon_low' | 'expiring' | 'expired';
 type ActiveFilter = 'active' | 'inactive';
@@ -144,6 +146,7 @@ export default function InventoryPage() {
           </>
         }
       />
+      <BarcodeOut />
       <Card>
         <Toolbar label="품목 목록 도구">
           <Segmented<StatusFilter>
@@ -169,7 +172,7 @@ export default function InventoryPage() {
             ]}
           />
           <span className="grow" />
-          <SearchInput label="품목 찾기" placeholder="이름·분류·위치 찾기" value={q} onChange={(e) => reset(setQ)(e.target.value)} />
+          <SearchInput label="품목 찾기" placeholder="이름·분류·위치·바코드 찾기" value={q} onChange={(e) => reset(setQ)(e.target.value)} />
         </Toolbar>
         <DataTable<ItemRow>
           caption="품목 목록"

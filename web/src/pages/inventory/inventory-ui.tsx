@@ -387,8 +387,8 @@ function ItemFormBody({ onClose, item = null, categories, onSaved }: ItemFormPro
   const vendors = useVendors();
   const [form, setForm] = useState(() =>
     item
-      ? { name: item.name, category: item.category, unit: item.unit, par: String(item.par), trackExpiry: item.trackExpiry, vendorId: item.vendorId ? String(item.vendorId) : '', location: item.location ?? '', memo: item.memo ?? '' }
-      : { name: '', category: '', unit: '', par: '', trackExpiry: false, vendorId: '', location: '', memo: '' },
+      ? { name: item.name, category: item.category, unit: item.unit, par: String(item.par), trackExpiry: item.trackExpiry, vendorId: item.vendorId ? String(item.vendorId) : '', location: item.location ?? '', memo: item.memo ?? '', barcode: item.barcode ?? '' }
+      : { name: '', category: '', unit: '', par: '', trackExpiry: false, vendorId: '', location: '', memo: '', barcode: '' },
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -446,6 +446,7 @@ function ItemFormBody({ onClose, item = null, categories, onSaved }: ItemFormPro
       vendorId: form.vendorId ? Number(form.vendorId) : null,
       location: form.location.trim() || null,
       memo: form.memo.trim() || null,
+      barcode: form.barcode.trim() || null,
     };
     setBusy(true);
     try {
@@ -524,6 +525,20 @@ function ItemFormBody({ onClose, item = null, categories, onSaved }: ItemFormPro
         <Checkbox label="유효기간 관리" hint="켜면 입고할 때 유효기간을 받고, 임박·만료를 알려 드려요." checked={form.trackExpiry} onChange={(e) => setForm((f) => ({ ...f, trackExpiry: e.target.checked }))} />
         <Field label="보관 위치" error={errors.location}>
           <TextInput value={form.location} onChange={set('location')} maxLength={40} autoComplete="off" placeholder="예: 소모품실 A-1" />
+        </Field>
+        {/* 스캐너는 찍은 뒤 Enter를 보내므로, 이 칸의 Enter는 저장하지 않고 넘어가지도 않게 막는다(FR-130) */}
+        <Field label="바코드" error={errors.barcode} help="선택: 입력란을 누르고 스캐너로 찍으면 들어가요. 다른 품목과 같은 바코드는 쓸 수 없어요.">
+          <TextInput
+            value={form.barcode}
+            onChange={set('barcode')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.preventDefault();
+            }}
+            maxLength={64}
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="예: 2001000000012"
+          />
         </Field>
         <Field label="메모" error={errors.memo}>
           <TextArea value={form.memo} onChange={set('memo')} maxLength={300} rows={2} />

@@ -1,6 +1,7 @@
 // 이 파일이 하는 일: inventory 모듈의 품목·입출고·거래처·단가 API(backend.md §3.5)를 등록한다. 경로 앞에는 '/api'가 붙는다.
 // 품목 등록·수정·삭제와 거래처 등록·수정은 주소별 권한 표(server/auth/api-permissions.ts)가 실장 이상만 통과시킨다.
 // 입출고는 모든 로그인 사용자가 기록하고, 재고 조정(adjust)만 실장 이상(cap inventory.adjust)이다. 입력은 모두 zod로 검사한다.
+// 바코드로 품목 찾기(GET /items/by-barcode?code=, FR-130)는 로그인한 모든 사용자가 쓴다(출고 기록용).
 // 발주서·CSV·명세서 입고 API는 phase-03-task-02·03-03·04-08이 이 폴더에 따로 파일을 더한다. 이 파일을 import하면 재고 알림 scanner도 등록된다.
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -12,6 +13,7 @@ import {
   createItem,
   createVendor,
   deleteItem,
+  findItemByBarcode,
   getItemDetail,
   listItems,
   listMoves,
@@ -65,6 +67,10 @@ const pricesQuery = z.object({
   ...pageFields,
 });
 
+const barcodeQuery = z.object({
+  code: z.string({ error: '바코드를 보내 주세요.' }).min(1, '바코드를 보내 주세요.').max(200, '바코드가 너무 길어요.'),
+});
+
 const vendorsQuery = z.object({ active: z.enum(['active', 'inactive', 'all']).optional() });
 
 /** inventory 모듈 API를 등록한다 */
@@ -76,6 +82,9 @@ export default async function routes(app: FastifyInstance): Promise<void> {
 
   // 품목 목록: 검색·분류·상태·정렬·쪽 나누기. { data, total, counts, categories }
   app.get('/items', async (req) => listItems(app.db, app.clock, parseInput(itemsQuery, req.query)));
+
+  // 바코드로 품목 하나 찾기(스캐너·사진 출고). 없으면 404와 쉬운 안내
+  app.get('/items/by-barcode', async (req) => ({ data: findItemByBarcode(app.db, app.clock, parseInput(barcodeQuery, req.query).code) }));
 
   // 품목 상세: 로트별 잔량, 최근 기록, 단가 추이
   app.get('/items/:id', async (req) => ({ data: getItemDetail(app.db, app.clock, parseInput(idParam, req.params).id) }));
