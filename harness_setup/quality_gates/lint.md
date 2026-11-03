@@ -12,7 +12,7 @@
     | `eslint` | `eslint .`(쓰기 옵션 없음). 규칙: typescript-eslint 권장, react-hooks, `react/no-danger`, `no-restricted-syntax`(`.only`·`.skip` 금지) | 01-01 |
     | `headers` | `scripts/check-file-headers.ts`(모든 소스의 첫 5줄 안에 "이 파일이 하는 일") | 01-01 |
     | `docs` | `scripts/check-docs.ts`(원문 12·13절 필수 소제목) | 05-04 |
-  - `docs` 단계는 05-04가 완료된 뒤 gate.mjs의 `need` 목록에 추가한다(harness-update).
+  - `docs` 단계는 phase-05-task-04가 `scripts/lint.ts`에 연결하고 gate.mjs의 `need` 목록에 추가했다(2026-11-03). 검사 항목: 문서 7개의 필수 소제목, COST.md 가격·데이터 정책 표 줄마다 확인일·출처 URL, README 그림 파일 존재(5장 이상).
 - **통과 조건**: 종료 코드 0, 그리고 필수 단계 모두 N > 0. 단계 줄이 없거나 N=0이면 FAIL이다(검사가 돌지 않은 것을 통과로 세지 않는다).
 - **금지**: `--fix`, 포매터 쓰기, 규칙을 끄는 주석을 판정 중에 추가하는 것. 규칙 예외가 필요하면 구현 단계에서 근거와 함께 추가하고 DECISIONS.md에 기록한다.
 - **상태**

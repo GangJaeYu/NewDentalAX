@@ -1,10 +1,11 @@
-// 이 파일이 하는 일: `npm run lint`의 본체. 타입 검사(서버·화면), ESLint, 머리 주석 검사를 차례로 실행하고
+// 이 파일이 하는 일: `npm run lint`의 본체. 타입 검사(서버·화면), ESLint, 머리 주석 검사, 문서 소제목 검사(docs, phase-05-task-04)를 차례로 실행하고
 // 단계마다 "[lint:<단계>] checked <검사한 파일 수>" 줄을 출력한다(harness_setup/quality_gates/lint.md 계약).
 // 자동 수정(--fix)은 하지 않는다. 한 단계라도 실패하면 나머지도 끝까지 돌린 뒤 종료 코드 1로 끝낸다.
-// 사용법: node scripts/lint.ts [--steps tsc-server,tsc-web,eslint,headers] [--root <폴더>(headers 단계 전용)]
+// 사용법: node scripts/lint.ts [--steps tsc-server,tsc-web,eslint,headers,docs] [--root <폴더>(headers·docs 단계 전용)]
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { checkFileHeaders, HEADER_TEXT } from './check-file-headers.ts';
+import { checkDocs } from './check-docs.ts';
 
 const ROOT = process.cwd();
 const TSC = path.join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc');
@@ -62,7 +63,17 @@ function headersStep(root: string): StepResult {
   return { checked: r.checked, ok: r.missing.length === 0 };
 }
 
-const ALL = ['tsc-server', 'tsc-web', 'eslint', 'headers'] as const;
+/** 문서 단계: 원문 12·13절 필수 소제목, COST 표의 확인일·출처, README 그림 파일(scripts/check-docs.ts) */
+function docsStep(root: string): StepResult {
+  const r = checkDocs(root);
+  if (r.problems.length) {
+    console.log(`문서 검사에서 문제 ${r.problems.length}건:`);
+    for (const p of r.problems) console.log(`  - ${p}`);
+  }
+  return { checked: r.checked, ok: r.problems.length === 0 };
+}
+
+const ALL = ['tsc-server', 'tsc-web', 'eslint', 'headers', 'docs'] as const;
 type Step = (typeof ALL)[number];
 
 async function run(step: Step): Promise<StepResult> {
@@ -75,6 +86,8 @@ async function run(step: Step): Promise<StepResult> {
       return eslintStep();
     case 'headers':
       return headersStep(path.resolve(arg('--root') ?? ROOT));
+    case 'docs':
+      return docsStep(path.resolve(arg('--root') ?? ROOT));
   }
 }
 

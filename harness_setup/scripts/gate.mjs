@@ -73,7 +73,8 @@ if (gate === 'e2e') {
 if (gate === 'lint') {
   // lint 스크립트는 각 단계가 "[lint:<단계>] checked N" 형식 줄을 출력해야 한다(phase-01-task-01 계약)
   const steps = [...out.matchAll(/\[lint:([\w-]+)\] checked (\d+)/g)];
-  const need = ['tsc-server', 'tsc-web', 'eslint', 'headers'];
+  // docs(문서 소제목 검사)는 phase-05-task-04에서 더했다
+  const need = ['tsc-server', 'tsc-web', 'eslint', 'headers', 'docs'];
   const missing = need.filter((s) => !steps.some((m) => m[1] === s && +m[2] > 0));
   if (missing.length) finish('FAIL', `실행 확인되지 않은 lint 단계: ${missing.join(', ')}`, out);
   finish('PASS', `lint 단계 ${steps.map((m) => `${m[1]}(${m[2]})`).join(', ')}`, out);

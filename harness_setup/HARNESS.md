@@ -64,7 +64,7 @@ node harness_setup/scripts/preflight.mjs
 | NFR-002 보안 | `npm audit --omit=dev`, 보안 통합 테스트 | unit 게이트 + 명령 출력 | 05-02 |
 | NFR-006 화면 품질 | 4너비 × 2테마 스크린샷을 직접 열람 | `npm run screenshots` + 기준선 대조 | 01-04, 각 화면 태스크, 05-03 |
 | NFR-003 설치 | 새 폴더에 git 추적 파일만 내보낸 뒤 `cmd /c .\start.bat` | 기록: 소요 시간, 출력 | 05-05 |
-| NFR-011 문서 | 필수 소제목 검사 | lint의 `docs` 단계(05-04에서 활성) | 05-04 |
+| NFR-011 문서 | 필수 소제목 검사 | lint의 `docs` 단계(`scripts/check-docs.ts`, 05-04에서 활성·gate.mjs 필수 단계) | 05-04 |
 | OQ-008 검색 품질 | 질문 20개 적중률 80% 이상 | `npm run kb-eval` | 01-06 |
 
 ## 4. 디자인 대조 수단
