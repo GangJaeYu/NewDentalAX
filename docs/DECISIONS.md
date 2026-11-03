@@ -130,3 +130,4 @@
 | 2026-11-03 | README 그림은 scripts/readme-shots.ts가 데모 데이터 임시 서버로 docs/images에 찍는다(목록 scripts/screens/phase-05-task-04.ts readmeShots). 문서 검사(scripts/check-docs.ts)를 lint docs 단계로 둔다: 필수 소제목, COST 표 줄마다 확인일·출처 URL, README 그림 존재 (05-04) | 일반 screenshots는 데모 데이터가 없어 README용과 맞지 않음. 문서 누락을 게이트에서 잡기 위해 |
 | 2026-11-03 | COST.md 계산 가정: 한글 1글자=1토큰, 평균 출력=최대 출력의 절반, 사진 1장 1,600토큰, 1달러=1,450원, 5명 기준 월 219회(10명 2배, 20명 4배). 추천 조합은 OpenAI(저가·인상 예고 없음, store:false). 품질 비교는 키가 없어 못 했다고 명시 (05-04) | 기능 파일 buildPrompt를 예시 입력으로 실행해 잰 글자 수 기준 |
 | 2026-11-03 | npm run perf도 측정하는 동안 PC 공용 무거운 검사 자리를 잡는다 | 05-01 검증 1차 측정이 다른 e2e와 겹쳐 FAIL 수치가 나왔다 |
+| 2026-11-03 | 빌드된 화면 파일 web/dist를 저장소에 넣는다. 화면 코드를 바꾸면 npm run build:web 뒤 함께 커밋한다 | 설치 PC는 start.bat이 npm ci --omit=dev로 실행용 패키지만 받아 vite로 빌드할 수 없다 |

@@ -9,4 +9,4 @@ harness_setup/evidence/runs/
 *.log
 .env
 .tmp/
-web/dist/
+# web/dist/는 설치 PC(npm ci --omit=dev, vite 없음)가 화면 파일을 쓰도록 저장소에 넣는다(2026-11-03)

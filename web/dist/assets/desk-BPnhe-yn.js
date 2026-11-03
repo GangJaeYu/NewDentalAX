@@ -1,0 +1,1 @@
+var e={notice:`공지`,handover:`인수인계`},t={notice:[`일반`,`진료`,`감염관리`,`교육`,`행사`],handover:[`예약`,`재고`,`시설`,`업무`,`기타`]},n={open:`오픈`,close:`마감`};export{t as n,e as r,n as t};

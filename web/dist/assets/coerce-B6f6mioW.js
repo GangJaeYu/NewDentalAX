@@ -1,0 +1,1 @@
+import{j as e,y as t}from"./Button-CI5tONny.js";function n(n){return e(t,n)}export{n as t};
