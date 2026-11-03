@@ -11,74 +11,10 @@
 
 ## 대상 코드
 - 저장소: C:\Users\main\Desktop\DentalAX_with_Skills
-- HEAD: ff762f3
-- 변경 범위(기준 63339a6):
+- HEAD: dea0b4a
+- 변경 범위(기준 dea0b4a):
 ```
-docs/ARCHITECTURE/backend.md                    |   6 -
- docs/ARCHITECTURE/database.md                   |   2 +-
- docs/COST.md                                    |   2 -
- docs/DECISIONS.md                               |   4 -
- package-lock.json                               |  35 ---
- package.json                                    |   1 -
- plan_setup/LOG.md                               |   1 +
- scripts/screens/phase-06-task-01.ts             |  76 ------
- scripts/screens/phase-06-task-02.ts             |  58 ----
- scripts/screens/phase-06-task-03.ts             |  27 --
- server/ai/features/index.ts                     |   6 +-
- server/ai/features/roster_suggest.ts            | 123 ---------
- server/ai/features/transcribe.ts                |  52 ----
- server/ai/gateway.ts                            |  23 --
- server/ai/providers/audio.ts                    | 191 -------------
- server/ai/transcribe.test.ts                    | 312 ----------------------
- server/ai/transcribe.ts                         | 340 ------------------------
- server/ai/units.test.ts                         |   4 +-
- server/auth/api-permissions.ts                  |   3 -
- server/db/migrations/022_barcode.sql            |   6 -
- server/modules/docs/routes.ts                   |   3 -
- server/modules/docs/transcribe.routes.ts        |  22 --
- server/modules/hr/roster-suggest-routes.ts      |  33 ---
- server/modules/hr/roster-suggest.test.ts        | 308 ---------------------
- server/modules/hr/roster-suggest.ts             | 219 ---------------
- server/modules/hr/routes.ts                     |   2 -
- server/modules/inventory/barcode.test.ts        | 193 --------------
- server/modules/inventory/csv.test.ts            |   4 +-
- server/modules/inventory/csv.ts                 |  45 +---
- server/modules/inventory/routes.ts              |   9 -
- server/modules/inventory/seed.ts                |  30 +--
- server/modules/inventory/service.ts             |  40 +--
- shared/ai-features.ts                           |   9 +-
- shared/schemas/inventory-csv.ts                 |   7 +-
- shared/schemas/inventory.ts                     |  40 ---
- shared/schemas/roster-suggest.ts                | 256 ------------------
- tests/barcode-decode.test.ts                    |  49 ----
- tests/e2e/docs-minutes-audio.spec.ts            | 123 ---------
- tests/e2e/hr-roster-suggest.spec.ts             | 312 ----------------------
- tests/e2e/inventory-barcode.spec.ts             | 256 ------------------
- tests/fake-llm/audio.ts                         | 107 --------
- tests/fixtures/barcode/code128-photo.png        | Bin 460639 -> 0 bytes
- tests/fixtures/barcode/ean13-photo.png          | Bin 462762 -> 0 bytes
- tests/fixtures/barcode/ean13-sideways-photo.png | Bin 460868 -> 0 bytes
- tests/fixtures/barcode/make-barcodes.ts         | 269 -------------------
- tests/fixtures/barcode/no-barcode-photo.png     | Bin 429796 -> 0 bytes
- tests/fixtures/barcode/qr-photo.png             | Bin 452560 -> 0 bytes
- tests/security/exposure.test.ts                 |  24 +-
- web/src/pages/admin/AiSettingsPage.tsx          |   4 +-
- web/src/pages/docs/MinutesPage.tsx              |  16 +-
- web/src/pages/docs/MinutesRecording.tsx         | 139 ----------
- web/src/pages/docs/minutes.css                  |  13 -
- web/src/pages/docs/minutesLib.test.ts           |  26 --
- web/src/pages/docs/minutesLib.ts                |  64 -----
- web/src/pages/hr/RosterPage.tsx                 |  23 --
- web/src/pages/hr/RosterSuggestDialog.tsx        | 285 --------------------
- web/src/pages/hr/roster.css                     |  17 --
- web/src/pages/inventory/BarcodeOut.tsx          | 160 -----------
- web/src/pages/inventory/InventoryPage.tsx       |   5 +-
- web/src/pages/inventory/ItemDetailPage.tsx      |   2 +-
- web/src/pages/inventory/barcode.css             |  23 --
- web/src/pages/inventory/barcodeCore.ts          | 109 --------
- web/src/pages/inventory/barcodeDecode.ts        |  36 ---
- web/src/pages/inventory/inventory-ui.tsx        |  19 +-
- 64 files changed, 46 insertions(+), 4527 deletions(-)
+
 ```
 
 ## 실행 방법 (harness_setup/HARNESS.md §2·§3)
@@ -156,4 +92,4 @@ verification: [lint, unit, e2e, task_validation]
   - 결과 원문(반환 형식 표 전체)을 `.tmp/validation-result.md`에 저장한다.
   - 같은 내용을 worker_done 본문으로 보고한다.
   - outcome: 모든 기준이 PASS면 succeeded, 하나라도 FAIL이나 판정 불가가 있으면 failed
-- 참고: 이 작업 사본은 P2 통합 브랜치 p2-integration@63339a6 기준이다(06-01·02·03 병합, 게이트 lint·unit 807·e2e 334 PASS). web/dist는 저장소에 있는 것이 이 커밋의 화면과 다를 수 있으니, 화면 확인 전에 npm run build:web을 실행한다(e2e·screenshots 명령은 스스로 빌드한다). 실제 LLM 공급자로 요청을 보내지 않는다(데모·가짜 서버만). OpenAI·Gemini·Anthropic 설정 각각에서 동작(지원·비활성 안내)을 가짜 서버로 확인한다.
+- 참고: 이번은 재검증이다. 작업 사본은 main@dea0b4a(P2 병합 + 수정, web/dist 포함)이다. 직전 검증(harness_setup/evidence/phase-06-task-03/validation-2026-11-03T1430-fail-design.md)은 AC1~3 PASS, DESIGN §5-4 FAIL(받아쓰기 상태 확인 API 실패 시 '확인하고 있어요…'에서 멈춤, 뼈대 없음)이었다. 그 항목을 포함해 모든 기준을 처음부터 다시 판정한다. 실제 LLM 공급자로 요청을 보내지 않는다(데모·가짜 서버 tests/fake-llm/audio.ts만).
