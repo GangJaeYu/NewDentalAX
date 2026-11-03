@@ -209,6 +209,6 @@
 |---|---|---|
 | lint | PASS — tsc-server 299, tsc-web 155, eslint 432, headers 470(main@b3c8546 병합 뒤) | `harness_setup/evidence/runs/2026-11-03T00-26-29-564Z-phase-05-task-02-lint.log` |
 | unit | PASS — 757건(새 보안 테스트 25건 포함). 앞서 실패하던 05-01 성능 단언은 main@b3c8546에서 성능 모드(PERF_STRICT=1, `npm run perf`)로 옮겨졌다 | `harness_setup/evidence/runs/2026-11-03T00-26-58-953Z-phase-05-task-02-unit.log` |
-| e2e | PASS — 253건(새 `security-xss.spec.ts` 9건 포함) | `harness_setup/evidence/runs/2026-11-03T00-09-58-784Z-phase-05-task-02-e2e.log` |
+| e2e | PASS — 255건(새 `security-xss.spec.ts` 9건 포함, main@b3c8546 병합 뒤) | `harness_setup/evidence/runs/2026-11-03T00-28-03-032Z-phase-05-task-02-e2e.log` |
 
 게이트 판정·건수는 이 태스크의 worker_done 보고와 `plan_setup/LOG.md`(조정자가 옮김)에도 적는다. task_validation은 별도 세션이 수행한다.
