@@ -9,10 +9,10 @@
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
 - completed(35): phase-01~05 전부, 06-01
-  - main@9cb51f4: P2 통합 병합 + web/dist 재빌드. 게이트 실행 중
-  - 검증 중(p2-integration@63339a6): 06-02 `ctx_c4a931ab6fcc`(검증 슬롯 2), 06-03 `ctx_fe3eb0ebd223`(검증 슬롯 3)
-  - 남은 일: 06-02·03 검증 PASS → completed, PROGRESS P2 갱신, .tmp/p2-int 작업 사본·p2-integration 브랜치 정리, 최종 게이트, 최종 보고
-  - 경미: 월간 요약 도넛 '기타'·'임대료' 색 같음
+  - main@dea0b4a: P2 병합 + 06-03 오류 상태 수정 + 도넛 색 수정 + web/dist. 전체 게이트 실행 중(b4mmb3rsx)
+  - 검증 중: 06-02 `ctx_c4a931ab6fcc`(p2-integration@63339a6, 검증 슬롯 2), 06-03 재검증 `ctx_9ba359d1038c`(main@dea0b4a, 검증 슬롯 3)
+  - 남은 일: 06-02·03 completed, PROGRESS P2 갱신, .tmp/p2-int·p2-integration 정리, 최종 보고
+  - 14:4x 조정자 실수: 게이트 e2e 도중 build:web을 실행해 그 회차를 중단·폐기하고 다시 돌림
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
