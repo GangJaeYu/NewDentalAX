@@ -556,3 +556,6 @@
 - 09:00 05-02 워커 질문(전체 e2e가 메모리 부족으로 강제 중단됨)에 답했다.
   - 당시 가용 메모리는 16GB였다. gate.mjs 자리 제한을 믿고 main을 병합한 뒤 다시 돌리라고 했다.
   - 원인 보완: 스크린샷 스크립트가 동시 실행 제한 밖이었다. scripts/heavy-slot.ts를 추가해 같은 자리를 쓰게 했다. 타입·린트 확인함.
+- 09:13 04-08 검증 ctx_0934ee7ccd83: 5/5와 화면 PASS → 04-08 completed(선행 03-01·04-04). 증거: evidence/phase-04-task-08/
+  - 하네스 결함 보고: scripts/screens/phase-04-task-03.ts:67 선택자 strict mode 위반으로 전체 스크린샷이 멈춘다 → 05-03에 수정을 전달했다.
+- 03-10 수정 보고(ctx_a439979d4ad2): .dash-card 본문 grid minmax(0,1fr) + 자식 min-width:0. 카드 10개 공통 원인이었다. 측정 e2e(DESIGN5)를 추가했다. 05-01 게이트가 끝나면 병합한다.
