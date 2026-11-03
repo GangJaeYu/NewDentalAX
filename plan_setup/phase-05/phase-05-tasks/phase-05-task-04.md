@@ -1,6 +1,6 @@
 ---
 id: phase-05-task-04
-status: in_progress
+status: completed
 phase: "05"
 title: "사용자 문서: README·LLM_GUIDE·COST·PLAN·DECISIONS·PROGRESS"
 depends_on: [phase-05-task-03]
