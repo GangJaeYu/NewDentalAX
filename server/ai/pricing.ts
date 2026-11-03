@@ -113,7 +113,8 @@ export const modelsPatchSchema = z
             longOutputUsdPerM: z.number().min(0).max(1000).nullable().optional(),
             supportsImages: z.boolean().optional(),
             checkedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '확인 날짜는 2026-11-02 형식으로 적어 주세요.').nullable().optional(),
-            sourceUrl: z.url('출처 주소를 확인해 주세요.').max(500).nullable().optional(),
+            // http(s)만 받는다: javascript:·data: 주소가 화면 링크(href)로 들어가지 않게(phase-05-task-02 보안 점검)
+            sourceUrl: z.url({ protocol: /^https?$/, error: '출처 주소는 https://로 시작하게 적어 주세요.' }).max(500).nullable().optional(),
           })
           .strict(),
       )

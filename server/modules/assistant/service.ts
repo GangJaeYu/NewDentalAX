@@ -431,7 +431,8 @@ export async function ask(ai: AiCallContext, question: string): Promise<AskRespo
   const savedQuestion = filterText(question, readPrivacyForAi(db)).redactedText;
   const result = searchKb(db, question, DEFAULT_SEARCH_PARAMS, searchFilterFor(actor.role));
   if (!result.found) {
-    const hint = notFoundHint(question, actor.role);
+    // 안내 문구도 기록에 남으므로 가린 질문으로 만든다(원문 앞부분의 주민번호 숫자가 남지 않게, phase-05-task-02)
+    const hint = notFoundHint(savedQuestion, actor.role);
     const answer = `${NOT_FOUND_ANSWER} ${hint}`;
     const messages = db.tx(() => {
       const q = addMessage(db, clock, actor.id, { role: 'user', text: savedQuestion });
