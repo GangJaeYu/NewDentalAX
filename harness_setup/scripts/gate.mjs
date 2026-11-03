@@ -45,7 +45,8 @@ if (/(--fix|--write|\s-u\b|--update)/.test(pkg.scripts[SCRIPT])) finish('FAIL', 
 
 // 무거운 검사(e2e)는 이 PC 전체에서 동시에 2개까지만 돌린다(여러 작업 사본이 함께 돌 때 소켓 자원 부족 ERR_NO_BUFFER_SPACE를 막으려고, 2026-11-03 조정자).
 // 자리 표시 파일은 OS 임시 폴더에 두고, 주인 프로세스가 없어진 표시는 치운다. E2E_SLOT_LIMIT으로 바꿀 수 있다.
-const releaseSlot = gate === 'e2e' ? acquireHeavySlot() : () => {};
+// unit도 실제 서버를 여러 개 띄우므로 자리를 잡는다(동시 부하에서 20~30초 시간 초과가 반복돼서, 2026-11-03 조정자)
+const releaseSlot = gate === 'e2e' || gate === 'unit' ? acquireHeavySlot() : () => {};
 const r = spawnSync('npm', ['run', SCRIPT], { encoding: 'utf8', shell: true, env: { ...process.env, CI: '1', FORCE_COLOR: '0' }, maxBuffer: 64 * 1024 * 1024 });
 releaseSlot();
 const out = (r.stdout || '') + '\n' + (r.stderr || '');
@@ -93,14 +94,14 @@ function acquireHeavySlot() {
       const f = path.join(dir, `slot-${i}.lock`);
       try {
         fs.writeFileSync(f, String(process.pid), { flag: 'wx' });
-        if (waited) console.log(`[e2e] 자리 ${i}를 얻었어요`);
+        if (waited) console.log(`[${gate}] 자리 ${i}를 얻었어요`);
         return () => { try { if (fs.readFileSync(f, 'utf8') === String(process.pid)) fs.rmSync(f); } catch { /* 이미 없음 */ } };
       } catch {
         try { const owner = Number(fs.readFileSync(f, 'utf8')); if (!owner || !alive(owner)) fs.rmSync(f, { force: true }); } catch { /* 경쟁 */ }
       }
     }
-    if (Date.now() > deadline) { console.log('[e2e] 40분 동안 자리가 나지 않아 그냥 실행해요'); return () => {}; }
-    if (!waited) { console.log(`[e2e] 다른 작업 사본의 e2e가 ${limit}개 돌고 있어 자리를 기다려요...`); waited = true; }
+    if (Date.now() > deadline) { console.log(`[${gate}] 40분 동안 자리가 나지 않아 그냥 실행해요`); return () => {}; }
+    if (!waited) { console.log(`[${gate}] 다른 작업 사본의 무거운 검사(e2e·unit 등)가 ${limit}개 돌고 있어 자리를 기다려요...`); waited = true; }
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5000);
   }
 }

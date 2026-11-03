@@ -93,3 +93,7 @@ node harness_setup/scripts/preflight.mjs
 - **원내 다른 PC에서 접속**: 같은 PC의 원내 IP 주소로 접속되는지만 확인할 수 있다. 다른 기기와 방화벽 허용은 사용자 확인 항목(README)이다.
 - **Windows 방화벽 허용 팝업**: 처음 실행할 때 사용자가 허용해야 할 수 있다(README에 안내). 전역 설정이라 에이전트가 바꾸지 않는다.
 - 이 하네스 문서와 스크립트는 2026-11-02에 실행해서 확인했다. 실행 결과는 [evidence/README.md](evidence/README.md)에 있다.
+
+## 무거운 검사 자리 제한 (2026-11-03 갱신)
+- e2e·unit 게이트, `npm run screenshots`, `npm run perf`, `scripts/readme-shots.ts`는 이 PC 전체에서 동시에 2개까지만 돈다(OS 임시 폴더 `dentalax-heavy-slots`, `E2E_SLOT_LIMIT`으로 조정).
+- 여러 작업 사본이 함께 돌 때 소켓 부족(ERR_NO_BUFFER_SPACE), 메모리 부족, 실제 서버 실행 테스트의 시간 초과가 생겨서 넣었다. 자리를 기다리는 것은 정상이다.
