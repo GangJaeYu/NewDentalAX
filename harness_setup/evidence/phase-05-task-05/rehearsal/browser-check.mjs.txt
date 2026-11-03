@@ -1,0 +1,54 @@
+// 이 파일이 하는 일: 설치 리허설 서버(18190)에서 / → /setup 이동, 첫 설정(데모 데이터), 주요 화면 열기를 확인하고 스크린샷을 남긴다.
+import { createRequire } from 'node:module';
+const [,, wt, out] = process.argv;
+const require = createRequire(wt + '/package.json');
+const { chromium } = require('playwright');
+const base = 'http://localhost:18190';
+const browser = await chromium.launch({ channel: 'msedge' });
+const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'ko-KR' });
+const page = await ctx.newPage();
+const problems = [];
+page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()} @ ${page.url()}`); });
+page.on('pageerror', (e) => problems.push(`pageerror: ${e.message} @ ${page.url()}`));
+page.on('response', (r) => { if (r.status() >= 500) problems.push(`HTTP ${r.status()} ${r.url()}`); });
+const log = (s) => console.log(s);
+await page.goto(base + '/');
+await page.waitForURL('**/setup', { timeout: 15000 });
+await page.getByRole('heading', { name: '첫 설정' }).waitFor();
+log(`redirect: / -> ${new URL(page.url()).pathname}`);
+await page.screenshot({ path: `${out}/01-setup-1280.png`, fullPage: true });
+await page.getByLabel('병원 이름').fill('하늘숲치과');
+await page.getByLabel('관리자 이름').fill('리허설원장');
+await page.getByLabel('아이디').fill('rehearsal01');
+await page.getByLabel(/^비밀번호\s*\*?$/).fill('rehearsal-pass-1');
+await page.getByLabel('비밀번호 확인').fill('rehearsal-pass-1');
+await page.getByLabel('데모 데이터 넣기').check();
+const t0 = Date.now();
+await page.getByRole('button', { name: '설정 마치고 시작하기' }).click();
+await page.waitForURL((u) => u.pathname === '/', { timeout: 30000 });
+await page.waitForLoadState('networkidle');
+log(`setup done in ${Date.now() - t0}ms, url=${page.url()}`);
+await page.screenshot({ path: `${out}/02-dashboard-1280.png`, fullPage: true });
+const pages = [
+  ['03-inventory', '/inventory'], ['04-desk-board', '/desk/board'], ['05-hr-roster', '/hr/roster'],
+  ['06-docs-assistant', '/docs/assistant'], ['07-facility-equipment', '/facility/equipment'],
+  ['08-finance-expenses', '/finance/expenses'], ['09-admin-backup', '/admin/backup'], ['10-admin-ai', '/admin/ai'],
+];
+for (const [name, path] of pages) {
+  await page.goto(base + path);
+  await page.waitForLoadState('networkidle');
+  const h1 = (await page.locator('h1').first().textContent({ timeout: 10000 }).catch(() => null))?.trim();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  const rows = await page.locator('tbody tr, [role="row"], li').count();
+  log(`${path}: h1="${h1}" items=${rows} hScroll=${overflow}`);
+  await page.screenshot({ path: `${out}/${name}-1280.png`, fullPage: true });
+}
+const m = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ko-KR' });
+const mp = await m.newPage();
+await mp.goto(base + '/');
+await mp.waitForURL('**/login', { timeout: 15000 }).catch(() => {});
+log(`fresh context after setup: / -> ${new URL(mp.url()).pathname}`);
+await mp.screenshot({ path: `${out}/11-login-390.png`, fullPage: true });
+log(`problems: ${problems.length}`);
+for (const p of problems) log('  ' + p);
+await browser.close();

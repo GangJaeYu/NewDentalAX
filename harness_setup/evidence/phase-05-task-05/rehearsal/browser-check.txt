@@ -1,0 +1,12 @@
+redirect: / -> /setup
+setup done in 1247ms, url=http://localhost:18190/
+/inventory: h1="재고 현황" items=83 hScroll=false
+/desk/board: h1="공지·인수인계" items=6 hScroll=false
+/hr/roster: h1="근무표" items=9 hScroll=false
+/docs/assistant: h1="원내 AI 도우미" items=0 hScroll=false
+/facility/equipment: h1="장비 점검·유지보수" items=6 hScroll=false
+/finance/expenses: h1="지출 기록" items=2 hScroll=false
+/admin/backup: h1="백업·복원" items=1 hScroll=false
+/admin/ai: h1="AI 설정·예산" items=28 hScroll=false
+fresh context after setup: / -> /login
+problems: 0
