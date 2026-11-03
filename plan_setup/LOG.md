@@ -585,3 +585,4 @@
 - 12:1x 06-03 녹음 회의록 구현 완료 보고(4b5b659, e2e 319 PASS). 병합 대기. 병합 때: COST.md 받아쓰기 가격 줄, backend.md, units.test 기능 수 16.
 - 12:3x P2 통합 사본(.tmp/p2-int, 브랜치 p2-integration)에서 06-01·02·03을 병합. 06-02·06-03 기능 목록 충돌(양쪽 살림, 기능 수 16)을 해결하고 API_RULES 3줄·backend/database/COST 문서·DECISIONS를 반영(63339a6). 게이트 실행 중(E2E_PORT 18301). main 병합은 05-05 뒤.
 - 12:5x P2 통합 게이트 PASS(lint·unit 807·e2e 334). 06-01·02·03 검증 워커를 p2-integration@63339a6으로 띄웠다.
+- 13:1x 05-05 완료 보고(리허설 성공: npm ci --omit=dev 8초, health 11초, /→/setup, 콘솔 오류 0). 병합(bf300d3), main lint·unit 771 PASS. 05-05 검증 배정(검증 슬롯 0). 참고: 부하 큰 PC에서 server/main.test.ts 실제 실행 2건 시간 초과 1회, 메모리 부족으로 e2e 재실행 중단 1회.
