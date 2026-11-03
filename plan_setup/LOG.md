@@ -553,3 +553,18 @@
   - npm run perf(API p95·autocannon 20연결 60초·첫 화면)를 10배 데이터로 3회 측정했다. 최악값: API p95 114.8ms, 오류 0, 첫 화면 508ms. 세 기준 모두 PASS다.
   - docs/PERF.md를 작성했다.
   - 병합은 충돌 없이 끝났고, 게이트는 백그라운드에서 실행 중이다. 검증은 게이트 뒤에 배정한다.
+- 09:00 05-02 워커 질문(전체 e2e가 메모리 부족으로 강제 중단됨)에 답했다.
+  - 당시 가용 메모리는 16GB였다. gate.mjs 자리 제한을 믿고 main을 병합한 뒤 다시 돌리라고 했다.
+  - 원인 보완: 스크린샷 스크립트가 동시 실행 제한 밖이었다. scripts/heavy-slot.ts를 추가해 같은 자리를 쓰게 했다. 타입·린트 확인함.
+- 09:13 04-08 검증 ctx_0934ee7ccd83: 5/5와 화면 PASS → 04-08 completed(선행 03-01·04-04). 증거: evidence/phase-04-task-08/
+  - 하네스 결함 보고: scripts/screens/phase-04-task-03.ts:67 선택자 strict mode 위반으로 전체 스크린샷이 멈춘다 → 05-03에 수정을 전달했다.
+- 03-10 수정 보고(ctx_a439979d4ad2): .dash-card 본문 grid minmax(0,1fr) + 자식 min-width:0. 카드 10개 공통 원인이었다. 측정 e2e(DESIGN5)를 추가했다. 05-01 게이트가 끝나면 병합한다.
+- 09:20 05-01 병합 뒤 main 게이트 PASS(lint 294/155/426/465, unit 732, e2e 244, 커밋 60af70b). 03-10 수정 커밋을 충돌 없이 병합했다. 게이트는 백그라운드에서 실행 중이다.
+- 05-01 검증 배정(검증 슬롯 1, 기준 60af70b)
+- 09:30 05-02 구현 보고(ctx_5bd6f951f299)
+  - SECURITY.md 19개 영역 점검, 결함 3건 수정(zod eval·CSP 등), API_RULES 7줄 보강
+  - lint·e2e 253 PASS. unit은 05-01의 perf-lib.test p95 단언이 전체 실행 부하로 FAIL이었다.
+- 조정자 조치: perf-lib.test의 p95 300ms 단언을 PERF_STRICT=1(npm run perf)에서만 판정하게 바꿨다.
+  - 일반·엄격 모드 둘 다 12건 PASS
+  - NFR-005 판정은 npm run perf에 남는다(약화 아님, DECISIONS 기록).
+  - 05-02에 main 병합 뒤 unit 재실행을 지시한다.
