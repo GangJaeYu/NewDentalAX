@@ -81,6 +81,15 @@ function polar(cx: number, cy: number, r: number, deg: number): [number, number]
   return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
 }
 
+/**
+ * 도넛 조각 색 class. 6색을 돌려 쓰는데, 조각이 7·13…개면 마지막 조각이 첫 조각과 같은 색으로 맞닿는다(도넛은 둥글어서).
+ * 그때 마지막 조각만 앞뒤와 다른 회색(c5)으로 바꾼다(05-03 검증 관찰: 월간 요약 '기타'와 '임대료'가 같은 색).
+ */
+export function donutColor(i: number, n: number): string {
+  if (n > 1 && i === n - 1 && i % 6 === 0) return 'c5';
+  return `c${(i % 6) + 1}`;
+}
+
 /** 비율 도넛 + 범례 */
 export function DonutChart({ data, label }: { data: ReadonlyArray<{ label: string; value: number }>; label: string }) {
   const arcs = donutArcs(data.map((d) => d.value));
@@ -91,17 +100,17 @@ export function DonutChart({ data, label }: { data: ReadonlyArray<{ label: strin
         <circle cx="50" cy="50" r={r} fill="none" className="axis" strokeWidth="14" />
         {arcs.map((a, i) => {
           if (a.ratio <= 0) return null;
-          if (a.ratio >= 0.9999) return <circle key={i} cx="50" cy="50" r={r} fill="none" className={`c${(i % 6) + 1}`} strokeWidth="14" />;
+          if (a.ratio >= 0.9999) return <circle key={i} cx="50" cy="50" r={r} fill="none" className={donutColor(i, data.length)} strokeWidth="14" />;
           const [x1, y1] = polar(50, 50, r, a.start);
           const [x2, y2] = polar(50, 50, r, a.end);
           const large = a.end - a.start > 180 ? 1 : 0;
-          return <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`} fill="none" className={`c${(i % 6) + 1}`} strokeWidth="14" />;
+          return <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`} fill="none" className={donutColor(i, data.length)} strokeWidth="14" />;
         })}
       </svg>
       <ul className="donut-legend">
         {data.map((d, i) => (
           <li key={d.label}>
-            <i className={`c${(i % 6) + 1}`} aria-hidden="true" />
+            <i className={donutColor(i, data.length)} aria-hidden="true" />
             <span>{d.label}</span>
             <span className="num muted">{Math.round((arcs[i]?.ratio ?? 0) * 100)}%</span>
           </li>

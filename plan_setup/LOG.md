@@ -589,3 +589,4 @@
 - 14:0x 06-01 독립 검증 2/2 PASS(ctx_11c62539ef6d, p2-integration@63339a6). 선행 05-05 검증 대기로 completed 보류. 관찰: 동시 실행 부하에서 unit 시간 초과(20~30초 테스트) 3회 뒤 4번째 PASS — 하네스 점검 거리.
 - 14:1x 05-05 독립 검증 3/3 PASS(ctx_bdadd971749b, 리허설 재현 health 20초). 05-05 completed, phase-05 완료. 06-01 completed(검증 PASS 기존). p2-integration을 main에 병합한다.
 - 14:2x P2 통합을 main에 병합(5940e79, DECISIONS 충돌만 양쪽 유지), npm ci·web/dist 재빌드(9cb51f4). main 게이트 실행 중.
+- 14:4x 06-03 검증: AC1~3 PASS, DESIGN §5-4 FAIL(받아쓰기 상태 확인 실패 시 '확인하고 있어요…'에서 멈춤, 뼈대 없음). 조정자가 ErrorState(다시 시도)·Skeleton으로 고치고 회귀 e2e 추가. 도넛 마지막 조각 색 겹침(05-03 관찰)도 donutColor로 고치고 단위 테스트 추가. 06-03 재검증 예정.

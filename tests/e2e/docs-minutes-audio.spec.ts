@@ -120,4 +120,21 @@ test.describe.serial('회의 녹음 → 회의록', () => {
     const r = await new AxeBuilder({ page }).analyze();
     expect(r.violations.map((v) => v.id)).toEqual([]);
   });
+
+  test('phase-06-task-03 DESIGN5: 받아쓰기 상태 확인이 실패하면 이유와 "다시 시도"를 보이고, 다시 시도로 회복한다', async ({ page }) => {
+    await signIn(page);
+    // 상태 확인 API를 잠시 500으로 막는다(검증에서 찾은 "확인하고 있어요…"에서 멈추던 결함의 회귀 검사)
+    await page.route('**/api/ai/transcribe/status', (route) =>
+      route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: { code: 'INTERNAL', message: '잠시 문제가 생겼어요. 다시 시도해 주세요.' } }) }),
+    );
+    await page.goto('/docs/minutes');
+    const card = recordingCard(page);
+    const err = card.getByRole('alert');
+    await expect(err).toContainText('받아쓰기 상태를 확인하지 못했어요');
+    await expect(card.getByText('받아쓰기를 쓸 수 있는지 확인하고 있어요…')).toHaveCount(0);
+    await page.unroute('**/api/ai/transcribe/status');
+    await err.getByRole('button', { name: '다시 시도' }).click();
+    await expect(card.locator('input[type=file]')).toHaveCount(1);
+    await expect(card.getByRole('alert')).toHaveCount(0);
+  });
 });

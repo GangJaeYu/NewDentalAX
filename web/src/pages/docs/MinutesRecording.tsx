@@ -9,6 +9,7 @@ import { Chip } from '../../components/Chip.tsx';
 import { Checkbox } from '../../components/Field.tsx';
 import { FileDrop } from '../../components/FileDrop.tsx';
 import { Icon } from '../../components/Icon.tsx';
+import { ErrorState, Skeleton } from '../../components/States.tsx';
 import { ApiError, api } from '../../lib/api.ts';
 import { aiErrorHelp } from '../../lib/ai.ts';
 import { formatBytes } from '../../lib/image.ts';
@@ -74,8 +75,11 @@ export function MinutesRecording({ onTranscript }: MinutesRecordingProps) {
           <span>환자 이야기가 들어간 녹음은 올리지 마세요. 직원 회의 녹음만 올려 주세요. 녹음은 받아쓰기에만 쓰고 서버에 남기지 않아요.</span>
         </div>
 
-        {!st ? (
-          <p className="mr-hint">받아쓰기를 쓸 수 있는지 확인하고 있어요…</p>
+        {!st && status.error ? (
+          // 상태 확인이 실패하면 이유와 "다시 시도"를 보인다(DESIGN §5-4, phase-06-task-03 검증 지적)
+          <ErrorState title="받아쓰기 상태를 확인하지 못했어요" message={status.error.message} onRetry={status.reload} />
+        ) : !st ? (
+          <Skeleton rows={2} label="받아쓰기를 쓸 수 있는지 확인하고 있어요" />
         ) : !ready ? (
           <div className="mr-off" role="status" data-testid="recording-off">
             <Icon name="lock" size="md" />
