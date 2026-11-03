@@ -1,6 +1,16 @@
 /* 이 파일이 하는 일: 대시보드 카드 안쪽 모양(시안 v2 docs/design/preview.html의 대시보드 부분)을 dash- 이름으로 둔다.
    체크 상자 줄, 누르면 이동하는 줄, D-day 칸, 공지 묶음, 이번 주 7일 칸, AI 사용 막대. 오늘 근무 카드 본문 모양은 hr/roster.css(04-01)에 있다. 색은 모두 토큰(--accent 등)만 쓴다. */
 
+/* 대시보드 카드 본문: 한 열을 카드 폭에 묶는다(minmax(0, 1fr)).
+   기본 .card .body는 grid 열 크기가 auto라, 줄바꿈하지 않는 긴 제목(nowrap)의 최소 폭만큼 열이 늘어나 줄이 카드 밖으로 넘쳤다(768px 점검 카드 "조치 필요" 칩 잘림).
+   열을 묶으면 제목·설명은 말줄임(…)으로 줄고, 칩·D-day(flex: none)는 그대로 보인다. */
+.dash-card > .body {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dash-card > .body > * {
+  min-width: 0;
+}
+
 /* 누르면 해당 화면으로 가는 줄 */
 .dash-row {
   display: flex;

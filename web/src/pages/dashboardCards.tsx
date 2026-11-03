@@ -103,7 +103,7 @@ export function TodoCard({ state }: SlotProps) {
   };
 
   return (
-    <Card id="dash-todo" title="오늘 할 일" sub={d && total ? `${done} / ${total}` : undefined} action={{ label: '전체', to: '/desk/checklist' }}>
+    <Card className="dash-card" id="dash-todo" title="오늘 할 일" sub={d && total ? `${done} / ${total}` : undefined} action={{ label: '전체', to: '/desk/checklist' }}>
       <Body
         state={state}
         rows={5}
@@ -167,7 +167,7 @@ export function TodoCard({ state }: SlotProps) {
 export function StockCard({ state, role }: SlotProps) {
   const d = state.data;
   return (
-    <Card id="dash-stock" title="재고 경고" sub={d && d.stockAlerts.total ? `${d.stockAlerts.total}건` : undefined} action={{ label: '재고 보기', to: '/inventory' }}>
+    <Card className="dash-card" id="dash-stock" title="재고 경고" sub={d && d.stockAlerts.total ? `${d.stockAlerts.total}건` : undefined} action={{ label: '재고 보기', to: '/inventory' }}>
       <Body
         state={state}
         isEmpty={(x) => x.stockAlerts.items.length === 0}
@@ -207,7 +207,7 @@ export function StockCard({ state, role }: SlotProps) {
 export function DueCard({ state }: SlotProps) {
   const d = state.data;
   return (
-    <Card id="dash-due" title="다가오는 점검·의무 일정" sub={d && d.dueSoon.total ? `${d.dueSoon.total}건` : undefined} action={{ label: '전체', to: '/facility/legal' }}>
+    <Card className="dash-card" id="dash-due" title="다가오는 점검·의무 일정" sub={d && d.dueSoon.total ? `${d.dueSoon.total}건` : undefined} action={{ label: '전체', to: '/facility/legal' }}>
       <Body
         state={state}
         isEmpty={(x) => x.dueSoon.items.length === 0 && x.sterilizerAlerts.items.length === 0}
@@ -268,7 +268,7 @@ export function DueCard({ state }: SlotProps) {
 export function RosterSlotCard({ state }: SlotProps) {
   const d = state.data;
   return (
-    <Card id="dash-roster" title="오늘 근무" sub={d ? formatDateShort(d.today.date) : undefined} action={{ label: '근무표', to: '/hr/roster' }}>
+    <Card className="dash-card" id="dash-roster" title="오늘 근무" sub={d ? formatDateShort(d.today.date) : undefined} action={{ label: '근무표', to: '/hr/roster' }}>
       <RosterTodayCard />
     </Card>
   );
@@ -278,7 +278,7 @@ export function RosterSlotCard({ state }: SlotProps) {
 export function NoticeCard({ state, role }: SlotProps) {
   const canWrite = can(role, 'notices.write');
   return (
-    <Card id="dash-notice" title="공지" span={2} sub="읽음 표시로 전달 여부를 확인해요" action={{ label: '공지 보드', to: '/desk/board' }}>
+    <Card className="dash-card" id="dash-notice" title="공지" span={2} sub="읽음 표시로 전달 여부를 확인해요" action={{ label: '공지 보드', to: '/desk/board' }}>
       <Body
         state={state}
         rows={3}
@@ -327,7 +327,7 @@ export function AiQuickCard({ state }: SlotProps) {
   const d = state.data;
   const month = d ? Number(d.ai.month.slice(5)) : null;
   return (
-    <Card id="dash-ai" title="AI 빠른 요청" action={d?.ai.demo ? <Chip tone="ghost">데모 응답</Chip> : undefined}>
+    <Card className="dash-card" id="dash-ai" title="AI 빠른 요청" action={d?.ai.demo ? <Chip tone="ghost">데모 응답</Chip> : undefined}>
       <AiPanel feature="quick" label="AI에게 부탁할 내용" rows={2} primary={false} runLabel="보내기" placeholder="예: 주차 2시간 무료 안내 전화 멘트 만들어줘" />
       {d ? (
         <div className="dash-meter">
@@ -348,7 +348,7 @@ const ORDER_TONES: Record<OrderStatus, Tone> = { draft: 'ghost', ordered: 'info'
 export function OrdersCard({ state }: SlotProps) {
   const d = state.data;
   return (
-    <Card id="dash-orders" title="발주 진행" sub={d?.orders?.open ? `진행 중 ${d.orders.open}건` : undefined} action={{ label: '발주서', to: '/inventory/orders' }}>
+    <Card className="dash-card" id="dash-orders" title="발주 진행" sub={d?.orders?.open ? `진행 중 ${d.orders.open}건` : undefined} action={{ label: '발주서', to: '/inventory/orders' }}>
       <Body
         state={state}
         isEmpty={(x) => (x.orders?.items.length ?? 0) === 0}
@@ -395,7 +395,7 @@ export function OrdersCard({ state }: SlotProps) {
 /** 8. 이번 주 일정(2칸): 월~일 7칸에 휴가·점검(근무·교육은 해당 태스크가 더함) */
 export function WeekCard({ state }: SlotProps) {
   return (
-    <Card id="dash-week" title="이번 주 일정" span={2} sub="휴가 · 점검 · 교육" action={{ label: '연차·휴가', to: '/hr/leave' }}>
+    <Card className="dash-card" id="dash-week" title="이번 주 일정" span={2} sub="휴가 · 점검 · 교육" action={{ label: '연차·휴가', to: '/hr/leave' }}>
       <Body
         state={state}
         rows={3}
@@ -425,7 +425,7 @@ export function WeekCard({ state }: SlotProps) {
 /** 9. 최근 입출고(누르면 품목 상세) */
 export function MovesCard({ state }: SlotProps) {
   return (
-    <Card id="dash-moves" title="최근 입출고" action={{ label: '기록 전체', to: '/inventory/moves' }}>
+    <Card className="dash-card" id="dash-moves" title="최근 입출고" action={{ label: '기록 전체', to: '/inventory/moves' }}>
       <Body
         state={state}
         isEmpty={(x) => x.recentMoves.length === 0}
@@ -467,7 +467,7 @@ export function MovesCard({ state }: SlotProps) {
 /** 10. 이번 달 지출(원장·실장만). [연결 지점] phase-04-task-04 지출 기록이 생기면 합계·6개월 추이를 그린다 */
 export function ExpenseCard({ state }: SlotProps) {
   return (
-    <Card id="dash-expense" title="이번 달 지출" sub="원장·실장만" action={{ label: '월간 요약', to: '/finance/monthly' }}>
+    <Card className="dash-card" id="dash-expense" title="이번 달 지출" sub="원장·실장만" action={{ label: '월간 요약', to: '/finance/monthly' }}>
       <Body
         state={state}
         rows={2}
