@@ -8,10 +8,12 @@
 - **실행 주체·작업 폴더**: 메인 세션, `C:\Users\main\Desktop\DentalAX_with_Skills`(git main)
 - **Orca Run**: `run_ec777ac46742`
 - **진행 중 태스크**
-- completed(31): phase-01~04 전부, 05-01, 05-02
-  - 검증 중(main@f13e0ae): 05-03 `ctx_ddc997005768`(검증 슬롯 0), 05-04 `ctx_febd4385a1a8`(검증 슬롯 2)
-  - 구현 중(선행 시작, 병합은 05-05 뒤): 06-01 바코드 `ctx_52b799f288c5`(슬롯 1), 06-02 AI 근무표 `ctx_5c5d8ddb039c`(슬롯 2), 06-03 녹음 회의록 `ctx_9feb50eadaf3`(슬롯 3)
-  - 다음: 05-05 설치 리허설(05-03·04 검증 PASS 뒤, 슬롯 0). web/dist는 c7f7326에서 저장소에 포함됨
+- completed(33): phase-01~04 전부, 05-01·02·03·04
+  - 구현 중: 05-05 설치 리허설 `ctx_7c94c708432b`(슬롯 0)
+  - 구현 완료·병합 대기(05-05 뒤): 06-01 바코드(브랜치 phase-06-task-01-worker@633223f), 06-02 AI 근무표(phase-06-task-02-worker@11e7259)
+  - 구현 중: 06-03 녹음 회의록 `ctx_9feb50eadaf3`(슬롯 3)
+  - 병합 때 할 일: API_RULES에 roster suggest·apply 추가, backend.md·database.md 문서 반영, units.test·exposure.test 기능 수 충돌 정리, web/dist 재빌드 커밋
+  - 경미: 월간 요약 도넛 '기타'·'임대료' 색 같음
 - **미반영 결과**: 없음
 - **마지막 검증**: main@de2e72a 게이트 lint·unit 23·e2e 3 PASS(19:20). 01-01 task_validation 시도 1은 FAIL(AC3)
 
