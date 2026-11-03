@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { acquireHeavySlot } from './heavy-slot.ts';
 import { spawn } from 'node:child_process';
 import { chromium, type BrowserContext, type Page } from '@playwright/test';
 import { appDbPath, openDb } from '../server/db/index.ts';
@@ -118,6 +119,8 @@ for (const f of fs.existsSync(screensDir) ? fs.readdirSync(screensDir).filter((n
 }
 const pages = only.length ? PAGES.filter((p) => only.includes(p.name)) : PAGES;
 fs.mkdirSync(OUT, { recursive: true });
+// 스크린샷도 무거운 검사라 PC 전체 동시 실행 제한(e2e와 같은 자리)을 따른다(2026-11-03 메모리 부족 대응)
+const releaseSlot = await acquireHeavySlot('screenshots');
 // 데이터 폴더를 직접 정해 예시 알림을 넣을 수 있게 한다(끝나면 지운다)
 const DATA_DIR = path.join(ROOT, '.tmp', 'screens', `run-${Date.now()}`);
 fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -159,6 +162,7 @@ try {
   }
   await browser.close();
 } finally {
+  releaseSlot();
   server.kill();
   await new Promise((res) => setTimeout(res, 500));
   try {
