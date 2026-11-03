@@ -576,3 +576,4 @@
 - 10:3x 05-02 독립 검증 3/3 PASS(ctx_9a6481347c93). 선행 04-05가 03-10을 기다리므로 completed는 보류한다.
 - 10:4x 03-10 재검증 7/7 PASS(ctx_c4026cb85fae, 768 카드 넘침 해소·390 innerWidth 유지 확인, 근거 evidence/phase-03-task-10/validation-2026-11-03T1040-pass.md). 03-10 completed → 선행이 풀린 04-05(검증 PASS 기존), 05-02(검증 PASS 10:3x)도 completed.
 - 10:5x 05-03 병합 뒤 게이트 lint·unit 760·e2e 314 PASS. 05-04 병합(충돌 없음), README 그림을 05-03 반영 화면으로 다시 찍음(docs-writer 1장 바뀜). 05-03·05-04 검증 배정.
+- 11:0x 05-01 독립 검증 4/4 PASS(ctx_1ee11c1174b2, 2차 측정 최악 p95 110ms). 1차는 다른 e2e와 겹쳐 FAIL 수치 — npm run perf가 무거운 검사 자리를 잡지 않음(하네스 보완 예정). 05-01 completed.

@@ -27,6 +27,7 @@ import {
   type DataCounts,
   type PerfRound,
 } from './perf-lib.ts';
+import { acquireHeavySlot } from './heavy-slot.ts';
 
 const ROOT = process.cwd();
 
@@ -177,6 +178,8 @@ for (const [k, min] of Object.entries(DATA_TARGETS)) {
   if (((counts as Record<string, number>)[k] ?? 0) < min) throw new Error(`측정 데이터 ${k}가 ${min}건보다 적어요.`);
 }
 
+// 재는 동안 다른 작업 사본의 e2e·스크린샷이 끼어들지 않게 PC 공용 무거운 검사 자리를 잡는다(05-01 검증에서 겹친 측정이 FAIL 수치를 냄)
+const releaseSlot = await acquireHeavySlot('perf');
 const server = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', 'scripts/e2e-server.ts'], {
   cwd: ROOT,
   env: { ...process.env, E2E_PORT: String(port), E2E_DATA_DIR: runDir },
@@ -214,6 +217,7 @@ try {
   }
 } finally {
   await stopServer(server);
+  releaseSlot();
   try {
     fs.rmSync(runDir, { recursive: true, force: true });
   } catch {
