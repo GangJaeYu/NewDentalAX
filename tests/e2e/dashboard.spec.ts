@@ -406,6 +406,55 @@ test.describe.serial('대시보드', () => {
       }
     });
 
+    // DESIGN §5 "글자 잘림 없음": 카드 안 목록 줄(li)과 그 안의 모든 요소(칩·D-day·글자)가 카드 본문 안쪽 끝을 넘지 않아야 한다.
+    // 예전 결함: 768px에서 점검 카드 줄이 카드보다 32px 넓어 "조치 필요" 칩이 잘렸다. 390px은 innerWidth가 390 그대로인지도 본다(04-05 결정).
+    test(`phase-03-task-10 DESIGN5: 데모 대시보드 4너비 카드 안 내용이 카드 밖으로 넘치지 않는다(${theme})`, async ({ browser }) => {
+      test.setTimeout(120000);
+      for (const [width, height] of WIDTHS) {
+        const { ctx } = await loggedIn(browser, ADMIN, { viewport: { width, height }, colorScheme: theme });
+        const page = await ctx.newPage();
+        await openDemoDashboard(page);
+        await expect(card(page, '다가오는 점검·의무 일정').locator('li').first()).toBeVisible();
+        const r = await page.evaluate(`(() => {
+          const cards = [...document.querySelectorAll('[aria-label="오늘 현황"] article.card')];
+          const bad = [];
+          let checked = 0;
+          for (const c of cards) {
+            const title = c.querySelector('h2')?.textContent ?? '?';
+            const body = c.querySelector(':scope > .body');
+            const bs = getComputedStyle(body);
+            const br = body.getBoundingClientRect();
+            const right = br.right - parseFloat(bs.paddingRight) + 0.5;
+            const left = br.left + parseFloat(bs.paddingLeft) - 0.5;
+            const lis = [...body.querySelectorAll('li')];
+            const els = new Set([...lis, ...lis.flatMap((li) => [...li.querySelectorAll('*')])]);
+            for (const e of els) {
+              const b = e.getBoundingClientRect();
+              if (b.width < 2 || b.height < 2) continue;
+              checked++;
+              if (b.right > right || b.left < left) {
+                bad.push(title + ' > ' + e.tagName.toLowerCase() + (e.className ? '.' + String(e.className).split(' ').join('.') : '') +
+                  ' [' + (e.textContent || '').trim().slice(0, 20) + '] left ' + Math.round(b.left) + '/' + Math.round(left) + ' right ' + Math.round(b.right) + '/' + Math.round(right));
+              }
+            }
+          }
+          return { cards: cards.length, checked, bad, iw: window.innerWidth, sw: document.documentElement.scrollWidth };
+        })()`);
+        const v = r as { cards: number; checked: number; bad: string[]; iw: number; sw: number };
+        const label = `${width}-${theme}`;
+        expect(v.iw, `${label} innerWidth`).toBe(width);
+        expect(v.sw, `${label} 가로 스크롤`).toBeLessThanOrEqual(v.iw);
+        expect(v.cards, label).toBe(CARD_TITLES.length);
+        expect(v.checked, `${label} 잰 요소 수`).toBeGreaterThan(40);
+        expect(v.bad, label).toEqual([]);
+        if (width === 768 || width === 390) {
+          fs.mkdirSync(SHOTS, { recursive: true });
+          await card(page, '다가오는 점검·의무 일정').screenshot({ path: path.join(SHOTS, `design5-due-${label}.png`) });
+        }
+        await ctx.close();
+      }
+    });
+
     test(`phase-03-task-10 AC1: 데모 대시보드 axe 위반 0건(${theme})`, async ({ browser }) => {
       const { ctx } = await loggedIn(browser, ADMIN, { colorScheme: theme });
       const page = await ctx.newPage();
