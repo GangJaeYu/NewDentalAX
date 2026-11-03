@@ -11,7 +11,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   forbidOnly: true,
-  timeout: 30000,
+  // 테스트 하나의 시간 한도. 여러 작업 사본이 동시에 돌 때 scrypt 로그인이 많은 테스트(app-shell AC1 단독 28.9초)가 30초에 걸려 흔들려서 60초로 늘렸다(2026-11-03, 06-02 검증 관찰)
+  timeout: 60000,
   reporter: [['list'], ['html', { outputFolder: 'artifacts/e2e/report', open: 'never' }]],
   use: {
     channel: 'msedge',
