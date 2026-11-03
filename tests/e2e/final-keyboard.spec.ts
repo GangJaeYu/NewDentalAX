@@ -23,12 +23,14 @@ function watchErrors(page: Page): string[] {
   return errors;
 }
 
+/** 요소가 지금 포커스를 가졌는지(브라우저 안에서 실행. 서버용 타입 설정에는 DOM 타입이 없어 함수 본문을 글로 만든다) */
+const IS_ACTIVE = new Function('el', 'return el === document.activeElement') as (el: unknown) => boolean;
+
 /** target에 포커스가 갈 때까지 Tab을 누른다(최대 max번). 마우스는 쓰지 않는다 */
 async function tabTo(page: Page, target: Locator, max = 150): Promise<void> {
   await expect(target).toBeVisible();
   for (let i = 0; i < max; i++) {
-    // 문자열 함수로 넘겨 브라우저 안에서 비교한다(서버용 타입 설정에는 DOM 타입이 없음)
-    if ((await target.evaluate('(el) => el === document.activeElement')) as boolean) return;
+    if (await target.evaluate(IS_ACTIVE)) return;
     await page.keyboard.press('Tab');
   }
   throw new Error(`Tab ${max}번 안에 포커스가 가지 않았어요: ${target.toString()}`);
@@ -102,7 +104,7 @@ test.describe.serial('키보드만으로 핵심 작업', () => {
     const pick = dialog.getByRole('button', { name: /^니트릴 글러브 M/ });
     await tabTo(page, pick, 20);
     await page.keyboard.press('Enter');
-    const qty = dialog.getByLabel(/^출고 수량/);
+    const qty = dialog.getByRole('spinbutton', { name: /^출고 수량/ });
     await expect(qty).toBeFocused();
     await page.keyboard.type('1');
     await tabTo(page, dialog.getByRole('button', { name: '저장' }), 20);
@@ -138,10 +140,12 @@ test.describe.serial('키보드만으로 핵심 작업', () => {
     await page.keyboard.press('Enter');
     const dialog = page.getByRole('dialog', { name: '휴가 신청', exact: true });
     await expect(dialog).toBeVisible();
-    // 종류는 기본값(연차) 그대로, 날짜는 숫자를 차례로 입력한다
+    // 종류는 기본값(연차) 그대로, 날짜는 연도 → (→ 키로 다음 칸) → 월·일 순서로 숫자를 입력한다(한국어 날짜 칸: 연도. 월. 일.)
     await expect(dialog.getByLabel('종류')).toHaveValue('annual');
     await tabTo(page, dialog.getByLabel('시작 날짜'), 20);
-    await page.keyboard.type('20261110');
+    await page.keyboard.type('2026');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.type('1110');
     await expect(dialog.getByLabel('시작 날짜')).toHaveValue('2026-11-10');
     await tabTo(page, dialog.getByLabel('사유(선택)'), 20);
     await page.keyboard.type('가족 행사');

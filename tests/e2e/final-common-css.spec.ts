@@ -69,7 +69,7 @@ test.describe.serial('공통 CSS: 인쇄 숫자·도넛 그래프', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     const donut = page.locator('svg.chart[aria-label^="분류별 지출 비중"]');
     await expect(donut).toBeVisible();
-    const arcs = (await donut.evaluate(`(svg) => [...svg.querySelectorAll('[fill="none"]')].map((el) => {
+    const arcs = (await page.evaluate(`[...document.querySelectorAll('svg.chart[aria-label^="분류별 지출 비중"] [fill="none"]')].map((el) => {
       const s = getComputedStyle(el);
       return { cls: el.getAttribute('class') || '', fill: s.fill, stroke: s.stroke };
     })`)) as Array<{ cls: string; fill: string; stroke: string }>;
