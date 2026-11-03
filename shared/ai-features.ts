@@ -37,6 +37,8 @@ export const AI_FEATURE_IDS = [
   'assistant',
   'receipt',
   'monthly_summary',
+  'roster_suggest',
+  'transcribe',
 ] as const;
 export type AiFeatureId = (typeof AI_FEATURE_IDS)[number];
 
@@ -66,11 +68,13 @@ export interface AiFeatureDef {
   output: AiOutputKind;
   /** 사진을 함께 보내는 기능인지(receipt) */
   images: boolean;
+  /** 녹음 파일을 받는 기능인지(transcribe). 이 기능은 /api/ai/run이 아니라 녹음 올리기 주소(POST /api/ai/transcribe)로만 쓴다 */
+  audio?: boolean;
 }
 
 const S = 1000;
 
-/** 14개 기능의 기본값(backend.md §4) */
+/** 기능별 기본값(backend.md §4의 14개 + 이후 추가 기능) */
 export const AI_FEATURES: Readonly<Record<AiFeatureId, AiFeatureDef>> = {
   quick: { id: 'quick', label: '빠른 요청', screen: '대시보드', cap: 'ai.quick', tier: 'fast', userTier: false, timeoutMs: 30 * S, maxTokens: 1024, output: 'text', images: false },
   script: { id: 'script', label: '전화 응대 스크립트', screen: '데스크 > 스크립트', cap: 'ai.script', tier: 'fast', userTier: false, timeoutMs: 30 * S, maxTokens: 1500, output: 'text', images: false },
@@ -86,6 +90,9 @@ export const AI_FEATURES: Readonly<Record<AiFeatureId, AiFeatureDef>> = {
   assistant: { id: 'assistant', label: '원내 AI 도우미', screen: '원내 도우미', cap: 'ai.assistant', tier: 'standard', userTier: false, timeoutMs: 60 * S, maxTokens: 1500, output: 'text', images: false },
   receipt: { id: 'receipt', label: '명세서 사진 읽기', screen: '재고 > 명세서 입고', cap: 'ai.receipt', tier: 'standard', userTier: false, timeoutMs: 90 * S, maxTokens: 2000, output: 'json', images: true },
   monthly_summary: { id: 'monthly_summary', label: '월간 요약 문장', screen: '운영 > 월간 요약', cap: 'ai.monthly_summary', tier: 'fast', userTier: false, timeoutMs: 45 * S, maxTokens: 800, output: 'text', images: false },
+  roster_suggest: { id: 'roster_suggest', label: '근무표 배정 제안', screen: '인사 > 근무표', cap: 'roster.edit', tier: 'standard', userTier: false, timeoutMs: 90 * S, maxTokens: 6000, output: 'json', images: false },
+  // phase-06-task-03: 회의 녹음 받아쓰기. 권한은 회의록 요약과 같은 ai.minutes를 쓴다(권한 표를 늘리지 않음)
+  transcribe: { id: 'transcribe', label: '회의 녹음 받아쓰기', screen: '문서 > 회의록', cap: 'ai.minutes', tier: 'fast', userTier: false, timeoutMs: 300 * S, maxTokens: 16000, output: 'text', images: false, audio: true },
 };
 
 /** 값이 기능 id인지 */

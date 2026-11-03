@@ -1,6 +1,7 @@
 // 이 파일이 하는 일: "회의록 요약" 화면(/docs/minutes, FR-061). 회의 메모를 붙여 넣고 정리하면 AI(minutes)가 결정 사항·할 일(담당 역할·기한)·논의 요약으로 나눠 보여 준다.
 // 할 일은 한 번 눌러 인수인계(모든 직원)나 공지(실장님 이상)로 보낼 수 있다(POST /api/posts, 03-04 공지·인수인계 보드). 정리 결과는 서식 보관함에 회의록으로 저장할 수 있다.
 // 화면의 주 행동(채워진 청록)은 하나만: 정리 전에는 "정리하기", 정리 뒤에는 "회의록 저장"이다.
+// 회의 녹음 파일을 올리면(MinutesRecording, phase-06-task-03) 받아쓴 글이 회의 메모 칸에 들어가고, 그대로 "정리하기"로 이어진다.
 import { useState } from 'react';
 import { AiPanel } from '../../components/AiPanel.tsx';
 import { Button } from '../../components/Button.tsx';
@@ -16,6 +17,8 @@ import { useSession } from '../../lib/session.tsx';
 import { invalidate } from '../../lib/useApi.ts';
 import { can } from '../../../../shared/roles.ts';
 import { createDocument, dueLabel, minutesToMarkdown, readMinutes, todoToPost, type MinutesResult, type MinutesTodo } from './docsLib.ts';
+import { MinutesRecording } from './MinutesRecording.tsx';
+import { transcriptToNotes } from './minutesLib.ts';
 import './docs-pages.css';
 
 /** 할 일을 보낸 상태 */
@@ -32,6 +35,8 @@ export default function MinutesPage() {
   const [sent, setSent] = useState<SentState>({});
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<number | null>(null);
+  // 받아쓴 글을 회의 메모 칸에 넣는다(칸을 새로 그려 처음 값으로 넣음)
+  const [notes, setNotes] = useState({ text: '', version: 0 });
 
   /** AI 결과를 세 묶음으로 */
   const onResult = (r: AiResultView) => {
@@ -78,7 +83,7 @@ export default function MinutesPage() {
     <>
       <PageHeader
         title="회의록 요약"
-        summary="회의 메모를 붙여 넣으면 결정 사항·할 일·요약으로 나눠 드려요. 할 일은 바로 인수인계로 보낼 수 있어요."
+        summary="회의 메모를 붙여 넣거나 회의 녹음 파일을 올리면 결정 사항·할 일·요약으로 나눠 드려요. 할 일은 바로 인수인계로 보낼 수 있어요."
         actions={
           result ? (
             savedId ? (
@@ -97,12 +102,21 @@ export default function MinutesPage() {
           )
         }
       />
+      <MinutesRecording
+        onTranscript={(text) => {
+          setNotes((n) => ({ text: transcriptToNotes(text), version: n.version + 1 }));
+          setResult(null);
+          setBadOutput(false);
+        }}
+      />
       <Card title="회의 메모" id="minutes-input" className={result ? 'doc-ai minutes-done' : 'doc-ai'}>
         <div className="doc-form">
           <Field label="회의 이름">
             <TextInput value={meeting} maxLength={100} onChange={(e) => setMeeting(e.target.value)} />
           </Field>
           <AiPanel
+            key={notes.version}
+            initialText={notes.text}
             feature="minutes"
             label="회의 메모"
             rows={8}

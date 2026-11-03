@@ -93,6 +93,7 @@ type PiiType = 'rrn' | 'phone' | 'email' | 'card' | 'account' | 'passport'
 | GET `/items?status=low|soon_low|expiring|expired&category=&q=` | S | `ItemRow{id,name,category,unit,par,stock,status,nearestExpiry,dday,vendor,lastPrice,priceUpPct}` | 050·052 |
 | POST/PATCH `/items(/:id)` · DELETE(→inactive) | M | 이름 중복이면 `warnings` | 050 |
 | GET `/items/:id` | S | 상세, 로트별 잔량, 최근 기록, 단가 추이 | 050·055 |
+| GET `/items/by-barcode?code=` | S | 바코드로 품목 찾기(스캐너·사진 해독 결과). `{id,name,unit,stock,active}`, 없으면 404. 품목의 `barcode`는 병원 안에서 고유(중복 409) | 130 |
 | POST `/inventory/moves` | S(in·out), M(adjust) | `{itemId, type, qty, unitPrice?, vendorId?, lot?, expiryOn?, reason?}`. out이 재고보다 많으면 `force` 없이는 409 `CONFLICT{needsConfirm}` | 051 |
 | GET `/inventory/moves?itemId&type&from&to` | S | `Page`, `?format=csv` | 051·056 |
 | GET/POST/PATCH `/vendors(/:id)` | 조회 S, 수정 M | | 053 |
@@ -121,6 +122,7 @@ type PiiType = 'rrn' | 'phone' | 'email' | 'card' | 'account' | 'passport'
 | POST `/kb/docs/:id/confirm-redact` | M | needs_review → 가린 뒤 색인 | 070 AC3 |
 | POST `/assistant/ask` | S + cap:ai.assistant | `{question}` → `{answer, sources, found, ai?: AiResult}` | 071 |
 | GET `/assistant/history` · DELETE `/assistant/history` | S(본인) | | 071 AC4 |
+| GET `/ai/transcribe/status` · POST `/ai/transcribe` | S + cap:ai.minutes | 회의 녹음(m4a·mp3·wav·webm, 20MB 이하, 초과 413) → 받아쓴 글(개인정보 가림). 공급자가 음성을 지원하지 않으면(Anthropic) 403 `AI_DISABLED`. 녹음은 디스크에 쓰지 않는다 | 132 |
 
 ### 3.7 hr (`modules/hr`)
 | 메서드 경로 | 권한 | 비고 | FR |
@@ -129,6 +131,8 @@ type PiiType = 'rrn' | 'phone' | 'email' | 'card' | 'account' | 'passport'
 | PUT `/roster/cell` | M | `{userId, date, shiftTypeId|null}` | 081 AC1 |
 | POST `/roster/copy-week` | M | `{fromWeekStart, toWeekStart}` | 081 AC2 |
 | GET/PUT `/shift-types` | 조회 S, 수정 M | | 081 |
+| POST `/roster/suggest` | M | `{weekStart, rules}` → 미리보기(근무표는 바뀌지 않음). AI에는 이름 대신 S1·S2 번호와 직무만 보낸다. 서버가 응답을 다시 검사해 승인 휴가일 근무를 빼고 최소 인원을 채우며, 못 채우면 경고 | 131 |
+| POST `/roster/apply` | M | 미리보기 칸을 그 주 근무표에 적용 | 131 |
 | GET `/leave?mine=1&status=` · POST `/leave` | S | 본인 신청 | 080 |
 | POST `/leave/:id/decide` | M | `{approve, reason?}` → `{request, warnings}` | 080 AC2·4 |
 | POST `/leave/:id/cancel` | 본인(pending일 때만) | | 080 |
@@ -184,6 +188,8 @@ type PiiType = 'rrn' | 'phone' | 'email' | 'card' | 'account' | 'passport'
 | `assistant` | 원내 AI 도우미 | standard | S | 60s | `{question, chunks[]}` → 텍스트(근거 번호 인용) |
 | `receipt` | 명세서 사진 | standard(이미지 지원 모델) | S | 90s | image → JSON `{vendorName,date,lines[],total}` |
 | `monthly_summary` | 월간 요약 문장 | fast | M(화면이 M 전용) | 45s | 집계 숫자 → 텍스트 |
+| `roster_suggest` | 근무표 배정 제안(P2) | standard | M(cap roster.edit) | 90s | `{week, days, staff:[{ref,jobType}], shifts, rules}` → JSON 배정 |
+| `transcribe` | 회의 녹음 받아쓰기(P2) | fast | S(cap ai.minutes) | 300s | 녹음 파일 → 텍스트. OpenAI gpt-transcribe(분 단가), Gemini 오디오 입력. Anthropic은 미지원 |
 
 - 기본 역할은 IDEA 4절의 사용자 결정("전 직원 사용, 관리자 조정")을 따른다. admin은 `/admin/ai`에서 기능별로 허용 역할을 줄일 수 있다.
 

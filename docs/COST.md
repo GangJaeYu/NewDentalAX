@@ -52,6 +52,8 @@
 | Google | 빠름 | `gemini-3.1-flash-lite` | $0.25 | $1.50 | $0.025 | 유료 등급. 예고된 변경 없음 | 2026-11-03 | https://aistudio.google.com/docs/pricing |
 | Google | 표준 | `gemini-3.8-flash` | $0.75 | $3.75 | $0.075 | **2027-01-01부터 $1.50 / $7.50**(두 배) | 2026-11-03 | https://aistudio.google.com/docs/pricing |
 | Google | 고급 | `gemini-4-argon` | $2.00 | $10.00 | $0.10 | **2026-12-01부터 $4.00 / $20.00**(두 배). 무료 등급 없음 | 2026-11-03 | https://aistudio.google.com/docs/pricing |
+| OpenAI | 받아쓰기(P2) | `gpt-transcribe` | 분당 $0.0045 | - | - | 회의 녹음 받아쓰기 전용. 1시간 녹음 약 $0.27(약 390원) | 2026-11-03 | https://developers.openai.com/api/docs/pricing |
+| Google | 받아쓰기(P2) | `gemini-3.1-flash-lite`(오디오 입력) | $0.50 | $1.50 | - | 오디오 입력 단가. 출력은 글 단가 | 2026-11-03 | https://aistudio.google.com/docs/pricing |
 
 - Google 가격 페이지 주소 `https://ai.google.dev/gemini-api/docs/pricing` 은 2026-11-03 현재 위 `aistudio.google.com/docs/pricing` 으로 넘어갑니다(TD-021에 적힌 옛 주소).
 - "캐시 읽기"는 같은 앞부분 글을 반복해 보낼 때 받는 할인 단가입니다. 아래 [비용 절약 팁](#비용-절약-팁) 참고.

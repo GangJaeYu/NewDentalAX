@@ -3,12 +3,14 @@
 // 입출고·조정 기록(재고보다 많은 출고는 확인 필요 409), 입출고 기록 목록, 단가 기록, 거래처 목록·등록·수정을 둔다.
 // 현재고와 상태는 저장하지 않고 조회할 때 입출고 합으로 계산한다(stock.ts). 상태를 바꾸는 함수는 모두 감사 로그를 남긴다.
 // 출고·조정으로 품목이 "부족"이 되면 실장 이상에게 알림을 보낸다(같은 날 같은 품목은 한 번, notify.ts).
+// 품목 바코드(FR-130)는 병원 안에서 겹치지 않게 저장하고, 바코드로 품목 하나를 찾는 함수(findItemByBarcode)가 있다.
 import type { Db } from '../../db/index.ts';
 import type { Clock } from '../../lib/clock.ts';
 import { AppError, validationError } from '../../lib/errors.ts';
 import { audit, type AuditContext } from '../../lib/audit.ts';
 import { kstDayRangeUtc, todayKst } from '../../lib/dates.ts';
 import {
+  normalizeBarcode,
   STOCK_STATUSES,
   type InventorySettings,
   type ItemCreateInput,
@@ -45,11 +47,12 @@ interface ItemDb {
   vendor_name: string | null;
   location: string | null;
   memo: string | null;
+  barcode: string | null;
   active: number;
 }
 
 const ITEM_SELECT = `SELECT i.id, i.name, i.category, i.unit, i.par_level, i.track_expiry, i.default_vendor_id, v.name AS vendor_name,
-  i.location, i.memo, i.active FROM items i LEFT JOIN vendors v ON v.id = i.default_vendor_id`;
+  i.location, i.memo, i.barcode, i.active FROM items i LEFT JOIN vendors v ON v.id = i.default_vendor_id`;
 
 /** 품목별 입출고 합계·로트·최근 단가 */
 interface Agg {
@@ -138,6 +141,7 @@ function toRow(i: ItemDb, agg: Agg | undefined, today: string, s: InventorySetti
     vendor: i.vendor_name,
     location: i.location,
     memo: i.memo,
+    barcode: i.barcode,
     active: i.active === 1,
     lastPrice: a.last,
     priceChangePct: change,
@@ -208,8 +212,9 @@ export function listItems(db: Db, clock: Clock, q: ItemListQuery = {}): ItemPage
   }
   const word = q.q?.trim();
   if (word) {
-    cond.push("(i.name LIKE ? ESCAPE '\\' OR i.category LIKE ? ESCAPE '\\' OR IFNULL(i.location, '') LIKE ? ESCAPE '\\')");
-    params.push(likeText(word), likeText(word), likeText(word));
+    // 바코드는 글자가 정확히 같을 때만 찾는다(숫자 일부만 같은 다른 품목이 섞이지 않게)
+    cond.push("(i.name LIKE ? ESCAPE '\\' OR i.category LIKE ? ESCAPE '\\' OR IFNULL(i.location, '') LIKE ? ESCAPE '\\' OR i.barcode = ?)");
+    params.push(likeText(word), likeText(word), likeText(word), word);
   }
   const items = db.all<ItemDb>(`${ITEM_SELECT} ${cond.length ? `WHERE ${cond.join(' AND ')}` : ''}`, params);
   const agg = aggregate(db, null);
@@ -273,16 +278,39 @@ function duplicateWarnings(db: Db, name: string, exceptId: number | null): strin
   return [`같은 이름의 품목이 이미 있어요${dup.active ? '' : '(사용 안 함)'}. 같은 물건이면 기존 품목을 써 주세요.`];
 }
 
+/** 다른 품목이 이미 쓰는 바코드면 409(어느 품목인지 알려 준다) */
+function assertBarcodeFree(db: Db, barcode: string | null | undefined, exceptId: number | null): void {
+  if (!barcode) return;
+  const other = db.get<{ id: number; name: string; active: number }>('SELECT id, name, active FROM items WHERE barcode = ? AND id <> ?', [barcode, exceptId ?? 0]);
+  if (!other) return;
+  const msg = `이 바코드는 이미 "${other.name}"${other.active ? '' : '(사용 안 함)'} 품목에 등록돼 있어요. 바코드를 다시 확인해 주세요.`;
+  throw new AppError('CONFLICT', { message: msg, fields: { barcode: msg } });
+}
+
+/**
+ * 바코드로 품목 하나를 찾는다(FR-130). 앞뒤 공백은 지우고 비교한다.
+ * 없으면 404와 쉬운 안내. "사용 안 함" 품목도 돌려준다(화면이 출고 대신 안내를 보여 준다).
+ */
+export function findItemByBarcode(db: Db, clock: Clock, code: string): ItemRow {
+  const barcode = normalizeBarcode(code);
+  const found = barcode ? db.get<{ id: number }>('SELECT id FROM items WHERE barcode = ?', [barcode]) : undefined;
+  if (!found) {
+    throw new AppError('NOT_FOUND', { message: '이 바코드로 등록된 품목이 없어요. 품목 수정에서 바코드를 넣어 주세요.', extra: { barcode } });
+  }
+  return itemRow(db, clock, found.id);
+}
+
 /** 품목을 등록한다(M). 같은 이름이 있으면 저장하고 warnings로 알린다 */
 export function createItem(ctx: AuditContext, input: ItemCreateInput): ItemSaveResult {
   const { db, clock } = ctx;
   assertVendor(db, input.vendorId);
+  assertBarcodeFree(db, input.barcode, null);
   const warnings = duplicateWarnings(db, input.name, null);
   const now = clock.now().toISOString();
   const id = db.tx(() => {
     const r = db.run(
-      'INSERT INTO items (name, category, unit, par_level, track_expiry, default_vendor_id, location, memo, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
-      [input.name, input.category, input.unit, input.par, input.trackExpiry, input.vendorId ?? null, input.location ?? null, input.memo ?? null, now, now],
+      'INSERT INTO items (name, category, unit, par_level, track_expiry, default_vendor_id, location, memo, barcode, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
+      [input.name, input.category, input.unit, input.par, input.trackExpiry, input.vendorId ?? null, input.location ?? null, input.memo ?? null, input.barcode ?? null, now, now],
     );
     audit(ctx, 'item.create', 'item', r.lastInsertRowid, { name: input.name, category: input.category, duplicateName: warnings.length > 0 });
     return r.lastInsertRowid;
@@ -295,6 +323,7 @@ export function updateItem(ctx: AuditContext, id: number, input: ItemPatchInput)
   const { db, clock } = ctx;
   getItemDb(db, id);
   if (input.vendorId !== undefined) assertVendor(db, input.vendorId);
+  if (input.barcode !== undefined) assertBarcodeFree(db, input.barcode, id);
   const map: Array<[keyof ItemPatchInput, string]> = [
     ['name', 'name'],
     ['category', 'category'],
@@ -304,6 +333,7 @@ export function updateItem(ctx: AuditContext, id: number, input: ItemPatchInput)
     ['vendorId', 'default_vendor_id'],
     ['location', 'location'],
     ['memo', 'memo'],
+    ['barcode', 'barcode'],
     ['active', 'active'],
   ];
   const sets: string[] = [];

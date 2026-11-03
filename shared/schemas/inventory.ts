@@ -1,6 +1,7 @@
 // 이 파일이 하는 일: 재고(품목·거래처·입출고·단가, FR-050~055)의 API 모양과 입력 검사 규칙을 서버와 화면이 함께 쓰게 둔다.
 // 입력 검사는 zod 스키마로 하고, 틀리면 항목별 쉬운 한국어 이유가 나간다. 상태 이름(low·soon_low·expiring·expired·ok)의 한국어 표기도 여기 있다.
 // 거래처 연락처는 사업자 정보라 저장하지만 AI 입력에는 넣지 않는다(FR-053 AC1). 환자 정보 항목은 두지 않는다.
+// 품목 바코드(FR-130)는 글자로 두고, 앞뒤 공백을 지운 값이 병원 안에서 겹치지 않아야 한다(normalizeBarcode).
 // shared 폴더는 다른 폴더를 import하지 않는다(zod만 쓴다).
 import { z } from 'zod';
 
@@ -53,6 +54,8 @@ export interface ItemRow {
   vendor: string | null;
   location: string | null;
   memo: string | null;
+  /** 바코드 값(EAN-13·Code128·QR 등, 없으면 null) */
+  barcode: string | null;
   active: boolean;
   /** 최근 입고 단가(없으면 null) */
   lastPrice: number | null;
@@ -178,6 +181,41 @@ const dateText = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, '날짜는 2026-11-14 형식으로 적어 주세요.')
   .refine((s) => !Number.isNaN(new Date(`${s}T00:00:00Z`).getTime()) && new Date(`${s}T00:00:00Z`).toISOString().startsWith(s), '없는 날짜예요. 다시 확인해 주세요.');
 
+/** 바코드 최대 길이 */
+export const BARCODE_MAX = 64;
+
+/**
+ * 바코드 글자를 비교하기 좋게 다듬는다: 앞뒤 공백·줄바꿈을 지운다. 비면 null.
+ * 스캐너가 끝에 붙이는 Enter·Tab 글자도 여기서 사라진다.
+ */
+export function normalizeBarcode(v: string | null | undefined): string | null {
+  if (v === null || v === undefined) return null;
+  const t = v.replace(/^[\s\p{Cc}]+|[\s\p{Cc}]+$/gu, '');
+  return t ? t : null;
+}
+
+/** 바코드 글자가 쓸 수 있는 값인지(제어 문자 없음, 64자 이하). 문제가 있으면 쉬운 이유, 없으면 null */
+export function barcodeProblem(v: string): string | null {
+  if (v.length > BARCODE_MAX) return `바코드는 ${BARCODE_MAX}자 안이어야 해요(지금 ${v.length}자).`;
+  if (/\p{Cc}/u.test(v)) return '바코드에 쓸 수 없는 글자(줄바꿈·탭 등)가 들어 있어요.';
+  return null;
+}
+
+/** 바코드 입력 칸: 빈 값·null은 "바코드 없음"(null), 값은 다듬어서 검사한다 */
+const barcodeField = z
+  .union([z.string({ error: '바코드를 글자로 적어 주세요.' }), z.null()])
+  .transform((v, ctx): string | null => {
+    const t = normalizeBarcode(v);
+    if (t === null) return null;
+    const p = barcodeProblem(t);
+    if (p) {
+      ctx.addIssue({ code: 'custom', message: p });
+      return z.NEVER;
+    }
+    return t;
+  })
+  .optional();
+
 /** 품목 등록 입력 */
 export const itemCreateSchema = z
   .object({
@@ -189,6 +227,7 @@ export const itemCreateSchema = z
     vendorId: z.union([z.number().int().positive(), z.null()]).optional().default(null),
     location: optText(40, '보관 위치'),
     memo: optText(300, '메모'),
+    barcode: barcodeField,
   })
   .strict();
 export type ItemCreateInput = z.output<typeof itemCreateSchema>;
@@ -204,6 +243,7 @@ export const itemPatchSchema = z
     vendorId: z.union([z.number().int().positive(), z.null()]).optional(),
     location: optText(40, '보관 위치'),
     memo: optText(300, '메모'),
+    barcode: barcodeField,
     active: z.boolean().optional(),
   })
   .strict();

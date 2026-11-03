@@ -2,6 +2,7 @@
 // 최근 90일 입출고 기록을 넣는다. 날마다 쓰고(출고) 적정 재고 아래로 내려가면 다시 들여오는(입고) 흐름을 정해진 난수로 흉내 내므로 매번 같은 데이터가 나온다.
 // 화면 시연을 위해 일부 품목은 일부러 부족·곧 부족·유효기간 임박·만료·단가 인상(니트릴 글러브 M 8,400원 → 8,900원) 상태로 끝나게 맞춘다.
 // 거래처는 모두 가상 사업자이고(연락처는 예시 번호·example 주소), 환자 정보는 없다. scale=10이면 품목을 10배(이름 뒤 번호)로 늘린다(NFR-005).
+// 일부 품목에는 바코드(FR-130)를 넣는다: 매장 안 전용 번호대(200~)로 만든 가상 EAN-13과 Code128 글자라 실제 상품 번호와 겹치지 않는다.
 // 모양은 server/db/seed/types.ts의 ModuleSeed다. 등록은 server/db/seed/registry.ts가 이미 해 두었다.
 import type { Db } from '../../db/index.ts';
 import type { SeedContext } from '../../db/seed/types.ts';
@@ -39,6 +40,8 @@ interface DemoItem {
   expiryIn?: number;
   /** 마지막 입고 단가 */
   upPrice?: number;
+  /** 바코드 값(가상, 첫 번째 사본에만 넣는다) */
+  barcode?: string;
 }
 
 const D = 540; // 보통 재료·약품의 유효기간(입고 뒤 날 수)
@@ -46,30 +49,30 @@ const D = 540; // 보통 재료·약품의 유효기간(입고 뒤 날 수)
 /** 데모 품목 목록(하늘숲치과 소모품실 기준) */
 export const DEMO_ITEMS: readonly DemoItem[] = [
   // 소모품 — 한빛덴탈
-  { name: '니트릴 글러브 S', category: '소모품', unit: '박스', par: 6, price: 8400, vendor: 0, location: '소모품실 A-1' },
-  { name: '니트릴 글러브 M', category: '소모품', unit: '박스', par: 6, price: 8400, vendor: 0, location: '소모품실 A-1', target: 2, upPrice: 8900 },
-  { name: '니트릴 글러브 L', category: '소모품', unit: '박스', par: 4, price: 8400, vendor: 0, location: '소모품실 A-1' },
+  { name: '니트릴 글러브 S', category: '소모품', unit: '박스', par: 6, price: 8400, vendor: 0, location: '소모품실 A-1', barcode: '2001000000012' },
+  { name: '니트릴 글러브 M', category: '소모품', unit: '박스', par: 6, price: 8400, vendor: 0, location: '소모품실 A-1', target: 2, upPrice: 8900, barcode: '2001000000029' },
+  { name: '니트릴 글러브 L', category: '소모품', unit: '박스', par: 4, price: 8400, vendor: 0, location: '소모품실 A-1', barcode: '2001000000036' },
   { name: '라텍스 글러브 M', category: '소모품', unit: '박스', par: 3, price: 7200, vendor: 0, location: '소모품실 A-1' },
-  { name: '덴탈 마스크', category: '소모품', unit: '박스', par: 8, price: 4500, vendor: 0, location: '소모품실 A-2' },
+  { name: '덴탈 마스크', category: '소모품', unit: '박스', par: 8, price: 4500, vendor: 0, location: '소모품실 A-2', barcode: '2001000000050' },
   { name: '석션 팁 (일회용)', category: '소모품', unit: '봉', par: 4, price: 4200, vendor: 0, location: '소모품실 A-3', target: 1 },
   { name: '배엽 팁', category: '소모품', unit: '봉', par: 3, price: 3800, vendor: 0, location: '소모품실 A-3' },
   { name: '에어워터 시린지 팁', category: '소모품', unit: '봉', par: 3, price: 9500, vendor: 0, location: '소모품실 A-3' },
   { name: '일회용 앞치마', category: '소모품', unit: '팩', par: 4, price: 6500, vendor: 0, location: '소모품실 A-4' },
   { name: '턱받이 (일회용)', category: '소모품', unit: '팩', par: 6, price: 5200, vendor: 0, location: '소모품실 A-4' },
   { name: '치과용 종이컵', category: '소모품', unit: '줄', par: 10, price: 2500, vendor: 0, location: '소모품실 A-4' },
-  { name: '거즈 2×2', category: '소모품', unit: '팩', par: 10, price: 3200, vendor: 0, location: '소모품실 A-5' },
-  { name: '코튼롤', category: '소모품', unit: '봉', par: 8, price: 2800, vendor: 0, location: '소모품실 A-5' },
+  { name: '거즈 2×2', category: '소모품', unit: '팩', par: 10, price: 3200, vendor: 0, location: '소모품실 A-5', barcode: '2001000000128' },
+  { name: '코튼롤', category: '소모품', unit: '봉', par: 8, price: 2800, vendor: 0, location: '소모품실 A-5', barcode: '2001000000135' },
   { name: '면봉', category: '소모품', unit: '봉', par: 5, price: 1500, vendor: 0, location: '소모품실 A-5' },
   { name: '일회용 미러', category: '소모품', unit: '봉', par: 3, price: 11000, vendor: 0, location: '소모품실 A-6' },
   { name: '연마컵', category: '소모품', unit: '봉', par: 3, price: 12000, vendor: 0, location: '소모품실 A-6' },
   { name: '러버댐 시트', category: '소모품', unit: '박스', par: 2, price: 28000, vendor: 0, location: '소모품실 A-6' },
   { name: '일회용 비닐 커버', category: '소모품', unit: '롤', par: 3, price: 8800, vendor: 0, location: '소모품실 A-6' },
   // 감염관리 — 청정위생
-  { name: '멸균 파우치 90×260', category: '감염관리', unit: '팩', par: 5, price: 12000, vendor: 3, location: '멸균실 선반 1', target: 6 },
+  { name: '멸균 파우치 90×260', category: '감염관리', unit: '팩', par: 5, price: 12000, vendor: 3, location: '멸균실 선반 1', target: 6, barcode: 'HS-STER-090' },
   { name: '멸균 파우치 135×280', category: '감염관리', unit: '팩', par: 4, price: 14500, vendor: 3, location: '멸균실 선반 1' },
   { name: '멸균 롤 100mm', category: '감염관리', unit: '롤', par: 2, price: 21000, vendor: 3, location: '멸균실 선반 1' },
-  { name: '표면 소독 티슈', category: '감염관리', unit: '통', par: 6, price: 9800, vendor: 3, location: '멸균실 선반 2', shelf: D },
-  { name: '손 소독제 500ml', category: '감염관리', unit: '개', par: 6, price: 6500, vendor: 3, location: '멸균실 선반 2', shelf: D },
+  { name: '표면 소독 티슈', category: '감염관리', unit: '통', par: 6, price: 9800, vendor: 3, location: '멸균실 선반 2', shelf: D, barcode: '2003000000221' },
+  { name: '손 소독제 500ml', category: '감염관리', unit: '개', par: 6, price: 6500, vendor: 3, location: '멸균실 선반 2', shelf: D, barcode: '2004000000235' },
   { name: '기구 세척제 (효소)', category: '감염관리', unit: '통', par: 2, price: 32000, vendor: 3, location: '멸균실 선반 2', shelf: D },
   { name: '멸균 인디케이터 테이프', category: '감염관리', unit: '개', par: 4, price: 7800, vendor: 3, location: '멸균실 선반 3' },
   { name: 'BI 테스트 키트', category: '감염관리', unit: '박스', par: 1, price: 65000, vendor: 3, location: '멸균실 선반 3', shelf: 365 },
@@ -78,7 +81,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
   { name: '차아염소산 소독액', category: '감염관리', unit: '통', par: 2, price: 9000, vendor: 3, location: '멸균실 선반 2', shelf: 365, target: 3, expiryIn: -3 },
   { name: '기구 소독 침지액', category: '감염관리', unit: '통', par: 2, price: 24000, vendor: 3, location: '멸균실 선반 2', shelf: D },
   // 재료 — 미소치재
-  { name: '복합레진 A2', category: '재료', unit: '개', par: 4, price: 32000, vendor: 1, location: '진료실 재료장 1', shelf: D, target: 6, expiryIn: 12 },
+  { name: '복합레진 A2', category: '재료', unit: '개', par: 4, price: 32000, vendor: 1, location: '진료실 재료장 1', shelf: D, target: 6, expiryIn: 12, barcode: '2002000000415' },
   { name: '복합레진 A3', category: '재료', unit: '개', par: 4, price: 32000, vendor: 1, location: '진료실 재료장 1', shelf: D },
   { name: '플로어블 레진 A2', category: '재료', unit: '개', par: 3, price: 28000, vendor: 1, location: '진료실 재료장 1', shelf: D },
   { name: '본딩제', category: '재료', unit: '병', par: 2, price: 45000, vendor: 1, location: '진료실 재료장 1', shelf: D },
@@ -124,7 +127,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
   { name: '나무 웨지', category: '기구', unit: '봉', par: 3, price: 6000, vendor: 1, location: '진료실 서랍 2' },
   { name: '임플란트 드릴 세척 브러시', category: '기구', unit: '봉', par: 2, price: 9000, vendor: 0, location: '멸균실 선반 4' },
   // 사무·기타 — 오피스나라
-  { name: 'A4 용지', category: '사무·기타', unit: '박스', par: 2, price: 28000, vendor: 4, location: '데스크 창고' },
+  { name: 'A4 용지', category: '사무·기타', unit: '박스', par: 2, price: 28000, vendor: 4, location: '데스크 창고', barcode: '2005000000478' },
   { name: '영수증 감열지', category: '사무·기타', unit: '롤', par: 10, price: 1200, vendor: 4, location: '데스크 서랍' },
   { name: '프린터 토너', category: '사무·기타', unit: '개', par: 1, price: 89000, vendor: 4, location: '데스크 창고' },
   { name: '핸드타월', category: '사무·기타', unit: '박스', par: 4, price: 22000, vendor: 4, location: '창고' },
@@ -233,8 +236,9 @@ export function seedDemo(db: Db, ctx: SeedContext): void {
         const name = copy === 0 ? item.name : `${item.name} (${copy + 1})`;
         const vendorId = vendorIds[item.vendor] ?? null;
         const r = db.run(
-          'INSERT INTO items (name, category, unit, par_level, track_expiry, default_vendor_id, location, memo, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 1, ?, ?)',
-          [name, item.category, item.unit, item.par, item.shelf ? 1 : 0, vendorId, item.location, at(-90, 9 * 60), nowIso],
+          'INSERT INTO items (name, category, unit, par_level, track_expiry, default_vendor_id, location, memo, barcode, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, 1, ?, ?)',
+          // 바코드는 병원 안에서 겹치면 안 되므로 첫 번째 사본(scale=1 기준 품목)에만 넣는다
+          [name, item.category, item.unit, item.par, item.shelf ? 1 : 0, vendorId, item.location, copy === 0 ? (item.barcode ?? null) : null, at(-90, 9 * 60), nowIso],
         );
         const itemId = r.lastInsertRowid;
         const plan = planItem(item, 1000 + idx * 7919 + copy * 104729, today);

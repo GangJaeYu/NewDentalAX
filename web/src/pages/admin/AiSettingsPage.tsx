@@ -3,7 +3,7 @@
 // 모델 이름·단가 표 편집(그 뒤 호출부터 새 단가로 비용 계산, FR-036 AC2), AI 시험해 보기(AiPanel), 서비스 이용 고지를 한 화면에 둔다.
 // 서버 API: GET/PUT /api/ai/settings, POST /api/ai/test, GET/PUT /api/ai/models(backend.md §3.10).
 import { useState, type ReactNode } from 'react';
-import { AI_PROVIDER_LABELS, AI_PROVIDERS, AI_TIER_LABELS, AI_TIERS, REAL_PROVIDERS, type AiProvider, type AiTier, type RealProvider } from '../../../../shared/ai-features.ts';
+import { AI_FEATURE_IDS, AI_PROVIDER_LABELS, AI_PROVIDERS, AI_TIER_LABELS, AI_TIERS, REAL_PROVIDERS, type AiProvider, type AiTier, type RealProvider } from '../../../../shared/ai-features.ts';
 import { ROLE_LABELS, type Role } from '../../../../shared/roles.ts';
 import { AiPanel } from '../../components/AiPanel.tsx';
 import { Button } from '../../components/Button.tsx';
@@ -451,7 +451,7 @@ export default function AiSettingsPage() {
             </div>
           ))}
         </Card>
-        <Card title="기능별 사용" id="ai-features" className="wide" sub="14개 기능">
+        <Card title="기능별 사용" id="ai-features" className="wide" sub={`${AI_FEATURE_IDS.length}개 기능`}>
           {loadingOr((v) => (
             <FeaturesForm key={fKey} features={v.features} />
           ))}

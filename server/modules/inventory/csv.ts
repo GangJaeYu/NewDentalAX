@@ -3,6 +3,7 @@
 // 가져오기: 올린 파일(UTF-8·CP949 자동 판별)을 줄마다 검사해 신규·변경·변경 없음·오류로 나눈 미리보기를 만들고,
 // 확정하면 그 사이 바뀐 것까지 반영하도록 다시 검사한 뒤 한 번에 저장한다. 오류 줄이 있으면 "오류 줄 건너뛰기"를 골라야만 저장한다.
 // 품목은 품목명(대소문자·앞뒤 공백 무시)으로 기존 품목과 맞춘다. 빈 칸은 "그대로 둠"이다. 환자 정보는 다루지 않는다.
+// 바코드 열(FR-130, phase-06-task-01)도 함께 읽고 쓴다. 다른 품목이 쓰는 바코드이거나 파일 안에서 두 번 나오면 그 줄은 오류다.
 import { randomBytes } from 'node:crypto';
 import type { Db } from '../../db/index.ts';
 import type { Clock } from '../../lib/clock.ts';
@@ -10,7 +11,7 @@ import { AppError } from '../../lib/errors.ts';
 import { audit, type AuditContext } from '../../lib/audit.ts';
 import { kstParts } from '../../lib/dates.ts';
 import { decodeCsvBytes, parseCsvRows, toCsv } from '../../lib/csv.ts';
-import { MOVE_TYPE_LABELS, STOCK_STATUS_LABELS } from '../../../shared/schemas/inventory.ts';
+import { barcodeProblem, MOVE_TYPE_LABELS, normalizeBarcode, STOCK_STATUS_LABELS } from '../../../shared/schemas/inventory.ts';
 import {
   IMPORT_FIELD_LABELS,
   IMPORT_FIELDS,
@@ -47,7 +48,7 @@ export function kstStamp(clock: Clock): string {
   return kstMinute(clock.now().toISOString()).slice(0, 10);
 }
 
-/** 품목 CSV 열 이름(앞 8칸은 가져오기 양식과 같다) */
+/** 품목 CSV 열 이름(앞 9칸은 가져오기 양식과 같다) */
 const ITEM_EXPORT_HEADER = [...IMPORT_FIELDS.map((f) => IMPORT_FIELD_LABELS[f]), '현재고', '상태', '가장 빠른 유효기간', '최근 입고 단가', '사용 여부'];
 
 /** 품목 전체(사용 안 함 포함)를 CSV로 */
@@ -67,6 +68,7 @@ export function itemsCsv(db: Db, clock: Clock): { csv: string; rows: number } {
       i.vendor ?? '',
       i.location ?? '',
       i.memo ?? '',
+      i.barcode ?? '',
       i.stock,
       STOCK_STATUS_LABELS[i.status],
       i.nearestExpiry ?? '',
@@ -116,7 +118,7 @@ export function movesCsv(db: Db, q: Omit<MoveListQuery, 'page' | 'pageSize'> = {
 export function templateCsv(): string {
   return toCsv([
     IMPORT_FIELDS.map((f) => IMPORT_FIELD_LABELS[f]),
-    ['일회용 마스크(50매)', '소모품', '박스', 10, '아니오', '', '소모품 선반 2칸', '예시 줄이에요. 지우고 써 주세요.'],
+    ['일회용 마스크(50매)', '소모품', '박스', 10, '아니오', '', '소모품 선반 2칸', '예시 줄이에요. 지우고 써 주세요.', ''],
   ]);
 }
 
@@ -145,6 +147,11 @@ const HEADER_ALIASES: Record<string, ImportField> = {
   location: 'location',
   메모: 'memo',
   memo: 'memo',
+  바코드: 'barcode',
+  바코드값: 'barcode',
+  barcode: 'barcode',
+  qr: 'barcode',
+  qr코드: 'barcode',
 };
 
 /** 열 이름을 비교하기 쉽게: "적정 재고*(개)" → "적정재고" */
@@ -187,6 +194,7 @@ interface ExistingItem {
   vendor_name: string | null;
   location: string | null;
   memo: string | null;
+  barcode: string | null;
   active: number;
 }
 
@@ -247,10 +255,15 @@ export function planImport(db: Db, text: string): { rows: PlannedRow[]; ignored:
   }
 
   const existing = new Map<string, ExistingItem>();
+  /** 바코드 → 그 바코드를 쓰는 기존 품목 */
+  const barcodeOwner = new Map<string, ExistingItem>();
+  /** 파일 안에서 바코드가 처음 나온 줄 */
+  const seenBarcode = new Map<string, number>();
   for (const it of db.all<ExistingItem>(
-    'SELECT i.id, i.name, i.category, i.unit, i.par_level, i.track_expiry, i.default_vendor_id, v.name AS vendor_name, i.location, i.memo, i.active FROM items i LEFT JOIN vendors v ON v.id = i.default_vendor_id ORDER BY i.active DESC, i.id',
+    'SELECT i.id, i.name, i.category, i.unit, i.par_level, i.track_expiry, i.default_vendor_id, v.name AS vendor_name, i.location, i.memo, i.barcode, i.active FROM items i LEFT JOIN vendors v ON v.id = i.default_vendor_id ORDER BY i.active DESC, i.id',
   )) {
     if (!existing.has(keyOf(it.name))) existing.set(keyOf(it.name), it);
+    if (it.barcode) barcodeOwner.set(it.barcode, it);
   }
   const vendors = new Map<string, { id: number; name: string }>();
   for (const v of db.all<{ id: number; name: string }>('SELECT id, name FROM vendors ORDER BY active DESC, id')) if (!vendors.has(keyOf(v.name))) vendors.set(keyOf(v.name), v);
@@ -264,7 +277,7 @@ export function planImport(db: Db, text: string): { rows: PlannedRow[]; ignored:
     };
     const errors: string[] = [];
     const notes: string[] = [];
-    const data: ImportRowData = { name: null, category: null, unit: null, par: null, trackExpiry: null, vendor: null, location: null, memo: null };
+    const data: ImportRowData = { name: null, category: null, unit: null, par: null, trackExpiry: null, vendor: null, location: null, memo: null, barcode: null };
 
     for (const f of ['name', 'category', 'unit', 'vendor', 'location', 'memo'] as const) {
       const v = raw(f);
@@ -311,6 +324,21 @@ export function planImport(db: Db, text: string): { rows: PlannedRow[]; ignored:
       if (data.par === null && !errors.some((e) => e.startsWith('적정 재고'))) errors.push('새 품목은 적정 재고를 꼭 적어 주세요(모르면 0).');
     }
 
+    // 바코드: 앞뒤 공백을 지우고, 쓸 수 없는 글자·다른 품목과 겹침·파일 안 중복을 오류로 둔다
+    const code = normalizeBarcode(raw('barcode'));
+    if (code) {
+      const problem = barcodeProblem(code);
+      const owner = barcodeOwner.get(code);
+      const firstLine = seenBarcode.get(code);
+      if (problem) errors.push(problem);
+      else if (owner && owner.id !== ex?.id) errors.push(`바코드 "${code}"는 이미 "${owner.name}" 품목이 쓰고 있어요. 바코드를 다시 확인해 주세요.`);
+      else if (firstLine !== undefined) errors.push(`같은 바코드가 파일 안에 또 있어요(${firstLine}번 줄). 품목마다 다른 바코드를 적어 주세요.`);
+      else {
+        seenBarcode.set(code, line);
+        data.barcode = code;
+      }
+    }
+
     const changes: ImportChange[] = [];
     if (ex) {
       const cmp = (field: ImportField, from: string | number | boolean | null, to: string | number | boolean | null) => {
@@ -326,6 +354,7 @@ export function planImport(db: Db, text: string): { rows: PlannedRow[]; ignored:
       if (vendorId !== undefined && vendorId !== ex.default_vendor_id) changes.push({ field: 'vendor', label: IMPORT_FIELD_LABELS.vendor, from: show(ex.vendor_name), to: show(data.vendor) });
       cmp('location', ex.location, data.location);
       cmp('memo', ex.memo, data.memo);
+      cmp('barcode', ex.barcode, data.barcode);
       if (ex.active !== 1) notes.push('"사용 안 함" 품목이에요. 내용만 바뀌고 사용 안 함 상태는 그대로예요.');
     }
 
@@ -406,14 +435,14 @@ export function commitImport(ctx: AuditContext, token: string, skipErrors: boole
     for (const r of rows) {
       if (r.action === 'new') {
         db.run(
-          'INSERT INTO items (name, category, unit, par_level, track_expiry, default_vendor_id, location, memo, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
-          [r.data.name, r.data.category, r.data.unit, r.data.par ?? 0, r.data.trackExpiry ? 1 : 0, r.vendorId ?? null, r.data.location, r.data.memo, iso, iso],
+          'INSERT INTO items (name, category, unit, par_level, track_expiry, default_vendor_id, location, memo, barcode, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
+          [r.data.name, r.data.category, r.data.unit, r.data.par ?? 0, r.data.trackExpiry ? 1 : 0, r.vendorId ?? null, r.data.location, r.data.memo, r.data.barcode, iso, iso],
         );
         created += 1;
       } else if (r.action === 'update' && r.itemId) {
         const sets: string[] = [];
         const params: (string | number | null)[] = [];
-        const col: Record<ImportField, string> = { name: 'name', category: 'category', unit: 'unit', par: 'par_level', trackExpiry: 'track_expiry', vendor: 'default_vendor_id', location: 'location', memo: 'memo' };
+        const col: Record<ImportField, string> = { name: 'name', category: 'category', unit: 'unit', par: 'par_level', trackExpiry: 'track_expiry', vendor: 'default_vendor_id', location: 'location', memo: 'memo', barcode: 'barcode' };
         for (const c of r.changes) {
           sets.push(`${col[c.field]} = ?`);
           if (c.field === 'vendor') params.push(r.vendorId ?? null);

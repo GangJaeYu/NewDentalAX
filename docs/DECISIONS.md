@@ -132,3 +132,7 @@
 | 2026-11-03 | npm run perf도 측정하는 동안 PC 공용 무거운 검사 자리를 잡는다 | 05-01 검증 1차 측정이 다른 e2e와 겹쳐 FAIL 수치가 나왔다 |
 | 2026-11-03 | 빌드된 화면 파일 web/dist를 저장소에 넣는다. 화면 코드를 바꾸면 npm run build:web 뒤 함께 커밋한다 | 설치 PC는 start.bat이 npm ci --omit=dev로 실행용 패키지만 받아 vite로 빌드할 수 없다 |
 | 2026-11-03 | unit 게이트도 PC 공용 무거운 검사 자리(2개)를 잡는다 | 여러 검증 세션이 동시에 돌 때 실제 서버 실행 unit 테스트가 20~30초 시간 초과로 반복 FAIL했다(05-05·06-01 검증) |
+| 2026-11-03 | 사진 바코드 해독에 @zxing/library 0.21.3(Apache-2.0, 순수 JS, eval·WebAssembly 없음)을 devDependencies로 추가한다. 화면 번들에만 들어가고 사진을 고를 때만 불러온다. 바코드 조회는 GET /api/items/by-barcode?code=, items.barcode는 부분 고유 색인(022) (06-01) | Windows Edge에는 BarcodeDetector가 없고, CSP(eval·wasm 금지)를 지켜야 한다. 설치 PC(--omit=dev)는 빌드된 web/dist만 쓴다 |
+| 2026-11-03 | roster_suggest는 새 권한 없이 roster.edit(실장 이상)를 쓰고, AI에는 S1·S2 번호와 직무만 보낸다. 서버가 응답을 다시 검사해 휴가일 근무 제거·최소 인원 보충을 하고, 못 채우면 경고한다. 데모 공급자는 규칙 기반 제안 (06-02) | 적용 권한과 같게, 직원 이름을 AI로 보내지 않기 위해, AC를 AI 품질에 맡기지 않기 위해 |
+| 2026-11-03 | transcribe는 ai.minutes 권한을 쓴다. OpenAI는 gpt-transcribe(분 단가, server/ai/transcribe.ts TRANSCRIBE_PRICING), Gemini는 오디오 입력(14MB 초과는 Files API 뒤 삭제), Anthropic은 미지원 안내. 녹음은 m4a·mp3·wav·webm 20MB 이하, 디스크에 쓰지 않는다. 공급자 호출은 gateway.ts callAudioProvider만 한다 (06-03) | 05-02 규칙(공급자 호출은 게이트웨이만), 녹음 파일 보관 위험 줄이기 |
+| 2026-11-03 | P2 병합 때 API_RULES에 /roster/suggest·/roster/apply(roster.edit), /ai/transcribe(ai.minutes)를 추가했다 | 05-02 결정(주소만으로 권한이 정해지는 경로는 표에도 둔다) |
