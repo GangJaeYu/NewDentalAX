@@ -1,6 +1,6 @@
 ---
 id: phase-06-task-03
-status: in_progress
+status: completed
 phase: "06"
 title: "회의 녹음 파일 → 회의록"
 depends_on: [phase-05-task-05]
