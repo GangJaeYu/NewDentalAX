@@ -74,3 +74,20 @@ button.roster-cell:focus-visible { outline: 2px solid var(--accent); outline-off
   .roster-paper .roster-table td.today { background: transparent !important; }
   .roster-paper .chip { border: 1px solid #DCE4E3; }
 }
+
+/* AI 배정 제안 대화상자(phase-06-task-02). 미리보기 표는 근무표와 같은 .roster-table 모양을 쓰고, 바뀌는 칸은 청록 테두리로 표시한다(글자 "(바뀜)"도 화면 읽기에 들어감) */
+.rs-form, .rs-preview { display: grid; gap: 12px; min-width: 0; }
+.rs-form > p, .rs-preview > p { margin: 0; }
+.rs-form .ai-off { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); background: var(--surface-2); color: var(--fg); font-size: 13px; }
+.rs-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px 12px; align-items: start; }
+.rs-fields .field { margin: 0; }
+.rs-note { font-size: var(--fs-xs); }
+.rs-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+.rs-box { padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); font-size: 13px; line-height: 1.5; }
+.rs-box.warn { box-shadow: inset 3px 0 0 var(--warn); }
+.rs-box b { display: inline-flex; gap: 6px; align-items: center; }
+.rs-box summary { cursor: pointer; font-weight: 600; }
+.rs-box ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 2px; }
+.rs-preview:focus { outline: none; }
+.rs-preview .tablewrap { border: 1px solid var(--line); border-radius: var(--r-md); }
+.rs-table .roster-cell.rs-changed { border: 1px solid var(--accent); }
