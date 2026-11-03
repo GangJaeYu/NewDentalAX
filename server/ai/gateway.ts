@@ -15,6 +15,7 @@ import { AI_FEATURES, AI_TIERS, featureTimeoutMs, isAiFeatureId, type AiFeatureD
 import { featureModule } from './features/index.ts';
 import type { AiFeatureModule, BuiltPrompt, PromptContext } from './features/types.ts';
 import { makeProvider } from './providers/index.ts';
+import { geminiTranscribe, openaiTranscribe, type AudioRequest, type AudioResult } from './providers/audio.ts';
 import { demoStream } from './providers/demo.ts';
 import { activeModel, costKrw, costUsd, estimateTokens, type AiModel } from './pricing.ts';
 import { assertBudget, warnIfNearBudget } from './budget.ts';
@@ -523,4 +524,26 @@ export async function testProvider(
     });
     return { ok: false, code: err.code, message: err.message };
   }
+}
+
+// ---- 녹음 받아쓰기(phase-06-task-03) ----
+
+export type { AudioRequest, AudioResult } from './providers/audio.ts';
+
+/**
+ * 녹음 받아쓰기 공급자 호출(server/ai/transcribe.ts가 부른다). 공급자 호출은 이 게이트웨이만 한다는 규칙(phase-05-task-02 점검)을 지키려고 여기 둔다.
+ * 녹음과 함께 보내는 글(안내·맥락)은 다른 기능과 같은 개인정보 검사를 거친다(차단이면 422, 가리기면 가린 글을 보냄).
+ * 녹음 자체는 글이 아니라 검사할 수 없으므로, 화면 경고와 "환자 이야기 없음" 확인 체크로 막고, 받아쓴 글은 transcribe.ts가 모두 가린다.
+ */
+export async function callAudioProvider(ctx: Pick<AiCallContext, 'db' | 'dataDir' | 'options'>, provider: 'openai' | 'gemini', req: AudioRequest): Promise<AudioResult> {
+  const scan = filterTexts([req.system, req.user, req.context], readPrivacyForAi(ctx.db));
+  if (scan.blocked) {
+    throw new AppError('AI_PII_BLOCKED', { message: blockedMessage(scan.blockedTypes), extra: { findings: scan.findings, blockedTypes: scan.blockedTypes } });
+  }
+  const [system = '', user = '', context = ''] = scan.redactedTexts;
+  const apiKey = apiKeyFor(ctx.dataDir, readAiSettings(ctx.db), provider);
+  if (!apiKey) throw new AppError('AI_DISABLED', { message: 'AI 키가 저장되지 않았습니다. 관리자에게 AI 설정 확인을 요청하세요.' });
+  const cfg = { apiKey, baseUrl: ctx.options.baseUrls?.[provider] ?? DEFAULT_BASE_URLS[provider] };
+  const r = { ...req, system, user, context };
+  return provider === 'openai' ? openaiTranscribe(cfg, r) : geminiTranscribe(cfg, r);
 }

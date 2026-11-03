@@ -58,10 +58,13 @@ export const API_RULES: readonly ApiRule[] = [
   r('DELETE', '/kb/docs/:id', 'kb.manage'),
   r('POST', '/kb/docs/:id/confirm-redact', 'kb.manage'),
   r('POST', '/assistant/ask', 'ai.assistant'),
+  r('POST', '/ai/transcribe', 'ai.minutes'), // phase-06-task-03 회의 녹음 받아쓰기(회의록 요약과 같은 권한)
   // §3.7 hr
   r('PUT', '/roster/cell', 'roster.edit'),
   r('POST', '/roster/copy-week', 'roster.edit'),
   r('PUT', '/shift-types', 'roster.edit'),
+  r('POST', '/roster/suggest', 'roster.edit'), // phase-06-task-02 AI 근무표 배정 제안
+  r('POST', '/roster/apply', 'roster.edit'),
   r('POST', '/leave/:id/decide', 'leave.approve'),
   r('PUT', '/leave/allowances', 'leave.allowance.edit'),
   r('POST', '/onboarding/templates', 'onboarding.manage'),

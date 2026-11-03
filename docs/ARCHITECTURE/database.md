@@ -37,7 +37,7 @@
 | 테이블 | 열 | 비고 |
 |---|---|---|
 | `vendors` | `name UNIQUE`, `contact_name`, `phone`, `email`, `order_method`, `memo`, `active` | 사업자 정보다. AI 입력에 넣지 않는다 |
-| `items` | `name`, `category`, `unit`, `par_level REAL`, `track_expiry`, `default_vendor_id→vendors`, `location`, `memo`, `active`, `created_at`, `updated_at` | 인덱스 `(active, category)`, `(name)` |
+| `items` | `name`, `category`, `unit`, `par_level REAL`, `track_expiry`, `default_vendor_id→vendors`, `location`, `memo`, `active`, `created_at`, `updated_at`, `barcode TEXT NULL`(022, P2) | 인덱스 `(active, category)`, `(name)`, 부분 고유 `(barcode) WHERE barcode IS NOT NULL` |
 | `stock_moves` | `item_id→items`, `type CHECK(in/out/adjust)`, `qty REAL`, `unit_price REAL NULL`, `vendor_id NULL`, `lot`, `expiry_on NULL`, `reason`, `order_id NULL→purchase_orders`, `moved_at`, `user_id` | `qty`는 in/out에서 양수이고 adjust에서만 부호가 있다. 인덱스 `(item_id, moved_at)`, `(type, item_id, vendor_id, moved_at)`(단가 추이) |
 | `purchase_orders` | `po_no UNIQUE`(`PO-YYMM-NNN`), `vendor_id`, `status CHECK(draft/ordered/received/canceled)`, `note`, `created_by`, `created_at`, `ordered_at`, `received_at` | |
 | `po_lines` | `po_id→purchase_orders`, `item_id`, `qty`, `unit_price` | `unit_price`는 만들 때의 최근 단가 |

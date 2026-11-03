@@ -40,11 +40,12 @@ const SAMPLE: Record<string, unknown> = {
   receipt: { images: [{ mime: 'image/jpeg', data: 'AAAA' }] },
   monthly_summary: { month: '2026-10', numbers: { 지출: 1000 } },
   roster_suggest: { week: { from: '2026-11-02', to: '2026-11-08' }, days: [{ date: '2026-11-02', weekday: '월', open: '09:30', close: '18:30' }], staff: [{ ref: 'S1', jobType: 'desk' }], shifts: [{ id: 1, label: '종일', startTime: '09:30', endTime: '18:30', countsAsWork: true }], rules: { minStaff: 1 } },
+  transcribe: { audio: Buffer.from('ftyp'), mime: 'audio/m4a', name: 'meeting.m4a' },
 };
 
 describe('phase-02-task-02 기능 목록', () => {
   test('phase-02-task-02 AC1: 14개 기능이 모두 등록되고, 데모 응답은 "[데모 응답]"으로 시작하며 JSON 기능의 데모는 검사를 통과한다', () => {
-    expect(AI_FEATURE_IDS).toHaveLength(15); // 02-02의 14개 + roster_suggest(phase-06-task-02)
+    expect(AI_FEATURE_IDS).toHaveLength(16); // 02-02의 14개 + roster_suggest(phase-06-task-02) + transcribe(phase-06-task-03)
     expect(Object.keys(FEATURE_MODULES).sort()).toEqual([...AI_FEATURE_IDS].sort());
     for (const id of AI_FEATURE_IDS) {
       const def = AI_FEATURES[id];

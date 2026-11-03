@@ -1,0 +1,13 @@
+/* 이 파일이 하는 일: 회의록 화면의 "녹음 파일로 받아쓰기" 카드 모양(phase-06-task-03). 색은 디자인 토큰(청록 A)만 쓰고, 좁은 화면에서도 가로로 넘치지 않게 한다. */
+.mr-pad { display: grid; gap: 12px; min-width: 0; }
+.mr-warn, .mr-off, .mr-done, .mr-mask { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: var(--r-md); font-size: 13px; line-height: 1.45; min-width: 0; }
+.mr-warn { background: var(--danger-weak); color: var(--danger); font-weight: 600; }
+.mr-off { background: var(--surface-2); color: var(--fg); }
+.mr-done { background: var(--ok-weak); color: var(--fg); }
+.mr-mask { background: var(--warn-weak); color: var(--warn); font-weight: 600; }
+.mr-warn .i, .mr-off .i, .mr-done .i, .mr-mask .i { margin-top: 1px; flex: none; }
+.mr-warn span, .mr-off span, .mr-done span, .mr-mask span { min-width: 0; overflow-wrap: anywhere; }
+.mr-picked { margin: 0; display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: var(--fs-small); min-width: 0; }
+.mr-picked span { min-width: 0; overflow-wrap: anywhere; }
+.mr-hint { margin: 0; color: var(--muted); font-size: var(--fs-small); }
+.mr-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }

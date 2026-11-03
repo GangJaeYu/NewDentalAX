@@ -320,7 +320,8 @@ describe('phase-05-task-02 AI 개인정보 필터 우회', { timeout: SWEEP_TIME
   });
 
   test('phase-05-task-02 점검(개인정보 필터): 글을 받는 13개 AI 기능 모두(/api/ai/run·/api/ai/stream)에서 주민번호가 든 입력은 422 AI_PII_BLOCKED이고 가짜 공급자에게 요청이 하나도 가지 않는다', async () => {
-    const ids = (Object.keys(AI_FEATURES) as AiFeatureId[]).filter((id) => !AI_FEATURES[id].images);
+    // 사진 기능(receipt)과 녹음 기능(transcribe, phase-06-task-03)은 글을 받지 않아 아래 녹음 시험에서 따로 본다
+    const ids = (Object.keys(AI_FEATURES) as AiFeatureId[]).filter((id) => !AI_FEATURES[id].images && !AI_FEATURES[id].audio);
     // 02-02의 13개 + roster_suggest(phase-06-task-02). roster_suggest는 서버가 만드는 고정 형식 입력(S1 번호·날짜·시각 패턴, 글 칸 10자 이하)이라
     // 주민번호가 든 글은 형식 검사(400 VALIDATION)에서 먼저 막힌다. 어느 쪽이든 공급자에게는 요청이 가지 않아야 한다(아래 fake.requests 0건)
     const FIXED_FORMAT: readonly AiFeatureId[] = ['roster_suggest'];
@@ -336,6 +337,17 @@ describe('phase-05-task-02 AI 개인정보 필터 우회', { timeout: SWEEP_TIME
       }
     }
     expect(wrong).toEqual([]);
+    expect(env.fake.requests).toHaveLength(0);
+  });
+
+  test('phase-06-task-03 점검(개인정보 필터): 녹음 기능은 /api/ai/run·/api/ai/stream(JSON 글)으로 부를 수 없고 공급자에게 요청이 가지 않는다', async () => {
+    const audioIds = (Object.keys(AI_FEATURES) as AiFeatureId[]).filter((id) => AI_FEATURES[id].audio);
+    expect(audioIds).toEqual(['transcribe']);
+    for (const url of ['/api/ai/run', '/api/ai/stream']) {
+      const res = await env.app.inject({ method: 'POST', url, headers: env.admin.writeHeaders, payload: { feature: 'transcribe', input: { audio: RRN_TEXT, mime: 'audio/m4a', name: RRN_TEXT } } });
+      expect(res.statusCode, `${url} ${res.body}`).toBe(400);
+      expect(res.body).not.toContain('900101');
+    }
     expect(env.fake.requests).toHaveLength(0);
   });
 
