@@ -1,7 +1,7 @@
 # Gate 3 — e2e (실제 브라우저 흐름)
 
 - **대상·근거**: 화면이 있는 모든 수용 기준, 실패 흐름(권한 거부, 입력 오류, 개인정보 경고, 예산 초과, 연결 끊김), 저장 → 새로고침 → 다시 조회, 인쇄 PDF, 접근성(NFR-007), 반응형(NFR-006)
-- **명령**: `node harness_setup/scripts/gate.mjs e2e <태스크ID>` (내부에서 `npm run test:e2e` = `playwright test`)
+- **명령**: `node harness_setup/scripts/gate.mjs e2e <태스크ID>` (내부에서 `npm run test:e2e` = `playwright test --config config/playwright.config.ts`. 파일 하나만 돌릴 때도 `--config config/playwright.config.ts`를 붙인다)
 - **관찰 수단**
   - 브라우저: 설치된 Microsoft Edge를 `@playwright/test`의 `channel: 'msedge'`, headless로 쓴다.
     - 2026-11-02 실험으로 확인했다: playwright-core 1.49.1 + Edge로 8장을 촬영했고, 가로 스크롤 판정과 `document.fonts.check`가 동작했다.

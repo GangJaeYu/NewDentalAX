@@ -42,7 +42,7 @@ function tscStep(project: string): StepResult {
 /** ESLint 단계: Node API로 실행해서 검사한 파일 수를 정확히 센다(쓰기 옵션 없음) */
 async function eslintStep(): Promise<StepResult> {
   const { ESLint } = await import('eslint');
-  const eslint = new ESLint({ cwd: ROOT, fix: false, errorOnUnmatchedPattern: false });
+  const eslint = new ESLint({ cwd: ROOT, overrideConfigFile: path.join(ROOT, 'config', 'eslint.config.js'), fix: false, errorOnUnmatchedPattern: false });
   const results = await eslint.lintFiles(['.']);
   const formatter = await eslint.loadFormatter('stylish');
   const text = await formatter.format(results);
@@ -79,7 +79,7 @@ type Step = (typeof ALL)[number];
 async function run(step: Step): Promise<StepResult> {
   switch (step) {
     case 'tsc-server':
-      return tscStep('tsconfig.server.json');
+      return tscStep(path.join('config', 'tsconfig.server.json'));
     case 'tsc-web':
       return tscStep(path.join('web', 'tsconfig.json'));
     case 'eslint':

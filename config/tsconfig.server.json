@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"]
+  },
+  "include": ["../server", "../shared", "../scripts", "../tests", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+  "exclude": ["../node_modules", "../web", "../tests/fixtures"]
+}

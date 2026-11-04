@@ -341,6 +341,7 @@
 | `start.bat`, `stop.bat` | 서버 켜기·끄기(실제 순서는 `scripts\windows\start-main.cmd`, `stop-main.cmd`) |
 | `data\` | **실제 데이터**(DB `app.db`, 올린 파일, 설정 `config.json`, 기록 `logs\`). git에 올리지 않습니다 |
 | `backups\` | 자동·수동 백업 |
+| `config\` | 개발 도구 설정(화면 빌드 `vite`, 테스트 `vitest`·`playwright`, 코드 검사 `eslint`, 타입 검사 `tsconfig`). 평소에는 열 일이 없습니다 |
 | `server\main.ts` | 서버 시작, 시작 안내 문구 |
 | `server\modules\<기능>\` | 기능별 서버 처리(아래 표) |
 | `server\ai\` | AI 연결(공급자별 `providers\`), 비용 계산 `pricing.ts`, 예산 `budget.ts` |

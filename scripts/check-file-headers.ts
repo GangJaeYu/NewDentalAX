@@ -8,7 +8,7 @@ import path from 'node:path';
 export const HEADER_DIRS = ['server', 'web/src', 'shared', 'scripts', 'tests'];
 /** 폴더 밖에서 따로 검사하는 루트 파일(없으면 건너뜀) */
 export const HEADER_ROOT_FILES = [
-  'vite.config.ts', 'vitest.config.ts', 'playwright.config.ts', 'eslint.config.js',
+  'config/vite.config.ts', 'config/vitest.config.ts', 'config/playwright.config.ts', 'config/eslint.config.js',
   'web/index.html', 'start.bat', 'stop.bat',
 ];
 /** 소스 파일로 보는 확장자 */

@@ -10,10 +10,10 @@
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning server/main.ts",
     "dev": "node scripts/dev.ts",
-    "build:web": "vite build",
+    "build:web": "vite build --config config/vite.config.ts",
     "lint": "node scripts/lint.ts",
-    "test:unit": "vitest run --no-color",
-    "test:e2e": "npm run build:web && playwright test",
+    "test:unit": "vitest run --config config/vitest.config.ts --no-color",
+    "test:e2e": "npm run build:web && playwright test --config config/playwright.config.ts",
     "screenshots": "npm run build:web && node scripts/screenshots.ts",
     "perf": "node scripts/perf.ts",
     "validate": "node harness_setup/scripts/task-brief.mjs",

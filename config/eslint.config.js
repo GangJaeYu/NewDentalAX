@@ -28,6 +28,7 @@ const restrictedSyntax = [
   },
 ];
 
+// 설정 파일은 config/에 두고 scripts/lint.ts가 overrideConfigFile로 지정한다. 이때 아래 경로 패턴은 실행 폴더(프로젝트 폴더) 기준이다
 export default defineConfig(
   globalIgnores([
     'node_modules/**', 'web/dist/**', 'artifacts/**', 'test-results/**', 'playwright-report/**',

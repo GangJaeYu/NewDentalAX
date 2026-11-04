@@ -7,7 +7,7 @@
 
     | 단계 | 내용 | 활성 시점 |
     |---|---|---|
-    | `tsc-server` | `tsc --noEmit -p tsconfig.server.json` | 01-01 |
+    | `tsc-server` | `tsc --noEmit -p config/tsconfig.server.json` | 01-01 |
     | `tsc-web` | `tsc --noEmit -p web/tsconfig.json` | 01-01 |
     | `eslint` | `eslint .`(쓰기 옵션 없음). 규칙: typescript-eslint 권장, react-hooks, `react/no-danger`, `no-restricted-syntax`(`.only`·`.skip` 금지) | 01-01 |
     | `headers` | `scripts/check-file-headers.ts`(모든 소스의 첫 5줄 안에 "이 파일이 하는 일") | 01-01 |

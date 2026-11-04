@@ -1,7 +1,7 @@
 # Gate 2 — unit (기능·계약)
 
 - **대상·근거**: 서버 service·route 계약(backend.md), DB 계산 규칙(database.md), 개인정보 필터(FR-032 AC6), AI 게이트웨이(가짜 공급자), 날짜 계산, 권한 표(FR-003 AC1), 스키마 개인정보 검사(NFR-001), 화면 순수 로직
-- **명령**: `node harness_setup/scripts/gate.mjs unit <태스크ID>` (내부에서 `npm run test:unit` = `vitest run`)
+- **명령**: `node harness_setup/scripts/gate.mjs unit <태스크ID>` (내부에서 `npm run test:unit` = `vitest run --config config/vitest.config.ts`. 파일 하나만 돌릴 때도 `--config config/vitest.config.ts`를 붙인다)
 - **실행 전제**
   - 테스트마다 임시 DATA_DIR을 쓰고, 실제 `data/` 폴더를 건드리지 않는다.
   - 시간은 주입 clock을 쓴다.

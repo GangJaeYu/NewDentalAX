@@ -23,4 +23,4 @@ function stopAll(): void {
 
 process.on('SIGINT', stopAll);
 start(['--disable-warning=ExperimentalWarning', '--watch-path=server', '--watch-path=shared', 'server/main.ts']);
-start([path.join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js')]);
+start([path.join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), '--config', path.join('config', 'vite.config.ts')]);
