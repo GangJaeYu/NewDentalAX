@@ -1,0 +1,1 @@
+var e=[`hygienist`,`assistant`,`desk`,`doctor`,`other`],t={hygienist:`치과위생사`,assistant:`간호조무사`,desk:`데스크`,doctor:`의사`,other:`기타`},n=[`admin`,`manager`,`staff`],r={admin:`원장·관리자`,manager:`실장`,staff:`직원`};export{n as i,t as n,r,e as t};
