@@ -56,6 +56,8 @@ try {
       setupDone = true;
     }
     const ctx = await browser.newContext({ viewport: { width: s.width, height: s.height }, colorScheme: 'light', locale: 'ko-KR', timezoneId: 'Asia/Seoul' });
+    // 화면 속 날짜(문서 미리보기 등)가 데모 서버의 고정 시각과 같도록 브라우저 시계도 고정한다
+    await ctx.clock.setFixedTime(new Date(process.env.TEST_NOW || '2026-11-02T09:00:00+09:00'));
     if (s.state === 'user') {
       const r = await ctx.request.post(`${BASE}/api/auth/login`, { data: { username: ADMIN.username, password: ADMIN.password } });
       if (r.status() !== 200) throw new Error(`README 촬영용 로그인 실패: ${r.status()}`);

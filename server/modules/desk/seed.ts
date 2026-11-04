@@ -16,7 +16,7 @@ export const DEMO_NOTICES: ReadonlyArray<{ category: string; title: string; body
   {
     category: '감염관리',
     title: '11월 원내 감염관리 교육 일정 안내',
-    body: '11월 13일(목) 점심시간 13:10~13:50에 상담실에서 감염관리 교육이 있어요.\n교육 자료는 원내 매뉴얼 "감염관리 기본"을 미리 읽어 와 주세요.',
+    body: '11월 12일(목) 점심시간 13:10~13:50에 상담실에서 감염관리 교육이 있어요.\n교육 자료는 원내 매뉴얼 "감염관리 기본"을 미리 읽어 와 주세요.',
     pinned: true,
     daysAgo: 1,
     hour: 18,

@@ -109,7 +109,7 @@ test.describe.serial('공지·인수인계 보드', () => {
     const dialog = page.getByRole('dialog', { name: '공지 쓰기' });
     await dialog.getByLabel('분류').selectOption('감염관리');
     await dialog.getByLabel('제목').fill(NOTICE_TITLE);
-    await dialog.getByLabel('내용').fill('11월 13일(목) 13:10 상담실에서 교육이 있어요.\n자료를 미리 읽어 와 주세요.');
+    await dialog.getByLabel('내용').fill('11월 12일(목) 13:10 상담실에서 교육이 있어요.\n자료를 미리 읽어 와 주세요.');
     await dialog.getByText('맨 위에 고정').click();
     await dialog.getByRole('button', { name: '올리기' }).click();
     await expect(page.getByText('공지를 올렸어요. 모든 직원에게 알림이 갔어요.')).toBeVisible();

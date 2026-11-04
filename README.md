@@ -1,4 +1,4 @@
-# DentalAX — 치과 원내 업무 AX 웹 서비스 (플러그인 하네스·루프판)
+# DentalAX — 치과 원내 AX 웹 서비스 (플러그인 하네스·루프판)
 
 > 코딩을 모르는 치과의사가 **Claude Code + `harness_loop_fullstack_kor` 플러그인**으로 만든 원내 업무 웹 서비스입니다.
 > 단일 프롬프트판([GangJaeYu/DentalAX](https://github.com/GangJaeYu/DentalAX))과 **같은 요구서**에서 출발했습니다. 이 판은 요구 정의 → 기술·설계 → 태스크 계획 → 검증 하네스 → 구현 루프를 거쳤습니다.

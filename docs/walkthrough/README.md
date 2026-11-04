@@ -1,10 +1,10 @@
 # 화면으로 보는 사용 흐름
 
-하늘숲치과 원내 업무 서비스를 처음 켜는 순간부터 재고·문서·AI·근무·시설·관리 화면까지, 실제로 누르는 순서대로 보여 드립니다.
+치과 원내 AX 서비스(가상의 하늘숲치과 데모 데이터)를 처음 켜는 순간부터 재고·문서·AI·근무·시설·관리 화면까지, 실제로 누르는 순서대로 보여 드립니다.
 
 [![시연 영상 보기](demo-poster.png)](dentalax-demo.mp4)
 
-▶ **[시연 영상 보기 (dentalax-demo.mp4, 약 4분 59초)](dentalax-demo.mp4)** — 음성 없이 자막으로 따라가는 영상입니다. 자막 파일 [dentalax-demo.srt](dentalax-demo.srt) · 자막 대본 [narration.md](narration.md)
+▶ **[시연 영상 보기 (dentalax-demo.mp4, 약 5분 1초)](dentalax-demo.mp4)** — 음성 없이 자막으로 따라가는 영상입니다. 자막 파일 [dentalax-demo.srt](dentalax-demo.srt) · 자막 대본 [narration.md](narration.md)
 
 > 그림을 누르면 영상 파일이 열립니다. GitHub에서 바로 재생되지 않으면 "Download"(내려받기)를 눌러 주세요.
 

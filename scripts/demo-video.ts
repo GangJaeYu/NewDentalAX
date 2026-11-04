@@ -97,9 +97,8 @@ const OVERLAY_SCRIPT = String.raw`(() => {
   function place() { if (cur) cur.style.transform = 'translate(' + (cx - 4) + 'px,' + (cy - 2) + 'px)'; }
   function render() {
     if (!root) return;
-    const now = Date.now();
-    let text = '';
-    for (const c of st.caps || []) if (c.t0 <= now) text = c.text;
+    // 자막 글은 녹화 스크립트(Node)가 정해진 시각에 넣는다(페이지 시계는 데모 날짜로 고정돼 흐르지 않음)
+    const text = st.cap || '';
     cap.style.display = text ? 'block' : 'none';
     if (cap.textContent !== text) cap.textContent = text;
     step.style.display = st.step ? 'block' : 'none';
@@ -307,6 +306,8 @@ for (const f of fs.readdirSync(TMP)) if (/^(run|video)-\d+$/.test(f)) fs.rmSync(
 const releaseSlot = await acquireHeavySlot('demo-video');
 const PORT = await pickPort();
 const BASE = `http://localhost:${PORT}`;
+/** 데모 서버(scripts/e2e-server.ts)의 고정 시각과 같은 값 */
+const DEMO_NOW = process.env.TEST_NOW || '2026-11-02T09:00:00+09:00';
 const stamp = Date.now();
 const DATA_DIR = path.join(TMP, `run-${stamp}`);
 const RAW = path.join(TMP, `video-${stamp}`, 'raw.mkv');
@@ -343,6 +344,8 @@ try {
     // 제품의 CSP(style-src 'self')가 녹화용 덧씌움의 <style>을 막으므로, 녹화용 브라우저에서만 CSP를 건너뛴다(제품 설정은 그대로)
     bypassCSP: true,
   });
+  // 화면 속 날짜(문서 미리보기 등)가 서버의 데모 날짜와 같도록 브라우저 시계도 고정한다(타이머는 그대로 흐른다)
+  await ctx.clock.setFixedTime(new Date(DEMO_NOW));
   await ctx.addInitScript(OVERLAY_SCRIPT);
   const page = await ctx.newPage();
   let t0 = Date.now();
@@ -432,6 +435,7 @@ try {
     shot,
     async showPhones(paths) {
       const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR', timezoneId: 'Asia/Seoul', colorScheme: 'light' });
+      await phone.clock.setFixedTime(new Date(DEMO_NOW));
       await phone.addCookies(await ctx.cookies());
       const urls: string[] = [];
       for (const [i, p] of paths.entries()) {
@@ -479,7 +483,8 @@ try {
     const start = Date.now();
     const capAt = start + LEAD; // 첫 자막이 뜨는 시각
     await api.clear();
-    await api.set({ step: `단계 ${n}/${scenes.length} · ${scene.title}`, caps: plan.lines.map((l) => ({ t0: capAt + l.off, text: l.text })) });
+    await api.set({ step: `단계 ${n}/${scenes.length} · ${scene.title}`, cap: '' });
+    const capTimers = plan.lines.map((l) => setTimeout(() => void api.set({ cap: l.text }), Math.max(0, capAt + l.off - Date.now())));
     console.log(`[demo-video] ${pad2(n)} ${scene.title}`);
     try {
       await scene.run(demo);
@@ -495,6 +500,7 @@ try {
       const minEnd = capAt + plan.total + TAIL;
       if (Date.now() < minEnd) await sleep(minEnd - Date.now());
     }
+    for (const t of capTimers) clearTimeout(t);
     if (!shotTaken) await shot().catch((e: Error) => problems.push(`${pad2(n)} 그림 저장 실패: ${e.message}`));
     timeline.push({ scene, index: n, start: start - t0, end: Date.now() - t0, capAt: capAt - t0, plan, image: currentShot });
   }
@@ -581,7 +587,7 @@ try {
   const md: string[] = [
     '# 화면으로 보는 사용 흐름',
     '',
-    '하늘숲치과 원내 업무 서비스를 처음 켜는 순간부터 재고·문서·AI·근무·시설·관리 화면까지, 실제로 누르는 순서대로 보여 드립니다.',
+    '치과 원내 AX 서비스(가상의 하늘숲치과 데모 데이터)를 처음 켜는 순간부터 재고·문서·AI·근무·시설·관리 화면까지, 실제로 누르는 순서대로 보여 드립니다.',
     '',
     '[![시연 영상 보기](demo-poster.png)](dentalax-demo.mp4)',
     '',

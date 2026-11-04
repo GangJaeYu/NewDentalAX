@@ -255,7 +255,8 @@ export const scenes: DemoScene[] = [
       await d.click(p.getByRole('button', { name: 'AI로 읽기' }));
       await d.see(p.getByRole('heading', { name: '2. 읽은 내용 확인·수정' }), 20000);
       await d.dwell(800);
-      await d.scrollTo(p.getByTestId('receipt-line-0'));
+      // 카드 제목이 잘리지 않게 제목 기준으로 굴린다
+      await d.scrollTo(p.getByRole('heading', { name: '2. 읽은 내용 확인·수정' }));
       await d.dwell(1500);
     },
   },
@@ -277,6 +278,8 @@ export const scenes: DemoScene[] = [
       await d.click(panel.getByRole('button', { name: '초안 만들기' }));
       await d.see(p.getByRole('article', { name: '문서 미리보기' }), 20000);
       await d.see(panel.getByTestId('ai-cost'), 20000);
+      // 초안이 나온 뒤 화면 제목이 잘리지 않게 맨 위로
+      await d.scrollTo(p.getByRole('heading', { level: 1, name: 'AI 문서 작성' }));
       await d.dwell(1500);
     },
   },
@@ -468,6 +471,10 @@ export const scenes: DemoScene[] = [
       await d.nav('운영 지표', '지출 기록', '지출 기록');
       await d.dwell(2000);
       await d.nav('운영 지표', '월간 요약', '월간 요약');
+      await d.dwell(1500);
+      // 데모 날짜(11/2)는 달 초라 이번 달 기록이 거의 없으므로, 지난달(10월)로 넘겨 한 달 전체 모습을 보여 준다
+      await d.click(d.page.getByRole('button', { name: '이전 달' }));
+      await d.see(d.page.getByText('2026년 10월 지출 합계'));
       await d.dwell(2000);
     },
   },
@@ -539,7 +546,7 @@ export const scenes: DemoScene[] = [
   {
     slug: 'dark-mode',
     title: '어둡게 보기',
-    say: ['오른쪽 위 버튼으로 어둡게 보기를 켤 수 있습니다.', '이상으로 하늘숲치과 원내 업무 서비스의 사용 흐름을 살펴보았습니다. 감사합니다.'],
+    say: ['오른쪽 위 버튼으로 어둡게 보기를 켤 수 있습니다.', '이상으로 치과 원내 AX 서비스의 사용 흐름을 살펴보았습니다. 감사합니다.'],
     doc: [
       '**누가·언제**: 누구나 눈이 편한 쪽을 고릅니다(기기마다 따로 기억합니다).',
       '오른쪽 위 달 모양 버튼("어둡게 보기")을 누르면 어두운 화면으로, 해 모양 버튼("밝게 보기")을 누르면 밝은 화면으로 바뀝니다.',
@@ -551,7 +558,7 @@ export const scenes: DemoScene[] = [
       await d.click(p.getByRole('button', { name: '어둡게 보기' }));
       await d.dwell(2500);
       await d.shot();
-      await d.endCard('하늘숲치과 원내 업무', '화면으로 보는 사용 흐름 · 가상 데모 데이터');
+      await d.endCard('치과 원내 AX', '화면으로 보는 사용 흐름 · 가상 하늘숲치과 데모 데이터');
       await d.dwell(3000);
     },
   },
