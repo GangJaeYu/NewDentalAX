@@ -15,6 +15,7 @@
     "test:unit": "vitest run --config config/vitest.config.ts --no-color",
     "test:e2e": "npm run build:web && playwright test --config config/playwright.config.ts",
     "screenshots": "npm run build:web && node scripts/screenshots.ts",
+    "demo-site": "npm run build:web && node scripts/demo-site.ts",
     "perf": "node scripts/perf.ts",
     "validate": "node harness_setup/scripts/task-brief.mjs",
     "kb-eval": "node --disable-warning=ExperimentalWarning scripts/kb-eval.ts"

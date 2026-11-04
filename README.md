@@ -6,9 +6,11 @@
 >
 > ℹ️ **예시 코드로 공개합니다.** 플러그인으로 만든 결과물을 보여 주는 참고용 저장소입니다. 실제 AI 키 연결과 실제 병원 사용은 확인하지 않았습니다(가상 데이터·데모 응답으로 검증). 쓰실 때는 각자 확인하고 책임지고 써 주세요.
 
+> 👀 **[설치 없이 체험해 보기](https://gangjaeyu.github.io/NewDentalAX/)** — 가입·설치 없이 브라우저에서 바로 둘러보는 구경용 체험판입니다(가상 하늘숲치과 데이터, 저장·변경은 되지 않고 AI 결과는 미리 받아 둔 예시).
+
 ![대시보드](docs/images/dashboard.png)
 
-**🧩 [사용한 플러그인](https://github.com/GangJaeYu/harness_loop_full_korean)** · **📖 [화면으로 보는 사용 흐름](docs/walkthrough/README.md)** · **🎬 [시연 영상 (약 5분, 자막)](docs/walkthrough/dentalax-demo.mp4)** · **🛠 [만든 과정](docs/BUILD_STORY.md)** · **⚖️ [단일 프롬프트와 비교](docs/COMPARISON.md)** · **🧾 [입력한 프롬프트](docs/prompts/prompt.md)** · **📘 [설치·사용 안내서](docs/GUIDE.md)**
+**👀 [체험판](https://gangjaeyu.github.io/NewDentalAX/)** · **🧩 [사용한 플러그인](https://github.com/GangJaeYu/harness_loop_full_korean)** · **📖 [화면으로 보는 사용 흐름](docs/walkthrough/README.md)** · **🎬 [시연 영상 (약 5분, 자막)](docs/walkthrough/dentalax-demo.mp4)** · **🛠 [만든 과정](docs/BUILD_STORY.md)** · **⚖️ [단일 프롬프트와 비교](docs/COMPARISON.md)** · **🧾 [입력한 프롬프트](docs/prompts/prompt.md)** · **📘 [설치·사용 안내서](docs/GUIDE.md)**
 
 ---
 

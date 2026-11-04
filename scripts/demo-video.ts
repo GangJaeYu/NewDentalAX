@@ -2,6 +2,7 @@
 // 임시 서버(scripts/e2e-server.ts, 포트 18310~18319, 데이터 .tmp/demo-video/run-*)를 띄우고, Edge로 첫 설정부터 장면(demo-video-scenes.ts)을 천천히 조작하며 화면 송출을 FFMPEG로 녹화한다.
 // 녹화 화면에만 가짜 커서·클릭 물결·자막 띠·단계 표시를 덧씌운다(제품 코드는 그대로). AI는 키가 없는 데모 모드라 비용 0원, 가상 하늘숲치과 데이터라 환자 정보 없음.
 // 사용법: FFMPEG=<ffmpeg.exe 경로> node scripts/demo-video.ts [--fast]   (--fast는 녹화 없이 선택자만 빠르게 확인, 그림은 .tmp/demo-video/fast-shots)
+// --record-dir=<폴더>를 주면(scripts/demo-site.ts가 씀) 화면이 주고받은 /api 응답을 <폴더>/walkthrough.jsonl에 적고, 끝난 뒤 서버 데이터를 <폴더>/data로 복사해 둔다.
 // 음성은 넣지 않는다(사용자 결정 2026-11-03): 영상에 오디오 트랙이 없고, 장면 길이는 자막을 편하게 읽을 시간(초당 약 5.5글자 + 1.2초)으로 잡는다.
 import fs from 'node:fs';
 import net from 'node:net';
@@ -16,6 +17,7 @@ const TMP = path.join(ROOT, '.tmp', 'demo-video');
 const argv = process.argv.slice(2);
 const FAST = argv.includes('--fast');
 /** 점검용: 앞에서부터 N개 장면만 실행(--until=N, --fast와 함께 쓴다) */
+const RECORD_DIR = argv.find((a) => a.startsWith('--record-dir='))?.slice('--record-dir='.length) ?? '';
 const UNTIL = Number(argv.find((a) => a.startsWith('--until='))?.split('=')[1] ?? scenes.length);
 const OUT = FAST ? path.join(TMP, 'fast-shots') : path.join(ROOT, 'docs', 'walkthrough');
 const IMG = FAST ? OUT : path.join(OUT, 'images');
@@ -347,6 +349,26 @@ try {
   // 화면 속 날짜(문서 미리보기 등)가 서버의 데모 날짜와 같도록 브라우저 시계도 고정한다(타이머는 그대로 흐른다)
   await ctx.clock.setFixedTime(new Date(DEMO_NOW));
   await ctx.addInitScript(OVERLAY_SCRIPT);
+  if (RECORD_DIR) {
+    // 구경용 체험판 녹화: 메인 창이 주고받은 /api 응답을 순서대로 적는다(파일 업로드 본문은 적지 않음)
+    fs.mkdirSync(RECORD_DIR, { recursive: true });
+    const out = path.join(RECORD_DIR, 'walkthrough.jsonl');
+    fs.writeFileSync(out, '');
+    ctx.on('response', (r) => {
+      const u = new URL(r.url());
+      if (!u.pathname.startsWith('/api/')) return;
+      const req = r.request();
+      const ct = req.headers()['content-type'] ?? '';
+      const reqBody = ct.startsWith('application/json') ? (req.postData() ?? '') : '';
+      void r
+        .text()
+        .then((body) => {
+          const line = { m: req.method(), p: u.pathname, q: u.search, reqBody, s: r.status(), t: r.headers()['content-type'] ?? '', b: body };
+          fs.appendFileSync(out, `${JSON.stringify(line)}\n`);
+        })
+        .catch(() => undefined);
+    });
+  }
   const page = await ctx.newPage();
   let t0 = Date.now();
   page.on('pageerror', (e) => pageErrors.push(e.message));
@@ -512,6 +534,7 @@ try {
   server.kill();
   fs.closeSync(log);
   await sleep(500);
+  if (RECORD_DIR) fs.cpSync(DATA_DIR, path.join(RECORD_DIR, 'data'), { recursive: true });
   try {
     fs.rmSync(DATA_DIR, { recursive: true, force: true });
   } catch {
