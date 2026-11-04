@@ -88,7 +88,7 @@ test.describe.serial('휴대폰 홈 화면 추가·390px', () => {
     const href = await page.locator('link[rel="manifest"]').getAttribute('href');
     expect(href).toBe('/manifest.webmanifest');
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', THEME_COLOR);
-    await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute('content', '원내 업무');
+    await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute('content', '원내 AX');
 
     // 브라우저가 실제로 읽은 매니페스트(Chromium 개발 도구 통로)
     const cdp = await ctx.newCDPSession(page);
@@ -106,7 +106,7 @@ test.describe.serial('휴대폰 홈 화면 추가·390px', () => {
       background_color: string;
       icons: { src: string; sizes: string; type: string; purpose?: string }[];
     };
-    expect(m).toMatchObject({ name: '원내 업무', short_name: '원내 업무', start_url: '/', scope: '/', display: 'standalone', lang: 'ko', theme_color: THEME_COLOR });
+    expect(m).toMatchObject({ name: '원내 AX', short_name: '원내 AX', start_url: '/', scope: '/', display: 'standalone', lang: 'ko', theme_color: THEME_COLOR });
     expect(m.background_color).toMatch(/^#[0-9A-Fa-f]{6}$/);
 
     // 매니페스트 응답 자체

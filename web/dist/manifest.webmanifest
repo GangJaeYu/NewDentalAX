@@ -1,6 +1,6 @@
 {
-  "name": "원내 업무",
-  "short_name": "원내 업무",
+  "name": "원내 AX",
+  "short_name": "원내 AX",
   "description": "치과 원내 업무(재고·공지·근무·AI 문서)를 한곳에서",
   "lang": "ko",
   "start_url": "/",

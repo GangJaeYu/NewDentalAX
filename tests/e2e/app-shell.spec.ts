@@ -122,6 +122,8 @@ test.describe.serial('앱 셸·첫 설정·로그인', () => {
       await expect(nav.getByRole('button', { name: g })).toBeVisible();
     }
     await expect(page.getByRole('banner')).toContainText(ADMIN.clinicName);
+    // 브라우저 탭 제목도 입력한 병원 이름을 쓴다(데모 병원 이름 고정 아님)
+    await expect(page).toHaveTitle(`${ADMIN.clinicName} 원내 AX`);
     await expect(page.getByRole('region', { name: '요약 숫자' })).toBeVisible();
     await expect(page.getByRole('region', { name: '오늘 현황' })).toBeVisible();
 

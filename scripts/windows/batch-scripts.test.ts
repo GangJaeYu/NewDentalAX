@@ -188,8 +188,8 @@ describe.runIf(process.platform === 'win32')('start.bat·stop.bat 새 콘솔(코
     expect(startCode).toBe(0);
 
     const startLog = readLog(start.log);
-    expectCleanOutput(startLog, '하늘숲치과 원내 업무 서버를 켜는 중이에요...');
-    expect(startLog).toContain('하늘숲치과 원내 업무 서버가 켜졌어요');
+    expectCleanOutput(startLog, '치과 원내 AX 서버를 켜는 중이에요...');
+    expect(startLog).toContain('치과 원내 AX 서버가 켜졌어요');
     expect(startLog).toContain(`http://localhost:${port}`);
     expect(startLog).toMatch(/이 PC의 원내 IP 주소: \d+\.\d+\.\d+\.\d+/);
     expect(startLog).toContain('stop.bat 요청으로 서버를 껐어요.');
@@ -233,7 +233,7 @@ describe.runIf(process.platform === 'win32')('start.bat·stop.bat 새 콘솔(코
       const text = readLog(run.log);
       expect(code, text).toBe(1);
       expect(readLog(run.cpFile)).toContain('949');
-      expectCleanOutput(text, '하늘숲치과 원내 업무 서버를 켜는 중이에요...');
+      expectCleanOutput(text, '치과 원내 AX 서버를 켜는 중이에요...');
       expect(text).toContain('[원인]');
       expect(text).toContain(`포트 ${port}이(가) 이미 사용 중이에요`);
       expect(text).toContain('[해결 방법]');

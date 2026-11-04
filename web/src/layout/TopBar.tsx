@@ -180,7 +180,7 @@ export function TopBar({ user, clinicName, demoMode, notificationCount, onLogout
           <Icon name="tooth" />
         </span>
         <span className="name">
-          {clinicName ?? '우리 병원'} <small>원내 업무</small>
+          {clinicName ?? '우리 병원'} <small>원내 AX</small>
         </span>
       </Link>
       <MenuSearch user={user} />

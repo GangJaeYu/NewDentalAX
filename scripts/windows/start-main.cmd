@@ -1,15 +1,15 @@
 @echo off
-rem 이 파일이 하는 일: 하늘숲치과 원내 업무 서버를 켜는 실제 순서(start.bat이 코드 페이지를 UTF-8로 바꾼 뒤 부른다). Node 버전 확인 →
+rem 이 파일이 하는 일: 치과 원내 AX 서버를 켜는 실제 순서(start.bat이 코드 페이지를 UTF-8로 바꾼 뒤 부른다). Node 버전 확인 →
 rem 처음이면 패키지 설치 → data 폴더 준비 → 서버 실행·브라우저 열기 → 서버가 비정상 종료되면 5초 뒤 다시 시작(최대 5회).
 rem 직접 실행하지 말고 start.bat을 실행한다. 이 파일 안에서는 chcp로 코드 페이지를 바꾸지 않는다(바꾸면 한국어 줄을 잘못 읽는다).
 setlocal EnableExtensions EnableDelayedExpansion
 rem 프로젝트 폴더(이 파일 기준 두 단계 위)로 이동한다
 for %%i in ("%~dp0..\..") do set "APP_DIR=%%~fi"
 cd /d "!APP_DIR!"
-title 하늘숲치과 원내 업무 서버
+title 치과 원내 AX 서버
 
 echo.
-echo  하늘숲치과 원내 업무 서버를 켜는 중이에요...
+echo  치과 원내 AX 서버를 켜는 중이에요...
 echo.
 
 rem ---- 1. Node.js 확인 ----
