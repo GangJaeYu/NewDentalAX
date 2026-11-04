@@ -18,7 +18,7 @@
 | 도구 | Claude Code |
 | 모델 | **Claude Opus 5.5**(조정자·구현 작업자·검증자 모두) |
 | 입력 | 단일 프롬프트판과 같은 요구서 + "플러그인으로 아이디어부터 진행하자" 한 줄 → [prompts/prompt.md](prompts/prompt.md) |
-| 플러그인 | `harness_loop_fullstack_kor`(아이디어·PRD·TRD·설계·계획·하네스·루프 스킬) |
+| 플러그인 | `harness_loop_fullstack_kor`(아이디어·PRD·TRD·설계·계획·하네스·루프 스킬) → 저장소·설치 방법: [GangJaeYu/harness_loop_full_korean](https://github.com/GangJaeYu/harness_loop_full_korean) |
 | 병렬 실행 | Orca 작업 사본(git worktree)마다 작업자 AI 1명. 구현 최대 4명 + 검증 최대 4명 동시 |
 | 사람의 개입 | 기획 단계 선택 약 20회(선택지 고르기). **루프 중 제품 질문 0회**(중단·재개, PC 부하 알림만) |
 | 작업 PC | Windows 11, Node.js 24 |

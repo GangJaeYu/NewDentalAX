@@ -1,12 +1,12 @@
 # DentalAX — 치과 원내 AX 웹 서비스 (플러그인 하네스·루프판)
 
-> 코딩을 모르는 치과의사가 **Claude Code + `harness_loop_fullstack_kor` 플러그인**으로 만든 원내 업무 웹 서비스입니다.
+> 코딩을 모르는 치과의사가 **Claude Code + `harness_loop_fullstack_kor` 플러그인**([플러그인 저장소](https://github.com/GangJaeYu/harness_loop_full_korean))으로 만든 원내 업무 웹 서비스입니다.
 > 단일 프롬프트판([GangJaeYu/DentalAX](https://github.com/GangJaeYu/DentalAX))과 **같은 요구서**에서 출발했습니다. 이 판은 요구 정의 → 기술·설계 → 태스크 계획 → 검증 하네스 → 구현 루프를 거쳤습니다.
 > 37개 작업은 모두 **구현하지 않은 별도 세션이 독립 검증**한 뒤에만 "완료"로 처리했습니다. 상용 서비스 수준의 품질을 증거로 확인하는 데 초점을 맞췄습니다.
 
 ![대시보드](docs/images/dashboard.png)
 
-**📖 [화면으로 보는 사용 흐름](docs/walkthrough/README.md)** · **🎬 [시연 영상 (약 5분, 자막)](docs/walkthrough/dentalax-demo.mp4)** · **🛠 [만든 과정](docs/BUILD_STORY.md)** · **⚖️ [단일 프롬프트와 비교](docs/COMPARISON.md)** · **🧾 [입력한 프롬프트](docs/prompts/prompt.md)** · **📘 [설치·사용 안내서](docs/GUIDE.md)**
+**🧩 [사용한 플러그인](https://github.com/GangJaeYu/harness_loop_full_korean)** · **📖 [화면으로 보는 사용 흐름](docs/walkthrough/README.md)** · **🎬 [시연 영상 (약 5분, 자막)](docs/walkthrough/dentalax-demo.mp4)** · **🛠 [만든 과정](docs/BUILD_STORY.md)** · **⚖️ [단일 프롬프트와 비교](docs/COMPARISON.md)** · **🧾 [입력한 프롬프트](docs/prompts/prompt.md)** · **📘 [설치·사용 안내서](docs/GUIDE.md)**
 
 ---
 
@@ -26,6 +26,15 @@
    - **다른 세션의 독립 검증**: 통과해야만 "완료"로 처리
    - 불합격이면 고친 뒤 다시 검증
    - 상세 기록 → [BUILD_STORY](docs/BUILD_STORY.md)
+
+> **🧩 이 플러그인으로 직접 만들어 보기** — 플러그인 저장소: **[GangJaeYu/harness_loop_full_korean](https://github.com/GangJaeYu/harness_loop_full_korean)** (Claude Code·Codex, MIT)
+>
+> Claude Code에서 아래 두 줄을 차례로 입력해 설치한 뒤, "이 플러그인으로 아이디어부터 진행하자"처럼 요청하면 됩니다. 자세한 사용법과 Codex 설치는 플러그인 저장소의 README를 보세요.
+>
+> ```text
+> /plugin marketplace add GangJaeYu/harness_loop_full_korean
+> /plugin install harness-loop-fullstack-kor@harness-loop-fullstack-kor
+> ```
 
 | 걸린 시간 | 사람 개입 | 코드(제품) | 자동 테스트 | 독립 검증 |
 |---|---|---|---|---|
