@@ -3,6 +3,8 @@
 > 코딩을 모르는 치과의사가 **Claude Code + `harness_loop_fullstack_kor` 플러그인**([플러그인 저장소](https://github.com/GangJaeYu/harness_loop_full_korean))으로 만든 원내 업무 웹 서비스입니다.
 > 단일 프롬프트판([GangJaeYu/DentalAX](https://github.com/GangJaeYu/DentalAX))과 **같은 요구서**에서 출발했습니다. 이 판은 요구 정의 → 기술·설계 → 태스크 계획 → 검증 하네스 → 구현 루프를 거쳤습니다.
 > 37개 작업은 모두 **구현하지 않은 별도 세션이 독립 검증**한 뒤에만 "완료"로 처리했습니다. 상용 서비스 수준의 품질을 증거로 확인하는 데 초점을 맞췄습니다.
+>
+> ℹ️ **예시 코드로 공개합니다.** 플러그인으로 만든 결과물을 보여 주는 참고용 저장소입니다. 실제 AI 키 연결과 실제 병원 사용은 확인하지 않았습니다(가상 데이터·데모 응답으로 검증). 쓰실 때는 각자 확인하고 책임지고 써 주세요.
 
 ![대시보드](docs/images/dashboard.png)
 
